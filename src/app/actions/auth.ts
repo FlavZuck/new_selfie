@@ -1,8 +1,9 @@
-'use server'
+"use server";
 
 import { SignupFormSchema, FormState } from "@/app/lib/definitions";
 import bcrypt from "bcrypt";
 import { insertDB } from "../lib/mongodb";
+import { findDB } from "../lib/mongodb";
 import { USERS } from "../lib/mongodb";
 
 export async function signup(state: FormState, formData: FormData) {
@@ -21,22 +22,33 @@ export async function signup(state: FormState, formData: FormData) {
   }
   // 2. Prepare data for insertion into database
   const { name, email, password } = validatedFields.data;
-  // e.g. Hash the user's password before storing it
+  // Hash the user's password before storing it
   const hashedPassword = await bcrypt.hash(password, 10);
 
   // 3. Insert the user into the database
+  // Payload to insert into the database
   const payload = {
     name,
     email,
     password: hashedPassword,
   };
 
-  insertDB(USERS, payload);
-  console.log("User inserted into database");
+  // Payload to compare with existing users in the database
+  // Essenzialmente qua diciamo a MongoDB di cercare un documento che abbia lo stesso nome o la stessa email
+  const compare_payload = {
+    $or: [{ name: name }, { email: email }],
+  };
 
+  // Check if user already exists
+  if (findDB(USERS, compare_payload) == null) {
+    // Insert user into database if they don't already exist
+    insertDB(USERS, payload);
+    console.log("User inserted into database");
+  } else {
+    // If user already exists, log a message
+    console.log("User already exists");
+  }
   // TODO:
-  
-  // 3.2 Aggiungere un controllo per verificare se l'utente esiste già
 
   // 4. Create user session
 
