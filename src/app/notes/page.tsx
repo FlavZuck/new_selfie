@@ -1,8 +1,8 @@
 "use client";
 
 import { set } from "mongoose";
-import styles from "./../page.module.css";
 import { useState } from "react";
+import styles from "./../page.module.css";
 
 export default function Notes() {
 	// Logica per la gestione delle note
@@ -36,7 +36,7 @@ export default function Notes() {
 		setCount(count + 1);
 		console.log(notes);
 	}
-	
+
 	return (
 		<div className="Page">
 			<div className="board">

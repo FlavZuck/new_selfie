@@ -1,12 +1,13 @@
-import { MongoClient, WithId, ObjectId} from "mongodb";
+import { MongoClient, ObjectId, WithId } from "mongodb";
 import { User } from "./definitions";
+
 // Nome della collezione per gli utenti
 export const USERS = "users";
 
 // Recupera la stringa di connessione dal file di ambiente
 const DB_URI = process.env.DB_URI as string;
 if (!DB_URI) {
-  throw new Error("Missing or invalid DB_URI environment variable.");
+	throw new Error("Missing or invalid DB_URI environment variable.");
 }
 
 // Crea un'istanza di MongoClient con l'URI specificato
@@ -40,7 +41,10 @@ export async function insertDB(collectionName: string, data: any) {
 }
 
 // Cerca un documento nella collezione usando un filtro e restituisce il risultato (o null)
-export async function findDB<T>(collectionName: string, filter: any): Promise<T | null> {
+export async function findDB<T>(
+	collectionName: string,
+	filter: any
+): Promise<T | null> {
 	const collection = await findCollection(collectionName);
 	const output = await collection.findOne(filter);
 	console.log(output);
@@ -48,7 +52,11 @@ export async function findDB<T>(collectionName: string, filter: any): Promise<T 
 }
 
 // Aggiorna i documenti nella collezione che corrispondono al filtro con i valori specificati
-export async function updateDB(collectionName: string, filter: any, updates: any) {
+export async function updateDB(
+	collectionName: string,
+	filter: any,
+	updates: any
+) {
 	const collection = await findCollection(collectionName);
 	collection.updateMany(filter, { $set: updates });
 }

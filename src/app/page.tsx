@@ -1,11 +1,9 @@
 import Image from "next/image";
-import styles from "./page.module.css";
 import Link from "next/link";
-import { logout, getCurrentUser } from "./actions/auth";
-
+import { getCurrentUser, logout } from "./actions/auth";
+import styles from "./page.module.css";
 
 export default async function Home() {
-
 	const user = await getCurrentUser();
 	return (
 		<div className={styles.page}>
@@ -69,8 +67,8 @@ export default async function Home() {
 				<div>
 					Logged in as {user?.name || "Guest"}
 					<form action={logout}>
-            			<button type="submit">Logout</button>
-          			</form>
+						<button type="submit">Logout</button>
+					</form>
 				</div>
 			</main>
 		</div>
