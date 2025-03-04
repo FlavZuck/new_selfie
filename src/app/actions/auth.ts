@@ -12,6 +12,7 @@ import { USERS } from "../lib/mongodb";
 import { generateSessionToken } from "../lib/session";
 import { User } from "../lib/definitions";
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 
 export async function signup(state: FormState, formData: FormData) {
   // Validate form fields
@@ -32,7 +33,7 @@ export async function signup(state: FormState, formData: FormData) {
   // Hash the user's password before storing it
   const hashedPassword = await bcrypt.hash(password, 10);
 
-  // 3. Insert the user into the database
+  // 3. Prepare for the payload and the comparison payload
   // Payload to insert into the database
   const payload = {
     name,
@@ -47,18 +48,17 @@ export async function signup(state: FormState, formData: FormData) {
     $or: [{ name: name }, { email: email }],
   };
 
-  // Check if user already exists
+  // 4. Check if user already exists and insert
   if ((await findDB(USERS, compare_payload)) == null) {
     // Insert user into database if they don't already exist
     insertDB(USERS, payload);
     console.log("User inserted into database");
+    // 5. Redirect the user to the login page
+    redirect("/login");
   } else {
     // If user already exists, log a message
     console.log("User already exists");
   }
-  // TODO:
-
-  // 4. Redirect user to login page
 }
 
 export async function login(state: FormState, formData: FormData) {
@@ -91,6 +91,7 @@ export async function login(state: FormState, formData: FormData) {
   } else {
     // If user is found
     console.log("User found");
+    // 4. Creation of the session token
     //Compare the password
     if (await bcrypt.compare(password, user.password)) {
       const token = await generateSessionToken(user._id);
@@ -103,6 +104,8 @@ export async function login(state: FormState, formData: FormData) {
         path: "/",
       });
       console.log("Session created");
+      // 5. Redirect the user to the home page
+      redirect("/");
     } else {
       //If the password is incorrect, log a message
       console.log("Incorrect password");
