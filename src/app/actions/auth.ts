@@ -4,13 +4,11 @@ import {
   SignupFormSchema,
   SigninFormSchema,
   FormState,
+  User
 } from "@/app/lib/definitions";
 import bcrypt from "bcrypt";
-import { insertDB } from "../lib/mongodb";
-import { findDB } from "../lib/mongodb";
-import { USERS } from "../lib/mongodb";
-import { generateSessionToken } from "../lib/session";
-import { User } from "../lib/definitions";
+import { insertDB, findDB, USERS, findUserById } from "../lib/mongodb";
+import { generateSessionToken, deleteSession, decrypt } from "../lib/session";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
@@ -58,6 +56,8 @@ export async function signup(state: FormState, formData: FormData) {
   } else {
     // If user already exists, log a message
     console.log("User already exists");
+    return { error: "User already exists" };
+
   }
 }
 
@@ -109,6 +109,38 @@ export async function login(state: FormState, formData: FormData) {
     } else {
       //If the password is incorrect, log a message
       console.log("Incorrect password");
+      return { error: "Incorrect password"};
     }
   }
+}
+
+export default async function isAuthenticated() {
+  const cookiestore = await cookies();
+  const session = cookiestore.get("session")?.value;
+  return (session !== undefined);
+}
+ 
+export async function logout() {
+  const isauth = await isAuthenticated();
+  if (isauth) {
+    console.log("Logging out");
+    await deleteSession()
+    redirect('/login')
+  }
+  else {
+    console.log("User is not logged in")
+    redirect('/login')
+  }
+}
+
+export async function getCurrentUser() {
+  const cookieStore = await cookies();
+  const session = cookieStore.get("session")?.value;
+  const decrypted = await decrypt(session);
+  const userId = decrypted?.userId as string;
+  if (!userId) return null;
+
+  // Find user by session. Adjust to match your real database query.
+  const user = await findUserById(userId)
+  return user;
 }

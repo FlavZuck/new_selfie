@@ -1,5 +1,5 @@
-import { MongoClient, WithId } from "mongodb";
-
+import { MongoClient, WithId, ObjectId} from "mongodb";
+import { User } from "./definitions";
 // Nome della collezione per gli utenti
 export const USERS = "users";
 
@@ -57,4 +57,9 @@ export async function updateDB(collectionName: string, filter: any, updates: any
 export async function deleteDB(collectionName: string, filter: any) {
 	const collection = await findCollection(collectionName);
 	collection.deleteMany(filter);
+}
+
+export async function findUserById(userId: string): Promise<User | null> {
+	const objectId = new ObjectId(userId);
+	return findDB<User>(USERS, { _id: objectId });
 }

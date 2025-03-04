@@ -2,9 +2,11 @@
 
 import { login } from "@/app/actions/auth";
 import { useActionState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function LoginForm() {
   const [state, action, pending] = useActionState(login, undefined);
+  const router = useRouter();
 
   return (
     <form action={action}>
@@ -16,12 +18,25 @@ export default function LoginForm() {
 
       <div>
         <label htmlFor="password">Password </label>
-        <input id="password" name="password" type="password" />
+        <input id="password" name="password" type="password" placeholder="Password" />
       </div>
-      {state?.errors?.password && <p>{state.errors.password}</p>}
-
+      {state?.errors?.password && (
+        <div>
+          <p>Password must:</p>
+          <ul>
+            {state.errors.password.map((error) => (
+              <li key={error}>- {error}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+      
+      {state?.error && <p>{state.error}</p>}
       <button disabled={pending} type="submit">
-        Log In
+      {pending ? "Logging in..." : "Login"}
+      </button>
+      <button type="button" onClick={() => router.push("/register")}>
+        Don't have an account?
       </button>
     </form>
   );

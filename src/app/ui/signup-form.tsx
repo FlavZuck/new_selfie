@@ -2,27 +2,30 @@
  
 import { signup } from '@/app/actions/auth'
 import { useActionState } from 'react'
+import { useRouter } from 'next/navigation'
  
 export default function SignupForm() {
   const [state, action, pending] = useActionState(signup, undefined)
+  const router = useRouter()
+
  
   return (
     <form action={action}>
       <div>
-        <label htmlFor="name">Name</label>
+        <label htmlFor="name">Name </label>
         <input id="name" name="name" placeholder="Name" />
       </div>
       {state?.errors?.name && <p>{state.errors.name}</p>}
  
       <div>
-        <label htmlFor="email">Email</label>
+        <label htmlFor="email">Email </label>
         <input id="email" name="email" placeholder="Email" />
       </div>
       {state?.errors?.email && <p>{state.errors.email}</p>}
  
       <div>
-        <label htmlFor="password">Password</label>
-        <input id="password" name="password" type="password" />
+        <label htmlFor="password">Password </label>
+        <input id="password" name="password" type="password" placeholder='Password' />
       </div>
       {state?.errors?.password && (
         <div>
@@ -34,8 +37,13 @@ export default function SignupForm() {
           </ul>
         </div>
       )}
+      
+      {state?.error && <p>{state.error}</p>}
       <button disabled={pending} type="submit">
-        Sign Up
+        {pending ? "Signing up..." : "Sign Up"}
+      </button >
+      <button type="button" onClick={() => router.push("/login")}>
+        Already have an account?
       </button>
     </form>
   )
