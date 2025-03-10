@@ -7,11 +7,11 @@ import {
 	User
 } from "@/app/lib/definitions";
 import bcrypt from "bcrypt";
+import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { USERS, findDB, findUserById, insertDB } from "../lib/mongodb";
 import { decrypt, deleteSession, generateSessionToken } from "../lib/session";
-import { revalidatePath } from "next/cache";
 
 export async function signup(state: FormState, formData: FormData) {
 	// Validate form fields
@@ -127,8 +127,7 @@ export async function logout() {
 	await deleteSession();
 	// Redirect to the home page
 	redirect("/");
-}	
-
+}
 
 export async function getCurrentUser() {
 	const cookieStore = await cookies();

@@ -49,7 +49,7 @@ export default function RootLayout({
 			<body>
 				<header>
 					<h1>{metadata.title}</h1>
-          <Navbar />
+					<Navbar />
 				</header>
 				<main>{children}</main>
 				<footer>
