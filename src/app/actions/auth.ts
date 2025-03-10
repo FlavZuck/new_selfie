@@ -11,6 +11,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { USERS, findDB, findUserById, insertDB } from "../lib/mongodb";
 import { decrypt, deleteSession, generateSessionToken } from "../lib/session";
+import { revalidatePath } from "next/cache";
 
 export async function signup(state: FormState, formData: FormData) {
 	// Validate form fields
@@ -114,22 +115,20 @@ export async function login(state: FormState, formData: FormData) {
 }
 
 export default async function isAuthenticated() {
-	const cookiestore = await cookies();
-	const session = cookiestore.get("session")?.value;
-	return session !== undefined;
+	const sessionCookie = (await cookies()).get("session")?.value;
+	const sessionData = sessionCookie ? await decrypt(sessionCookie) : null;
+	const isAuthenticated = Boolean(sessionData && "userId" in sessionData);
+	console.log("isAuthenticated", isAuthenticated);
+	return isAuthenticated;
 }
 
 export async function logout() {
-	const isauth = await isAuthenticated();
-	if (isauth) {
-		console.log("Logging out");
-		await deleteSession();
-		redirect("/login");
-	} else {
-		console.log("User is not logged in");
-		redirect("/login");
-	}
-}
+	// Delete the session cookie
+	await deleteSession();
+	// Redirect to the home page
+	redirect("/");
+}	
+
 
 export async function getCurrentUser() {
 	const cookieStore = await cookies();

@@ -1,10 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
-import { getCurrentUser, logout } from "./actions/auth";
 import styles from "./page.module.css";
 
 export default async function Home() {
-	const user = await getCurrentUser();
 	return (
 		<div className={styles.page}>
 			<main className={styles.main}>
@@ -62,13 +60,6 @@ export default async function Home() {
 						/>
 						Register
 					</Link>
-				</div>
-
-				<div>
-					Logged in as {user?.name || "Guest"}
-					<form action={logout}>
-						<button type="submit">Logout</button>
-					</form>
 				</div>
 			</main>
 		</div>
