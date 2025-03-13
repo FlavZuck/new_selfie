@@ -41,7 +41,7 @@ export default function LoginForm() {
 				{pending ? "Logging in..." : "Login"}
 			</button>
 			<button type="button" onClick={() => router.push("/register")}>
-				Don't have an account?
+				Don&apos;t have an account?
 			</button>
 		</form>
 	);

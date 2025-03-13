@@ -1,8 +1,6 @@
 "use client";
 
-import { set } from "mongoose";
 import { useState } from "react";
-import styles from "./../page.module.css";
 
 export default function Notes() {
 	// Logica per la gestione delle note
@@ -11,7 +9,7 @@ export default function Notes() {
 	const [content, setContent] = useState("");
 	const [count, setCount] = useState(3);
 
-	function removeNote(key) {
+	function removeNote(key: any) {
 		// Rimuove la nota con la chiave key
 		setNotes(notes.filter((note) => note.key !== key));
 	}
@@ -45,7 +43,7 @@ export default function Notes() {
 				</div>
 				<div className="note-list">
 					{notes.map((note) => (
-						<div className="note-item">
+						<div className="note-item" key={note.key}>
 							<div style={{ width: "90%" }}>
 								<h2>{note.title}</h2>
 								<p>{note.content}</p>

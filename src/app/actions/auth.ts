@@ -7,7 +7,7 @@ import {
 	User
 } from "@/app/lib/definitions";
 import bcrypt from "bcrypt";
-import { revalidatePath } from "next/cache";
+import { RequestCookies } from "next/dist/compiled/@edge-runtime/cookies";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { USERS, findDB, findUserById, insertDB } from "../lib/mongodb";
@@ -114,8 +114,16 @@ export async function login(state: FormState, formData: FormData) {
 	}
 }
 
-export default async function isAuthenticated() {
-	const sessionCookie = (await cookies()).get("session")?.value;
+export default async function isAuthenticated(
+	biscottino: RequestCookies | null = null
+) {
+	let sessionCookie;
+	if (biscottino) {
+		sessionCookie = biscottino.get("session")?.value;
+	} else {
+		sessionCookie = (await cookies()).get("session")?.value;
+	}
+
 	const sessionData = sessionCookie ? await decrypt(sessionCookie) : null;
 	const isAuthenticated = Boolean(sessionData && "userId" in sessionData);
 	console.log("isAuthenticated", isAuthenticated);

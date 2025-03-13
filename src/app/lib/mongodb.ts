@@ -1,4 +1,4 @@
-import { MongoClient, ObjectId, WithId } from "mongodb";
+import { MongoClient, ObjectId } from "mongodb";
 import { User } from "./definitions";
 
 // Nome della collezione per gli utenti
