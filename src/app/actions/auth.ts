@@ -17,6 +17,8 @@ export async function signup(state: FormState, formData: FormData) {
 	// Validate form fields
 	const validatedFields = SignupFormSchema.safeParse({
 		name: formData.get("name"),
+		surname: formData.get("surname"),
+		birthdate: formData.get("birthdate"),
 		email: formData.get("email"),
 		password: formData.get("password")
 	});
@@ -28,7 +30,9 @@ export async function signup(state: FormState, formData: FormData) {
 		};
 	}
 	// 2. Prepare data for insertion into database
-	const { name, email, password } = validatedFields.data;
+	const { name, surname, birthdate, email, password } = validatedFields.data;
+
+	const formattedBirthdate = new Date(birthdate).toLocaleDateString("it-IT");
 	// Hash the user's password before storing it
 	const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -36,6 +40,8 @@ export async function signup(state: FormState, formData: FormData) {
 	// Payload to insert into the database
 	const payload = {
 		name,
+		surname,
+		birthdate: formattedBirthdate,
 		email,
 		password: hashedPassword
 	};
@@ -114,17 +120,21 @@ export async function login(state: FormState, formData: FormData) {
 	}
 }
 
-export default async function isAuthenticated(
-	biscottino: RequestCookies | null = null
-) {
+export async function getSession(biscottino: RequestCookies | null = null) {
 	let sessionCookie;
 	if (biscottino) {
 		sessionCookie = biscottino.get("session")?.value;
 	} else {
 		sessionCookie = (await cookies()).get("session")?.value;
 	}
-
 	const sessionData = sessionCookie ? await decrypt(sessionCookie) : null;
+	return sessionData;
+}
+
+export default async function isAuthenticated(
+	biscottino: RequestCookies | null = null
+) {
+	const sessionData = await getSession(biscottino);
 	const isAuthenticated = Boolean(sessionData && "userId" in sessionData);
 	console.log("isAuthenticated", isAuthenticated);
 	return isAuthenticated;
@@ -133,16 +143,14 @@ export default async function isAuthenticated(
 export async function logout() {
 	// Delete the session cookie
 	await deleteSession();
-	// Redirect to the home page
-	redirect("/");
+	// Redirect the user to the landing page
+	redirect("/landing");
 }
 
 export async function getCurrentUser() {
-	const cookieStore = await cookies();
-	const session = cookieStore.get("session")?.value;
-	const decrypted = await decrypt(session);
-	const userId = decrypted?.userId as string;
-	if (!userId) return null;
+	const sessionData = await getSession();
+	if (!sessionData) return null;
+	const userId = sessionData.userId as string;
 
 	// Find user by session. Adjust to match your real database query.
 	const user = await findUserById(userId);

@@ -1,4 +1,6 @@
+import Link from "next/link";
 import Navbar from "./components/navbar";
+import styles from "./page.module.css";
 
 export const metadata = {
 	title: "Selfie",
@@ -15,11 +17,7 @@ export default function RootLayout({
 			<head>
 				{/* Global styles */}
 				<style>{`
-          body {
-            margin: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background: #f0f0f0;
-          }
+         
           header {
             background: #fff;
             padding: 1rem 2rem;
@@ -32,23 +30,20 @@ export default function RootLayout({
             margin-right: 1rem;
           }
           main {
-            max-width: 960px;
-            margin: 2rem auto;
             background: #fff;
             padding: 2rem;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-          }
-          footer {
-            text-align: center;
-            padding: 1rem;
-            font-size: 0.9rem;
-            color: #777;
+            box-shadow: 0 10px 10px rgba(145, 16, 16, 0.1);
           }
         `}</style>
 			</head>
 			<body>
-				<header>
-					<h1>{metadata.title}</h1>
+				<header className={styles.header}>
+					<Link
+						href="/"
+						style={{ textDecoration: "none", color: "inherit" }}
+					>
+						<h1>{metadata.title}</h1>
+					</Link>
 					<Navbar />
 				</header>
 				<main>{children}</main>

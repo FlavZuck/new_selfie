@@ -16,19 +16,21 @@ export default async function isAuthenticated(biscottino: RequestCookies) {
 export async function middleware(request: NextRequest) {
 	const { pathname } = request.nextUrl;
 	const cookie = request.cookies;
+
 	if (
-		pathname.startsWith("/home") ||
+		pathname == "/" ||
+		pathname.startsWith("/profile") ||
 		pathname.startsWith("/logout") ||
 		pathname.startsWith("/calendar") ||
-		pathname.startsWith("/pomdoro") ||
+		pathname.startsWith("/pomodoro") ||
 		pathname.startsWith("/notes")
 	) {
 		if (await isAuthenticated(cookie)) {
 			return NextResponse.next();
 		} else {
 			const url = request.nextUrl.clone();
-			url.pathname = "/";
-			return NextResponse.rewrite(url);
+			url.pathname = "/landing";
+			return NextResponse.redirect(url);
 		}
 	} else {
 		return NextResponse.next();

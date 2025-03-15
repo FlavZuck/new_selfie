@@ -5,6 +5,13 @@ export const SignupFormSchema = z.object({
 		.string()
 		.min(2, { message: "Name must be at least 2 characters long." })
 		.trim(),
+	surname: z
+		.string()
+		.min(2, { message: "Surname must be at least 2 characters long." })
+		.trim(),
+	birthdate: z.coerce
+		.date()
+		.max(new Date(), { message: "Please enter a valid date." }),
 	email: z.string().email({ message: "Please enter a valid email." }).trim(),
 	password: z
 		.string()
@@ -34,6 +41,8 @@ export type FormState =
 	| {
 			errors?: {
 				name?: string[];
+				surname?: string[];
+				birthdate?: string[];
 				email?: string[];
 				password?: string[];
 			};
@@ -52,6 +61,8 @@ export type SessionPayload = {
 export type User = {
 	_id: string;
 	name: string;
+	surname: string;
+	birthdate: Date;
 	email: string;
 	password: string;
 };

@@ -1,6 +1,7 @@
 "use client";
 
 import { login } from "@/app/actions/auth";
+import styles from "@/app/page.module.css";
 import { useRouter } from "next/navigation";
 import { useActionState } from "react";
 
@@ -37,10 +38,15 @@ export default function LoginForm() {
 			)}
 
 			{state?.error && <p>{state.error}</p>}
-			<button disabled={pending} type="submit">
+			<button className={styles.button} disabled={pending} type="submit">
 				{pending ? "Logging in..." : "Login"}
 			</button>
-			<button type="button" onClick={() => router.push("/register")}>
+			<button
+				className={styles.button}
+				style={{ backgroundColor: "rgb(179, 19, 19)" }}
+				type="button"
+				onClick={() => router.push("/register")}
+			>
 				Don&apos;t have an account?
 			</button>
 		</form>

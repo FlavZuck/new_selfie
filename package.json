@@ -11,6 +11,8 @@
 	"dependencies": {
 		"@trivago/prettier-plugin-sort-imports": "^5.2.2",
 		"bcrypt": "^5.1.1",
+		"bcryptjs": "^3.0.2",
+		"bootstrap": "^5.3.3",
 		"jose": "^6.0.8",
 		"mongodb": "^6.13.1",
 		"mongoose": "^8.11.0",
