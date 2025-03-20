@@ -12,12 +12,12 @@ export default async function isAuthenticated(biscottino: RequestCookies) {
 	return isAuthenticated;
 }
 
-// This function can be marked `async` if using `await` inside
 export async function middleware(request: NextRequest) {
 	const { pathname } = request.nextUrl;
 	const cookie = request.cookies;
 
 	if (
+		// Protect the following paths
 		pathname == "/" ||
 		pathname.startsWith("/profile") ||
 		pathname.startsWith("/logout") ||
@@ -28,11 +28,13 @@ export async function middleware(request: NextRequest) {
 		if (await isAuthenticated(cookie)) {
 			return NextResponse.next();
 		} else {
+			// Redirect to the landing page if the user is not authenticated
 			const url = request.nextUrl.clone();
 			url.pathname = "/landing";
 			return NextResponse.redirect(url);
 		}
 	} else {
+		// Allow the request to continue if the path is not protected
 		return NextResponse.next();
 	}
 }

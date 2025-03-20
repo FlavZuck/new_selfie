@@ -3,6 +3,7 @@ import { User } from "./definitions";
 
 // Nome della collezione per gli utenti
 export const USERS = "users";
+export const EVENTS = "Events";
 
 // Recupera la stringa di connessione dal file di ambiente
 const DB_URI = process.env.DB_URI as string;

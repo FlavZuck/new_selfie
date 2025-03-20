@@ -37,6 +37,26 @@ export const SigninFormSchema = z.object({
 		.trim()
 });
 
+export const EventFormSchema = z.object({
+	date: z.coerce
+		.date()
+		.min(new Date(), { message: "Please enter a date from today onward." }),
+	description: z
+		.string()
+		.min(1, {
+			message: "The description must have at least one character."
+		})
+		.max(200, {
+			message: "Description must have not more than 200 characters."
+		}),
+	time: z
+		.string()
+		.regex(/^([01]\d|2[0-3]):([0-5]\d)$/, {
+			message: "Please enter a valid time in HH:mm format."
+		})
+		.optional()
+});
+
 export type FormState =
 	| {
 			errors?: {
@@ -45,6 +65,17 @@ export type FormState =
 				birthdate?: string[];
 				email?: string[];
 				password?: string[];
+			};
+			message?: string;
+	  }
+	| undefined;
+
+export type EventState =
+	| {
+			errors?: {
+				date?: string[];
+				description?: string[];
+				time?: string[];
 			};
 			message?: string;
 	  }

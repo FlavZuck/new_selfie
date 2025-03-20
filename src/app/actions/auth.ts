@@ -147,12 +147,20 @@ export async function logout() {
 	redirect("/landing");
 }
 
-export async function getCurrentUser() {
+export async function getCurrentID() {
 	const sessionData = await getSession();
-	if (!sessionData) return null;
+	if (!sessionData) {
+		return null;
+	}
 	const userId = sessionData.userId as string;
+	return userId;
+}
 
-	// Find user by session. Adjust to match your real database query.
+export async function getCurrentUser() {
+	const userId = await getCurrentID();
+	if (!userId) {
+		return null;
+	}
 	const user = await findUserById(userId);
 	return user;
 }
