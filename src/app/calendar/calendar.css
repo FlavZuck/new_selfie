@@ -1,0 +1,202 @@
+/* Calendar Container */
+.calendar-container {
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
+    font-family: 'Arial', sans-serif;
+}
+
+.calendar {
+    width: 100%;
+    background-color: #fff;
+    box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+/* Calendar Header */
+.calendar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #eaecef;
+}
+
+.calendar-title {
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: #24292e;
+}
+
+.calendar-nav {
+    display: flex;
+    gap: 8px;
+}
+
+.nav-button {
+    background: none;
+    border: 1px solid #e1e4e8;
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 14px;
+    cursor: pointer;
+    color: #24292e;
+    transition: all 0.2s ease;
+}
+
+.nav-button:hover {
+    background-color: #f1f2f3;
+    border-color: #d1d5da;
+}
+
+.current-month-year {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0 15px;
+}
+
+/* Days Header */
+.days-header {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    background-color: #f8f9fa;
+    padding: 10px 0;
+    text-align: center;
+    font-weight: 600;
+}
+
+.day-name {
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    color: #586069;
+}
+
+/* Calendar Grid */
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    background-color: #fff;
+}
+
+/* Calendar Day Cell */
+.calendar-day {
+    position: relative;
+    min-height: 100px;
+    padding: 10px;
+    border: 1px solid #eaecef;
+    transition: background-color 0.2s ease;
+    cursor: pointer;
+}
+
+.calendar-day:hover {
+    background-color: #f6f8fa;
+}
+
+.date-number {
+    font-size: 14px;
+    color: #24292e;
+    text-align: right;
+    margin-bottom: 8px;
+}
+
+/* Different states */
+.current-day {
+    background-color: #f1f8ff;
+    font-weight: bold;
+}
+
+.current-day .date-number {
+    color: #0366d6;
+}
+
+.selected-day {
+    background-color: #e6f3ff;
+    border: 2px solid #0366d6;
+}
+
+.disabled-day {
+    opacity: 0.5;
+    pointer-events: none;
+    background-color: #fafbfc;
+}
+
+.other-month .date-number {
+    color: #959da5;
+}
+
+/* Events */
+.event-container {
+    position: absolute;
+    bottom: 8px;
+    left: 8px;
+    right: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.event {
+    display: flex;
+    align-items: center;
+    font-size: 11px;
+    padding: 2px 4px;
+    border-radius: 3px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: #fff;
+}
+
+/* Event types */
+.event.personal {
+    background-color: #0366d6;
+}
+
+.event.work {
+    background-color: #e36209;
+}
+
+.event.reminder {
+    background-color: #28a745;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .calendar-day {
+        min-height: 80px;
+        padding: 6px;
+    }
+    
+    .date-number {
+        font-size: 12px;
+    }
+}
+
+@media (max-width: 480px) {
+    .calendar-day {
+        min-height: 60px;
+        padding: 4px;
+    }
+    
+    .day-name {
+        font-size: 0.7rem;
+    }
+}
+
+/*Sovrascrittura del global*/
+body {
+    background: #f8f9fa;
+    color: #24292e;
+}
+
+/*Create Event button*/
+.create-event-button {
+    color: #fff;
+    background-color: #586069;
+    font-size: 16px;
+    font-weight: 600;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+}

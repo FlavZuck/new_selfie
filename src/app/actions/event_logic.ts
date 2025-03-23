@@ -2,32 +2,69 @@
 
 import { EventFormSchema, EventState } from "@/app/lib/definitions";
 import { ObjectId } from "mongodb";
-import { EVENTS, insertDB } from "../lib/mongodb";
+import { EVENTS, findAllDB, insertDB } from "../lib/mongodb";
 import { getCurrentID } from "./auth";
 
-export async function createEvent(state: EventState, formData: FormData) {
-	// Validiamo i campi del form
+export async function create_event(state: EventState, formData: FormData) {
+	const userId = await getCurrentID();
+
+	if (!userId) {
+		return {
+			message: "You must be logged in to create events"
+		};
+	}
+
+	// Validate form fields
 	const validatedFields = EventFormSchema.safeParse({
-		date: formData.get("date"),
-		time: formData.get("time"),
+		title: formData.get("title"),
+		datestart: formData.get("datestart"),
+		timestart: formData.get("timestart"),
 		description: formData.get("description")
 	});
 
-	// Se i campi del form non sono validi, ritorniamo subito
+	// If any form fields are invalid, return early
 	if (!validatedFields.success) {
 		return {
 			errors: validatedFields.error.flatten().fieldErrors
 		};
 	}
 
-	// Riprendiamo i dati validati
-	const { date, time, description } = validatedFields.data;
+	// Prepare data for insertion into database
+	const { title, datestart, timestart, description } = validatedFields.data;
 
-	// Non sono sicuro che formatti nello stesso modo nostro, da testare
-	const formattedDate = new Date(date).toLocaleDateString("it-IT");
+	// Create event object
+	const event = {
+		userId,
+		title,
+		datestart,
+		timestart,
+		description
+	};
 
-	// Riprendiamo l'ID dell'utente corrente
+	// Insert event into database
+	await insertDB(EVENTS, event);
+
+	return { message: "Event created successfully" };
+}
+
+
+// Funzione per formattare gli eventi per FullCalendar
+// MANCA IL TIME QUA SOTTO UOMO DIO CARO
+function FullCalendar_EventParser(event_array: any) {
+	return event_array.map((event: any) => {
+		return {
+			id: event._id.toString(),
+			title: event.title,
+			start: event.datestart.toISOString(),
+			description: event.description
+		};
+	});
+}
+
+// Funzione per recuperare tutti gli eventi dell'utente corrente
+export async function getAllEvents() {
 	const ID = await getCurrentID();
+
 	if (!ID) {
 		return {
 			message: "User not found"
@@ -35,17 +72,8 @@ export async function createEvent(state: EventState, formData: FormData) {
 	}
 	const obj_ID = new ObjectId(ID);
 
-	// Per ora non controlliamo che il payload sia unico e ne checkiamo il objectId
-	// Payload da inserire nel database
-	const payload = {
-		user_id: obj_ID,
-		date: formattedDate,
-		time: time,
-		description: description
-	};
+	const all_events = await findAllDB(EVENTS, { user_id: obj_ID });
 
-	// Inseriamo l'evento nel database ( nella collection EVENTS )
-	await insertDB(EVENTS, payload);
-
-	console.log("Event inserted into database");
+	// Formattiamo gli eventi per FullCalendar
+	return FullCalendar_EventParser(all_events);
 }

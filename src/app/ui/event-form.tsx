@@ -1,39 +1,96 @@
 "use client";
 
-import { createEvent } from "@/app/actions/event_logic";
+import { create_event } from "@/app/actions/event_logic";
 import styles from "@/app/page.module.css";
 import { useActionState } from "react";
+import { useEffect } from "react";
 
-export default function EventForm() {
-	const [state, action, pending] = useActionState(createEvent, undefined);
+type EventFormProps = {
+	show: boolean;
+	setShow: (show: boolean) => void;
+	refetch: () => Promise<void>;
+};
+
+export default function EventForm({ show, setShow, refetch }: EventFormProps) {
+	const [state, action, pending] = useActionState(create_event, undefined);
+
+	// This useEffect will refetch the events only when an event is successfully created
+	useEffect(() => {
+		if (state?.message && !state?.errors && !pending) {
+			refetch();
+			setShow(false);
+		}
+	}, [state, pending]);
+
+	// Very inelegant way to keep the form closed (lol)
+	if (!show) {
+		return <></>;
+	}
 
 	return (
-		<form action={action}>
-			<div>
-				<label htmlFor="date">Date </label>
-				<input type="date" id="date" name="date" />
-			</div>
-			{state?.errors?.date && <p>{state.errors.date}</p>}
+		<div className={styles.modalBackground}>
+			<div className={styles.modalContent}>
+				<button
+					type="button"
+					onClick={() => setShow(false)}
+					className={styles.closeButton}
+				>
+					&times;
+				</button>
+				<form action={action}>
+					<div>
+						<label htmlFor="title">Title </label>
+						<input
+							id="title"
+							name="title"
+							placeholder="Title"
+							required
+						/>
+					</div>
+					{state?.errors?.title && <p>{state.errors.title}</p>}
 
-			<div>
-				<label htmlFor="time">Time </label>
-				<input type="time" id="time" name="time" />
-			</div>
-			{state?.errors?.time && <p>{state.errors.time}</p>}
+					<div>
+						<label htmlFor="datestart">Date </label>
+						<input
+							type="date"
+							id="datestart"
+							name="datestart"
+							required
+						/>
+					</div>
+					{state?.errors?.datestart && (
+						<p>{state.errors.datestart}</p>
+					)}
 
-			<div>
-				<label htmlFor="description">Description </label>
-				<input
-					id="description"
-					name="description"
-					placeholder="Description"
-				/>
-			</div>
-			{state?.errors?.description && <p>{state.errors.description}</p>}
+					<div>
+						<label htmlFor="timestart">Time </label>
+						<input type="time" id="timestart" name="timestart" />
+					</div>
+					{state?.errors?.timestart && (
+						<p>{state.errors.timestart}</p>
+					)}
 
-			<button className={styles.button} disabled={pending} type="submit">
-				{pending ? "Creating event..." : "Create Event"}
-			</button>
-		</form>
+					<div>
+						<label htmlFor="description">Description </label>
+						<input
+							id="description"
+							name="description"
+							placeholder="Description"
+						/>
+					</div>
+					{state?.errors?.description && (
+						<p>{state.errors.description}</p>
+					)}
+
+					<button
+						className={styles.button}
+						disabled={pending}
+						type="submit"
+					>
+						{pending ? "Creating event..." : "Create Event"}
+					</button>
+				</form>
+			</div>
+		</div>
 	);
 }

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Navbar from "./components/navbar";
+import "./globals.css";
 import styles from "./page.module.css";
 
 export const metadata = {
@@ -14,28 +15,7 @@ export default function RootLayout({
 }) {
 	return (
 		<html lang="en">
-			<head>
-				{/* Global styles */}
-				<style>{`
-         
-          header {
-            background: #fff;
-            padding: 1rem 2rem;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            display: flex;
-            align-items: center;
-          }
-          header img {
-            height: 50px;
-            margin-right: 1rem;
-          }
-          main {
-            background: #fff;
-            padding: 2rem;
-            box-shadow: 0 10px 10px rgba(145, 16, 16, 0.1);
-          }
-        `}</style>
-			</head>
+			<head>{/* Global styles */}</head>
 			<body>
 				<header className={styles.header}>
 					<Link

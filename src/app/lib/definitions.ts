@@ -38,9 +38,19 @@ export const SigninFormSchema = z.object({
 });
 
 export const EventFormSchema = z.object({
-	date: z.coerce
+	title: z
+		.string()
+		.min(1, { message: "The title must have at least one character." })
+		.max(25, { message: "Title must have not more than 50 characters." }),
+	datestart: z.coerce
 		.date()
 		.min(new Date(), { message: "Please enter a date from today onward." }),
+	timestart: z
+		.string()
+		.regex(/^([01]\d|2[0-3]):([0-5]\d)$/, {
+			message: "Please enter a valid time in HH:mm format."
+		})
+		.optional(),
 	description: z
 		.string()
 		.min(1, {
@@ -48,15 +58,10 @@ export const EventFormSchema = z.object({
 		})
 		.max(200, {
 			message: "Description must have not more than 200 characters."
-		}),
-	time: z
-		.string()
-		.regex(/^([01]\d|2[0-3]):([0-5]\d)$/, {
-			message: "Please enter a valid time in HH:mm format."
 		})
-		.optional()
 });
 
+// Type for the state of the signup and login form
 export type FormState =
 	| {
 			errors?: {
@@ -70,12 +75,14 @@ export type FormState =
 	  }
 	| undefined;
 
+// Type for the state of the event form
 export type EventState =
 	| {
 			errors?: {
-				date?: string[];
+				title?: string[];
+				datestart?: string[];
+				timestart?: string[];
 				description?: string[];
-				time?: string[];
 			};
 			message?: string;
 	  }

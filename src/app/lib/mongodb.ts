@@ -52,6 +52,16 @@ export async function findDB<T>(
 	return output as T | null;
 }
 
+// Cerca tutti i documenti nella collezione che corrispondono al filtro e restituisce il risultato come array
+export async function findAllDB<T>(
+	collectionName: string,
+	filter: any
+): Promise<T[]> {
+	const collection = await findCollection(collectionName);
+	const output = await collection.find().toArray();
+	return output as T[];
+}
+
 // Aggiorna i documenti nella collezione che corrispondono al filtro con i valori specificati
 export async function updateDB(
 	collectionName: string,
