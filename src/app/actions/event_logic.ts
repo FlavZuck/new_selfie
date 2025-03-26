@@ -47,7 +47,6 @@ export async function create_event(state: EventState, formData: FormData) {
 	return { message: "Event created successfully" };
 }
 
-
 // Funzione per formattare gli eventi per FullCalendar
 // MANCA IL TIME QUA SOTTO UOMO DIO CARO
 function FullCalendar_EventParser(event_array: any) {
@@ -70,9 +69,8 @@ export async function getAllEvents() {
 			message: "User not found"
 		};
 	}
-	const obj_ID = new ObjectId(ID);
 
-	const all_events = await findAllDB(EVENTS, { user_id: obj_ID });
+	const all_events = await findAllDB(EVENTS, { userId: ID });
 
 	// Formattiamo gli eventi per FullCalendar
 	return FullCalendar_EventParser(all_events);

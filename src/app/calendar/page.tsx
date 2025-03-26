@@ -3,21 +3,22 @@
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import FullCalendar from "@fullcalendar/react";
-import test from "node:test";
 import { useEffect, useState } from "react";
 import { getAllEvents } from "../actions/event_logic";
+import EventCard from "../ui/event-card";
 import EventForm from "../ui/event-form";
 import "./calendar.css";
 
 export default function PageCalendar() {
-	const [show, setShow] = useState(false);
-
+	// Inizializzazione degli stati
+	const [show_create, setShow_Create] = useState(false);
+	const [show_card, setShow_Card] = useState(false);
+	const [info, setInfo] = useState({});
 	const [events, setEvents] = useState([]);
 
 	async function fetchEvents() {
 		try {
 			const fetchedEvents = await getAllEvents();
-			console.log("Fetched events:", fetchedEvents);
 			setEvents(fetchedEvents);
 		} catch (error) {
 			console.error("Error fetching events:", error);
@@ -33,7 +34,7 @@ export default function PageCalendar() {
 			<div>
 				<button
 					className="create-event-button"
-					onClick={() => setShow(true)}
+					onClick={() => setShow_Create(true)}
 				>
 					Create Event
 				</button>
@@ -41,11 +42,19 @@ export default function PageCalendar() {
 			<FullCalendar
 				plugins={[dayGridPlugin, interactionPlugin]}
 				initialView="dayGridMonth"
-				dateClick={function (info) {}}
+				eventClick={function chittamuort(info) {
+					setInfo(info);
+					setShow_Card(true);
+				}}
 				selectable={true}
 				events={events}
 			/>
-			<EventForm show={show} setShow={setShow} refetch={fetchEvents} />
+			<EventForm
+				show={show_create}
+				setShow={setShow_Create}
+				refetch={fetchEvents}
+			/>
+			<EventCard show={show_card} setShow={setShow_Card} info={info} />
 		</div>
 	);
 }

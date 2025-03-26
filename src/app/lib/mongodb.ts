@@ -58,7 +58,7 @@ export async function findAllDB<T>(
 	filter: any
 ): Promise<T[]> {
 	const collection = await findCollection(collectionName);
-	const output = await collection.find().toArray();
+	const output = await collection.find(filter).toArray();
 	return output as T[];
 }
 
