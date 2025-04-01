@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+// The following regex are completely unintelligible to me, be warned :)
+
 export const SignupFormSchema = z.object({
 	name: z
 		.string()
@@ -37,20 +39,21 @@ export const SigninFormSchema = z.object({
 		.trim()
 });
 
-export const EventFormSchema = z.object({
+const EventAllDaySchema = z.object({
+	// The title of the event
 	title: z
 		.string()
 		.min(1, { message: "The title must have at least one character." })
 		.max(25, { message: "Title must have not more than 50 characters." }),
+	// The start date of the event
 	datestart: z.coerce
 		.date()
 		.min(new Date(), { message: "Please enter a date from today onward." }),
-	timestart: z
-		.string()
-		.regex(/^([01]\d|2[0-3]):([0-5]\d)$/, {
-			message: "Please enter a valid time in HH:mm format."
-		})
-		.optional(),
+	// The pivotal property of the event, the allDay property
+	allDay: z.literal("on"),
+	// The start time of the event, which is not needed for all-day events
+	time: z.literal(""),
+	// The description of the event
 	description: z
 		.string()
 		.min(1, {
@@ -60,6 +63,39 @@ export const EventFormSchema = z.object({
 			message: "Description must have not more than 200 characters."
 		})
 });
+
+const EventTimedSchema = z.object({
+	// The title of the event
+	title: z
+		.string()
+		.min(1, { message: "The title must have at least one character." })
+		.max(25, { message: "Title must have not more than 50 characters." }),
+	// The start date of the event
+	datestart: z.coerce
+		.date()
+		.min(new Date(), { message: "Please enter a date from today onward." }),
+	// Here we check if the allDay property is undefined
+	allDay: z.literal(null),
+	// The start time of the event, which is needed for timed events
+	time: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/, {
+		message: "Please enter a valid time in HH:mm format."
+	}),
+	// The description of the event
+	description: z
+		.string()
+		.min(1, {
+			message: "The description must have at least one character."
+		})
+		.max(200, {
+			message: "Description must have not more than 200 characters."
+		})
+});
+
+// The EventFormSchema will determine which of the two schemas to use based on the allDay property
+export const EventFormSchema = z.discriminatedUnion("allDay", [
+	EventAllDaySchema,
+	EventTimedSchema
+]);
 
 // Type for the state of the signup and login form
 export type FormState =
@@ -81,6 +117,7 @@ export type EventState =
 			errors?: {
 				title?: string[];
 				datestart?: string[];
+				allDay?: string[];
 				timestart?: string[];
 				description?: string[];
 			};

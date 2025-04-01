@@ -42,7 +42,7 @@ export default function PageCalendar() {
 			<FullCalendar
 				plugins={[dayGridPlugin, interactionPlugin]}
 				initialView="dayGridMonth"
-				eventClick={function chittamuort(info) {
+				eventClick={function (info) {
 					setInfo(info);
 					setShow_Card(true);
 				}}

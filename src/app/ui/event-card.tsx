@@ -1,7 +1,7 @@
 "use client";
 
 import styles from "@/app/page.module.css";
-import { useEffect } from "react";
+import { useState } from "react";
 
 type EventClickProps = {
 	show: boolean;
@@ -16,11 +16,15 @@ export default function EventCard({ show, setShow, info }: EventClickProps) {
 
 	const event = info.event;
 
+	// Check if the event is all-day, if so, hide the time
+	const showtime = event.allDay;
+
 	return (
 		<div className={styles.modalBackground}>
 			<div className={`${styles.modal}`}>
 				<button
 					type="button"
+					// Close the modal when clicking outside of it
 					onClick={() => setShow(false)}
 					className={styles.closeButton}
 					aria-label="Close"
@@ -41,6 +45,15 @@ export default function EventCard({ show, setShow, info }: EventClickProps) {
 					<div className={styles.modalSection}>
 						<h3>Date :</h3>
 						<p>{event.start.toDateString()}</p>
+					</div>
+					<div hidden={showtime} className={styles.modalSection}>
+						<h3>Time :</h3>
+						<p>
+							{event.start.toLocaleTimeString([], {
+								hour: "2-digit",
+								minute: "2-digit"
+							})}
+						</p>
 					</div>
 				</div>
 			</div>

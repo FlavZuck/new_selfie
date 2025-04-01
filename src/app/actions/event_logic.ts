@@ -1,9 +1,24 @@
 "use server";
 
 import { EventFormSchema, EventState } from "@/app/lib/definitions";
-import { ObjectId } from "mongodb";
 import { EVENTS, findAllDB, insertDB } from "../lib/mongodb";
 import { getCurrentID } from "./auth";
+
+// Funzione per parsare la data e ora in un formato compatibile con FullCalendar
+function parseDate(date: Date, time: string) {
+	if (time == "") {
+		return date;
+	}
+
+	const dateTime = new Date(date);
+	const [hours, minutes] = time.split(":").map(Number);
+
+	// Aggiungi ore e minuti alla data
+	dateTime.setHours(hours);
+	dateTime.setMinutes(minutes);
+
+	return dateTime;
+}
 
 export async function create_event(state: EventState, formData: FormData) {
 	const userId = await getCurrentID();
@@ -18,26 +33,35 @@ export async function create_event(state: EventState, formData: FormData) {
 	const validatedFields = EventFormSchema.safeParse({
 		title: formData.get("title"),
 		datestart: formData.get("datestart"),
-		timestart: formData.get("timestart"),
+		allDay: formData.get("allDay"),
+		time: formData.get("timestart"),
 		description: formData.get("description")
 	});
 
 	// If any form fields are invalid, return early
 	if (!validatedFields.success) {
+		console.log(
+			"Validation failed",
+			validatedFields.error.flatten().fieldErrors
+		);
 		return {
 			errors: validatedFields.error.flatten().fieldErrors
 		};
 	}
 
 	// Prepare data for insertion into database
-	const { title, datestart, timestart, description } = validatedFields.data;
+	const { title, datestart, allDay, time, description } =
+		validatedFields.data;
+
+	// Parse date and time
+	const start = parseDate(datestart, time);
 
 	// Create event object
 	const event = {
 		userId,
+		allDay,
 		title,
-		datestart,
-		timestart,
+		start,
 		description
 	};
 
@@ -48,13 +72,13 @@ export async function create_event(state: EventState, formData: FormData) {
 }
 
 // Funzione per formattare gli eventi per FullCalendar
-// MANCA IL TIME QUA SOTTO UOMO DIO CARO
 function FullCalendar_EventParser(event_array: any) {
 	return event_array.map((event: any) => {
 		return {
 			id: event._id.toString(),
+			allDay: event.allDay,
 			title: event.title,
-			start: event.datestart.toISOString(),
+			start: event.start.toISOString(),
 			description: event.description
 		};
 	});

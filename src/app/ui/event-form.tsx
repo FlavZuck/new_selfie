@@ -2,8 +2,7 @@
 
 import { create_event } from "@/app/actions/event_logic";
 import styles from "@/app/page.module.css";
-import { useActionState } from "react";
-import { useEffect } from "react";
+import { useActionState, useEffect, useState } from "react";
 
 type EventFormProps = {
 	show: boolean;
@@ -12,7 +11,11 @@ type EventFormProps = {
 };
 
 export default function EventForm({ show, setShow, refetch }: EventFormProps) {
+	// This is a custom hook that manages the state of the action
 	const [state, action, pending] = useActionState(create_event, undefined);
+
+	// We use this state to manage when to hide the time input
+	const [allDay, setAllDay] = useState(false);
 
 	// This useEffect will refetch the events only when an event is successfully created
 	useEffect(() => {
@@ -63,12 +66,23 @@ export default function EventForm({ show, setShow, refetch }: EventFormProps) {
 					)}
 
 					<div>
+						<label htmlFor="allDay">All Day </label>
+						<input
+							type="checkbox"
+							id="allDay"
+							name="allDay"
+							defaultChecked={false}
+							onChange={(e) => {
+								setAllDay(e.target.checked);
+							}}
+						/>
+					</div>
+
+					<div hidden={allDay}>
 						<label htmlFor="timestart">Time </label>
 						<input type="time" id="timestart" name="timestart" />
 					</div>
-					{state?.errors?.timestart && (
-						<p>{state.errors.timestart}</p>
-					)}
+					{state?.errors?.time && <p>{state.errors.time}</p>}
 
 					<div>
 						<label htmlFor="description">Description </label>
@@ -76,6 +90,7 @@ export default function EventForm({ show, setShow, refetch }: EventFormProps) {
 							id="description"
 							name="description"
 							placeholder="Description"
+							required
 						/>
 					</div>
 					{state?.errors?.description && (
@@ -86,6 +101,10 @@ export default function EventForm({ show, setShow, refetch }: EventFormProps) {
 						className={styles.button}
 						disabled={pending}
 						type="submit"
+						onClick={() => {
+							// This is a workaround to reset the allDay state
+							setAllDay(false);
+						}}
 					>
 						{pending ? "Creating event..." : "Create Event"}
 					</button>
