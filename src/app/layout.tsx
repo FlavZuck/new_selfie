@@ -27,11 +27,6 @@ export default function RootLayout({
 					<Navbar />
 				</header>
 				<main>{children}</main>
-				<footer>
-					Organize your Future Self <br />
-					Made in NextJS V15.2.1 <br />
-					{new Date().getFullYear()}
-				</footer>
 			</body>
 		</html>
 	);

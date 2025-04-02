@@ -23,7 +23,7 @@ export default function EventForm({ show, setShow, refetch }: EventFormProps) {
 			refetch();
 			setShow(false);
 		}
-	}, [state, pending]);
+	}, [state, pending, refetch, setShow]);
 
 	// Very inelegant way to keep the form closed (lol)
 	if (!show) {
