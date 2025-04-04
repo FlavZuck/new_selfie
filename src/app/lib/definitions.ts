@@ -44,15 +44,34 @@ const EventAllDaySchema = z.object({
 	title: z
 		.string()
 		.min(1, { message: "The title must have at least one character." })
-		.max(25, { message: "Title must have not more than 50 characters." }),
+		.max(25, {
+			message: "Title must have not more than 50 characters."
+		}),
+	// Place where the event will be held (optional)
+	place: z
+		.string()
+		.min(1, { message: "The place must have at least one character." })
+		.max(25, {
+			message: "Place must have not more than 50 characters."
+		})
+		.or(z.literal("")),
 	// The start date of the event
-	datestart: z.coerce
-		.date()
-		.min(new Date(), { message: "Please enter a date from today onward." }),
+	datestart: z.coerce.date().min(new Date(new Date().setHours(0, 0, 0, 0)), {
+		message: "Please enter a date from today onward."
+	}),
 	// The pivotal property of the event, the allDay property
 	allDay: z.literal("on"),
 	// The start time of the event, which is not needed for all-day events
+	dateend: z.coerce
+		.date()
+		.min(new Date(), {
+			message: "Please enter a date from today onward."
+		})
+		.or(z.literal("")),
+	// The start time of the event, which is not needed for all-day events
 	time: z.literal(""),
+	// The duration of the event in hours and minutes, which is not needed for all-day events
+	duration: z.literal(""),
 	// The description of the event
 	description: z
 		.string()
@@ -63,23 +82,39 @@ const EventAllDaySchema = z.object({
 			message: "Description must have not more than 200 characters."
 		})
 });
-
 const EventTimedSchema = z.object({
 	// The title of the event
 	title: z
 		.string()
 		.min(1, { message: "The title must have at least one character." })
 		.max(25, { message: "Title must have not more than 50 characters." }),
+	// Place where the event will be held (optional)
+	place: z
+		.string()
+		.min(1, { message: "The place must have at least one character." })
+		.max(25, {
+			message: "Place must have not more than 50 characters."
+		})
+		.or(z.literal("")),
 	// The start date of the event
 	datestart: z.coerce
 		.date()
 		.min(new Date(), { message: "Please enter a date from today onward." }),
-	// Here we check if the allDay property is undefined
+	// Both the allDay and dateend properties are not needed for timed events
 	allDay: z.literal(null),
+	dateend: z.literal(""),
 	// The start time of the event, which is needed for timed events
 	time: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/, {
 		message: "Please enter a valid time in HH:mm format."
 	}),
+	// The duration of the event in hours and minutes
+	duration: z
+		.string()
+		.regex(
+			/^(0[0-9]|1[0-9]|2[0-3]):([0-5][0-9])$/,
+			"Please enter a valid duration in HH:mm format."
+		)
+		.or(z.literal("")),
 	// The description of the event
 	description: z
 		.string()
@@ -92,10 +127,18 @@ const EventTimedSchema = z.object({
 });
 
 // The EventFormSchema will determine which of the two schemas to use based on the allDay property
-export const EventFormSchema = z.discriminatedUnion("allDay", [
-	EventAllDaySchema,
-	EventTimedSchema
-]);
+export const EventFormSchema = z
+	.discriminatedUnion("allDay", [EventAllDaySchema, EventTimedSchema])
+	// Custom validation to ensure that the end date is after the start date
+	.superRefine(({ datestart, dateend, allDay }, ctx) => {
+		if (dateend <= datestart && dateend != "" && allDay == "on") {
+			ctx.addIssue({
+				code: "custom",
+				message: "The end date must be after the start date",
+				path: ["dateend"]
+			});
+		}
+	});
 
 // Type for the state of the signup and login form
 export type FormState =
@@ -116,9 +159,12 @@ export type EventState =
 	| {
 			errors?: {
 				title?: string[];
+				place?: string[];
 				datestart?: string[];
 				allDay?: string[];
-				timestart?: string[];
+				dateend?: string[];
+				time?: string[];
+				duration?: string[];
 				description?: string[];
 			};
 			message?: string;

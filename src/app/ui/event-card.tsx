@@ -17,6 +17,8 @@ export default function EventCard({ show, setShow, info }: EventClickProps) {
 
 	// Check if the event is all-day, if so, hide the time
 	const showtime = event.allDay;
+	// Check if duration was provided, if not, hide the duration
+	const showduration = event.extendedProps.duration == "";
 
 	return (
 		<div className={styles.modalBackground}>
@@ -31,28 +33,48 @@ export default function EventCard({ show, setShow, info }: EventClickProps) {
 					&times;
 				</button>
 
+				{/*TITLE*/}
 				<div className={styles.modalHeader}>
 					<h1 className={styles.modalTitle}>{event.title}</h1>
 				</div>
 
 				<div className={styles.modalBody}>
+					{/* PLACE */}
 					<div className={styles.modalSection}>
-						<h3>Description :</h3>
+						<h3>Luogo :</h3>
+						<p>{event.extendedProps.place}</p>
+					</div>
+
+					{/* DESCRIPTION */}
+					<div className={styles.modalSection}>
+						<h3>Descrizione :</h3>
 						<p>{event.extendedProps.description}</p>
 					</div>
 
+					{/* DATE */}
 					<div className={styles.modalSection}>
-						<h3>Date :</h3>
+						<h3>Data di inizio :</h3>
 						<p>{event.start.toDateString()}</p>
 					</div>
-					<div hidden={showtime} className={styles.modalSection}>
-						<h3>Time :</h3>
-						<p>
-							{event.start.toLocaleTimeString([], {
-								hour: "2-digit",
-								minute: "2-digit"
-							})}
-						</p>
+
+					{/* TIME AND DURATION */}
+					<div hidden={showtime}>
+						<div className={styles.modalSection}>
+							<h3 className="bg-primary">Orario :</h3>
+							<p>
+								{event.start.toLocaleTimeString([], {
+									hour: "2-digit",
+									minute: "2-digit"
+								})}
+							</p>
+						</div>
+						<div
+							hidden={showduration}
+							className={styles.modalSection}
+						>
+							<h3>Durata :</h3>
+							<p>{event.extendedProps.duration}</p>
+						</div>
 					</div>
 				</div>
 			</div>

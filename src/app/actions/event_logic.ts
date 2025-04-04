@@ -32,9 +32,12 @@ export async function create_event(state: EventState, formData: FormData) {
 	// Validate form fields
 	const validatedFields = EventFormSchema.safeParse({
 		title: formData.get("title"),
+		place: formData.get("place"),
 		datestart: formData.get("datestart"),
 		allDay: formData.get("allDay"),
-		time: formData.get("timestart"),
+		dateend: formData.get("dateend"),
+		time: formData.get("time"),
+		duration: formData.get("duration"),
 		description: formData.get("description")
 	});
 
@@ -50,8 +53,16 @@ export async function create_event(state: EventState, formData: FormData) {
 	}
 
 	// Prepare data for insertion into database
-	const { title, datestart, allDay, time, description } =
-		validatedFields.data;
+	const {
+		title,
+		place,
+		datestart,
+		allDay,
+		dateend,
+		time,
+		duration,
+		description
+	} = validatedFields.data;
 
 	// Parse date and time
 	const start = parseDate(datestart, time);
@@ -62,7 +73,10 @@ export async function create_event(state: EventState, formData: FormData) {
 		allDay,
 		title,
 		start,
-		description
+		dateend,
+		duration,
+		description,
+		place
 	};
 
 	// Insert event into database
@@ -75,11 +89,19 @@ export async function create_event(state: EventState, formData: FormData) {
 function FullCalendar_EventParser(event_array: any) {
 	return event_array.map((event: any) => {
 		return {
+			// Nei seguenti campi non serve fare niente di particolare
 			id: event._id.toString(),
 			allDay: event.allDay,
 			title: event.title,
 			start: event.start.toISOString(),
-			description: event.description
+			// The end date sometimes is not present, so we need to check if it exists
+			end: event.dateend ? event.dateend.toISOString() : null,
+			// Qui vanno i dati che non riconosciuti da FullCalendar
+			extendedProps: {
+				duration: event.duration,
+				description: event.description,
+				place: event.place
+			}
 		};
 	});
 }
