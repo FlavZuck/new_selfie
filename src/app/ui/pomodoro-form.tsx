@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import React, { useEffect, useState } from "react";
+import { loadPomodoro, savePomodoro } from "../actions/pomodoro_logic";
 import pomodoro from "../pomodoro/pomodoro.module.css";
 
 export default function PomodoroTimer() {
@@ -19,6 +20,19 @@ export default function PomodoroTimer() {
 		const splitted = time.split(":").map(Number);
 		return splitted[0] * 3600 + splitted[1] * 60 + splitted[2];
 	};
+
+	useEffect(() => {
+		async function loadConfig() {
+			const config = await loadPomodoro();
+			if (config) {
+				const { studyMin, pauseMin, savedCycles } = config.timerConfig;
+				setStudyTime(studyMin);
+				setPauseTime(pauseMin);
+				setCycles(savedCycles);
+			}
+		}
+		loadConfig();
+	}, []);
 
 	const Start = () => {
 		console.log("Start. isplaying:", isPlaying);
@@ -79,6 +93,18 @@ export default function PomodoroTimer() {
 				setAnimationClass("");
 			}
 		}
+	};
+
+	const handleSubmit = async (e: React.FormEvent) => {
+		e.preventDefault();
+		console.log("form submitted:", studyTime, pauseTime, cycles);
+		await savePomodoro(studyTime, pauseTime, cycles);
+		Start();
+	};
+
+	const handleClear = async () => {
+		Clear();
+		await savePomodoro("00:00:10", "00:00:10", 5); //cambia con default prof
 	};
 
 	useEffect(() => {
@@ -147,19 +173,7 @@ export default function PomodoroTimer() {
 			<h1 className={pomodoro.h1}>Pomodoro Timer</h1>
 
 			{/* da inserire in flex container con classi per input e bottoni */}
-			<form
-				id={pomodoro.studyForm}
-				onSubmit={(e) => {
-					e.preventDefault();
-					console.log(
-						"form submitted:",
-						studyTime,
-						pauseTime,
-						cycles
-					);
-					Start();
-				}}
-			>
+			<form id={pomodoro.studyForm} onSubmit={handleSubmit}>
 				<div style={{ float: "left" }}>
 					<label htmlFor="studyTime">Study Time:</label>
 					<input
@@ -207,7 +221,7 @@ export default function PomodoroTimer() {
 				</div>
 				<br />
 
-				<button id={pomodoro.clear} type="button" onClick={Clear}>
+				<button id={pomodoro.clear} type="button" onClick={handleClear}>
 					Clear
 				</button>
 
@@ -257,8 +271,3 @@ export default function PomodoroTimer() {
 // • Input di ore/minuti e proposta durata ciclo
 // • Notifica per inizio ciclo, passaggio da una fase alla
 // successiva, fine ciclo.
-
-// I cicli previsti e non completati vengono automaticamente passati alle giornate successive e si sommano a quelli previsti per quella giornata.
-// Vi è necessità, ovviamente, che ogni utente abbia collegato al suo profilo una sezione di dati legata al suo profilo
-// utente che mantenga i cambiamenti fatti in passato ai timer (i.e. aver allungato la pausa a 10 min invece dei 5 di default)
-// e che tenga conto dei cicli passati non finiti

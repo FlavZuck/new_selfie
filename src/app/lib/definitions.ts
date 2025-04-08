@@ -1,3 +1,4 @@
+import { IntegerType } from "mongodb";
 import { z } from "zod";
 
 // The following regex are completely unintelligible to me, be warned :)
@@ -186,4 +187,21 @@ export type User = {
 	birthdate: Date;
 	email: string;
 	password: string;
+};
+
+export type Pomodoro = {
+	userId: string;
+
+	date: Date;
+	timerConfig: {
+		studyMin: string;
+		pauseMin: string;
+		savedCycles: number;
+	};
+
+	// 	cycles: {
+	// 		completed: number;
+	// 		missed: number;
+	// 		// carriedFromPreviousDay: number;
+	// 	};
 };
