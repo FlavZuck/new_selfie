@@ -1,6 +1,6 @@
 "use server";
 
-import { EventFormSchema, EventState } from "@/app/lib/definitions";
+import { EventFormSchema, EventState } from "@/app/lib/definitions/def_cale";
 import { EVENTS, findAllDB, insertDB } from "../lib/mongodb";
 import { getCurrentID } from "./auth";
 

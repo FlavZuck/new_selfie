@@ -1,6 +1,6 @@
 "use server";
 
-import { Pomodoro } from "@/app/lib/definitions";
+import { Pomodoro } from "@/app/lib/definitions/def_pomo";
 import { POMODORO, findDB, insertDB, updateDB } from "../lib/mongodb";
 import { getCurrentID } from "./auth";
 

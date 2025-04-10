@@ -1,4 +1,3 @@
-import { IntegerType } from "mongodb";
 import { z } from "zod";
 
 // Funzione per verificare se il giorno è valido per il mese
@@ -17,44 +16,6 @@ function ValidGiorniMese(giorno: number, mese: number) {
 	}
 }
 
-// The following regex are completely unintelligible to me, be warned :)
-
-export const SignupFormSchema = z.object({
-	name: z
-		.string()
-		.min(2, { message: "Name must be at least 2 characters long." })
-		.trim(),
-	surname: z
-		.string()
-		.min(2, { message: "Surname must be at least 2 characters long." })
-		.trim(),
-	birthdate: z.coerce
-		.date()
-		.max(new Date(), { message: "Please enter a valid date." }),
-	email: z.string().email({ message: "Please enter a valid email." }).trim(),
-	password: z
-		.string()
-		.min(8, { message: "Be at least 8 characters long" })
-		.regex(/[a-zA-Z]/, { message: "Contain at least one letter." })
-		.regex(/[0-9]/, { message: "Contain at least one number." })
-		.regex(/[^a-zA-Z0-9]/, {
-			message: "Contain at least one special character."
-		})
-		.trim()
-});
-
-export const SigninFormSchema = z.object({
-	email: z.string().email({ message: "Please enter a valid email." }).trim(),
-	password: z
-		.string()
-		.min(8, { message: "Be at least 8 characters long" })
-		.regex(/[a-zA-Z]/, { message: "Contain at least one letter." })
-		.regex(/[0-9]/, { message: "Contain at least one number." })
-		.regex(/[^a-zA-Z0-9]/, {
-			message: "Contain at least one special character."
-		})
-		.trim()
-});
 
 const baseEventSchema = z.object({
 	// The title of the event
@@ -281,19 +242,7 @@ export const EventFormSchema = z
 		}
 	);
 
-// Type for the state of the signup and login form
-export type FormState =
-	| {
-			errors?: {
-				name?: string[];
-				surname?: string[];
-				birthdate?: string[];
-				email?: string[];
-				password?: string[];
-			};
-			message?: string;
-	  }
-	| undefined;
+
 
 // Type for the state of the event form
 export type EventState =
@@ -324,36 +273,3 @@ export type EventState =
 	  }
 	| undefined;
 
-//The payload should contain the minimum, unique user data that'll be used in subsequent requests, such as:
-//the user's ID, role, etc.
-// It should not contain passwords or personally identifiable information (like phone number, email,credit card information, etc,)
-export type SessionPayload = {
-	userId: string;
-	expiresAt: Date;
-};
-
-export type User = {
-	_id: string;
-	name: string;
-	surname: string;
-	birthdate: Date;
-	email: string;
-	password: string;
-};
-
-export type Pomodoro = {
-	userId: string;
-
-	date: Date;
-	timerConfig: {
-		studyMin: string;
-		pauseMin: string;
-		savedCycles: number;
-	};
-
-	// 	cycles: {
-	// 		completed: number;
-	// 		missed: number;
-	// 		// carriedFromPreviousDay: number;
-	// 	};
-};

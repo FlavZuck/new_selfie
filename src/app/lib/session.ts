@@ -1,4 +1,4 @@
-import { SessionPayload } from "@/app/lib/definitions";
+import { SessionPayload } from "@/app/lib/definitions/def_cale";
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
 import "server-only";

@@ -5,7 +5,7 @@ import {
 	SigninFormSchema,
 	SignupFormSchema,
 	User
-} from "@/app/lib/definitions";
+} from "@/app/lib/definitions/def_auth";
 import bcrypt from "bcrypt";
 import { RequestCookies } from "next/dist/compiled/@edge-runtime/cookies";
 import { cookies } from "next/headers";

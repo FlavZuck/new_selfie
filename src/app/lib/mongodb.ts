@@ -1,5 +1,5 @@
 import { MongoClient, ObjectId } from "mongodb";
-import { User } from "./definitions";
+import { User } from "./definitions/def_auth";
 
 // Nome della collezione per gli utenti
 export const USERS = "users";
