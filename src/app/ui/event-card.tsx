@@ -19,6 +19,8 @@ export default function EventCard({ show, setShow, info }: EventClickProps) {
 	const showtime = event.allDay;
 	// Check if duration was provided, if not, hide the duration
 	const showduration = event.extendedProps.duration == "";
+	//
+	const showplace = event.extendedProps.place == "";
 
 	return (
 		<div className={styles.modalBackground}>
@@ -40,7 +42,7 @@ export default function EventCard({ show, setShow, info }: EventClickProps) {
 
 				<div className={styles.modalBody}>
 					{/* PLACE */}
-					<div className={styles.modalSection}>
+					<div hidden={showplace} className={styles.modalSection}>
 						<h3>Luogo :</h3>
 						<p>{event.extendedProps.place}</p>
 					</div>

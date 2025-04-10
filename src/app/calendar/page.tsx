@@ -3,6 +3,7 @@
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import FullCalendar from "@fullcalendar/react";
+import rrulePlugin from "@fullcalendar/rrule";
 import { useEffect, useState } from "react";
 import { getAllEvents } from "../actions/event_logic";
 import EventCard from "../ui/event-card";
@@ -40,7 +41,7 @@ export default function PageCalendar() {
 				</button>
 			</div>
 			<FullCalendar
-				plugins={[dayGridPlugin, interactionPlugin]}
+				plugins={[dayGridPlugin, interactionPlugin, rrulePlugin]}
 				initialView="dayGridMonth"
 				eventClick={function (info) {
 					setInfo(info);
