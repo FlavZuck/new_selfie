@@ -1,14 +1,21 @@
 "use client";
 
+import { delete_event } from "@/app/actions/cale_logic/event_logic";
 import styles from "@/app/page.module.css";
 
 type EventClickProps = {
 	show: boolean;
 	setShow: (show: boolean) => void;
 	info: any;
+	refetch: () => Promise<void>;
 };
 
-export default function EventCard({ show, setShow, info }: EventClickProps) {
+export default function EventCard({
+	show,
+	setShow,
+	info,
+	refetch
+}: EventClickProps) {
 	if (!show) {
 		return <></>;
 	}
@@ -77,6 +84,22 @@ export default function EventCard({ show, setShow, info }: EventClickProps) {
 							<h3>Durata :</h3>
 							<p>{event.extendedProps.duration}</p>
 						</div>
+					</div>
+					{/* DELETE BUTTON */}
+					<div className={styles.modalSection}>
+						<button
+							className={styles.deleteButton}
+							onClick={() => {
+								// Call the delete function
+								delete_event(event.id);
+								// Close the modal
+								setShow(false);
+								// Refetch the events
+								refetch();
+							}}
+						>
+							Elimina evento
+						</button>
 					</div>
 				</div>
 			</div>

@@ -1,8 +1,9 @@
 "use server";
 
 import { EventFormSchema, EventState } from "@/app/lib/definitions/def_cale";
-import { EVENTS, findAllDB, insertDB } from "../lib/mongodb";
-import { getCurrentID } from "./auth";
+import { ObjectId } from "mongodb";
+import { EVENTS, deleteDB, findAllDB, insertDB } from "../../lib/mongodb";
+import { getCurrentID } from "../auth";
 
 // Funzione per parsare la data e ora in un formato compatibile con FullCalendar
 function parseDate(date: Date, time: string) {
@@ -240,6 +241,15 @@ export async function create_event(state: EventState, formData: FormData) {
 	}
 
 	return { message: "Event created successfully" };
+}
+
+export async function delete_event(eventId: string) {
+	const eventId_object = new ObjectId(eventId);
+
+	// Delete the event from the database
+	await deleteDB(EVENTS, {
+		_id: eventId_object
+	});
 }
 
 // Funzione per formattare gli eventi per FullCalendar
