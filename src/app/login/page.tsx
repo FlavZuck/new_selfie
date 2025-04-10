@@ -1,6 +1,6 @@
 import styles from "@/app/page.module.css";
 import Link from "next/link";
-import LoginForm from "../ui/login-form";
+import LoginForm from "../ui/ui_auth/login-form";
 
 export default function LoginPage() {
 	return (

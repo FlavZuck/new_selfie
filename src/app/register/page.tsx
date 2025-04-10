@@ -1,6 +1,6 @@
 import styles from "@/app/page.module.css";
 import Link from "next/link";
-import SignupForm from "../ui/signup-form";
+import SignupForm from "../ui/ui_auth/signup-form";
 
 export default function RegisterPage() {
 	return (

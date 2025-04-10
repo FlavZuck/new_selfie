@@ -6,8 +6,8 @@ import FullCalendar from "@fullcalendar/react";
 import rrulePlugin from "@fullcalendar/rrule";
 import { useEffect, useState } from "react";
 import { getAllEvents } from "../actions/event_logic";
-import EventCard from "../ui/event-card";
-import EventForm from "../ui/event-form";
+import EventCard from "../ui/ui_cale/event-card";
+import EventForm from "../ui/ui_cale/event-form";
 import "./calendar.css";
 
 export default function PageCalendar() {
