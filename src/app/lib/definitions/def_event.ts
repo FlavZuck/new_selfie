@@ -148,7 +148,7 @@ export const EventFormSchema = z
 		CompleteEventAllDaySchema,
 		CompleteEventTimedSchema
 	])
-	// Custom validation
+	// Custom validation (beware, this is where most of the strange or specific validation happens)
 	.superRefine(
 		(
 			{

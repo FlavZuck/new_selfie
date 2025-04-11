@@ -189,8 +189,7 @@ export default function EventForm({ show, setShow, refetch }: EventFormProps) {
 						disabled={pending}
 						type="submit"
 						onClick={() => {
-							// This is a workaround to reset the allDay state
-							setAllDay(false);
+							resetStates();
 						}}
 					>
 						{pending ? "Creating event..." : "Create Event"}

@@ -73,6 +73,8 @@ export function MonthlyHandler() {
 export function YearlyHandler() {
 	return (
 		<div>
+			<label htmlFor="yh_day">Giorno</label>
+			<input type="number" id="yh_day" name="yh_day" min="1" max="31" />
 			<label htmlFor="yh_month">Mese</label>
 			<input
 				type="number"
@@ -81,8 +83,6 @@ export function YearlyHandler() {
 				min="1"
 				max="12"
 			/>
-			<label htmlFor="yh_day">Giorno</label>
-			<input type="number" id="yh_day" name="yh_day" min="1" max="31" />
 		</div>
 	);
 }

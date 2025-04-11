@@ -1,6 +1,6 @@
 "use server";
 
-import { EventFormSchema, EventState } from "@/app/lib/definitions/def_cale";
+import { EventFormSchema, EventState } from "@/app/lib/definitions/def_event";
 import { ObjectId } from "mongodb";
 import { EVENTS, deleteDB, findAllDB, insertDB } from "../../lib/mongodb";
 import { getCurrentID } from "../auth";
@@ -43,6 +43,34 @@ function formatDaysArray(dayarray: string[] | string = "") {
 	// Mappa i giorni dell'array in base alla mappa definita sopra
 	// e filtra i giorni non validi
 	return dayarray.map((day) => daysMap[day] || null).filter(Boolean);
+}
+
+// Funzione per formattare gli eventi per FullCalendar
+function FullCalendar_EventParser(event_array: any) {
+	return event_array.map((event: any) => {
+		return {
+			// Nei seguenti campi non serve fare niente di particolare
+			id: event._id.toString(),
+			allDay: event.allDay,
+			title: event.title,
+			// La data di inizio talvolta non è presente, quindi controlliamo se esiste
+			start: event.start ? event.start.toISOString() : null,
+			// La data di fine talvolta non è presente, quindi controlliamo se esiste
+			end: event.dateend ? event.dateend.toISOString() : null,
+			// Passiamo il colore dell'evento
+			color: event.color,
+			// La ricorrenza talvolta non è presente, quindi controlliamo se esiste
+			rrule: event.rrule ? event.rrule : null,
+
+			// Qui vanno i dati che non riconosciuti da FullCalendar
+			extendedProps: {
+				duration: event.duration,
+				description: event.description,
+				place: event.place,
+				type : "EVENT"
+			}
+		};
+	});
 }
 
 // Funzione per parsare l'oggetto RRule per la ricorrenza
@@ -125,14 +153,6 @@ function parseRrule(
 }
 
 export async function create_event(state: EventState, formData: FormData) {
-	const userId = await getCurrentID();
-
-	if (!userId) {
-		return {
-			message: "You must be logged in to create events"
-		};
-	}
-
 	// Validate form fields
 	const validatedFields = EventFormSchema.safeParse({
 		// Base event fields
@@ -195,6 +215,9 @@ export async function create_event(state: EventState, formData: FormData) {
 	const normalColor = "#FF5733"; // color = red
 	const recurringColor = "#33FF57"; // color = green
 
+	// Get the current user ID
+	const userId = await getCurrentID();
+
 	// Create event object
 	const NormalEvent = {
 		userId,
@@ -243,6 +266,7 @@ export async function create_event(state: EventState, formData: FormData) {
 	return { message: "Event created successfully" };
 }
 
+// Funzione per eliminare un evento
 export async function delete_event(eventId: string) {
 	const eventId_object = new ObjectId(eventId);
 
@@ -252,44 +276,21 @@ export async function delete_event(eventId: string) {
 	});
 }
 
-// Funzione per formattare gli eventi per FullCalendar
-function FullCalendar_EventParser(event_array: any) {
-	return event_array.map((event: any) => {
-		return {
-			// Nei seguenti campi non serve fare niente di particolare
-			id: event._id.toString(),
-			allDay: event.allDay,
-			title: event.title,
-			// La data di inizio talvolta non è presente, quindi controlliamo se esiste
-			start: event.start ? event.start.toISOString() : null,
-			// La data di fine talvolta non è presente, quindi controlliamo se esiste
-			end: event.dateend ? event.dateend.toISOString() : null,
-			// Passiamo il colore dell'evento
-			color: event.color,
-			// La ricorrenza talvolta non è presente, quindi controlliamo se esiste
-			rrule: event.rrule ? event.rrule : null,
-
-			// Qui vanno i dati che non riconosciuti da FullCalendar
-			extendedProps: {
-				duration: event.duration,
-				description: event.description,
-				place: event.place
-			}
-		};
-	});
-}
-
 // Funzione per recuperare tutti gli eventi dell'utente corrente
 export async function getAllEvents() {
 	const ID = await getCurrentID();
 
+	// Check banale
 	if (!ID) {
+		console.log("User not found");
 		return {
 			message: "User not found"
 		};
 	}
 
-	const all_events = await findAllDB(EVENTS, { userId: ID });
+	const all_events = await findAllDB(EVENTS, {
+		userId: ID
+	});
 
 	// Formattiamo gli eventi per FullCalendar
 	return FullCalendar_EventParser(all_events);
