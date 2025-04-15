@@ -16,7 +16,6 @@ function ValidGiorniMese(giorno: number, mese: number) {
 	}
 }
 
-
 const baseEventSchema = z.object({
 	// The title of the event
 	title: z
@@ -242,8 +241,6 @@ export const EventFormSchema = z
 		}
 	);
 
-
-
 // Type for the state of the event form
 export type EventState =
 	| {
@@ -273,3 +270,37 @@ export type EventState =
 	  }
 	| undefined;
 
+export type Event_FullCalendar = {
+	id: string;
+	allDay: "on" | "";
+	title: string;
+	start: Date;
+	end?: Date;
+	color: string;
+	rrule?: any;
+	extendedProps: {
+		duration: string | "";
+		description: string;
+		place: string | "";
+		type: "EVENT";
+	};
+};
+
+export type Event_DB = {
+	// Campi ID
+	_id: string;
+	userId: string;
+	// Campi base (obbligatori tranne per place)
+	title: string;
+	place: string | "";
+	description: string;
+	datestart: Date;
+	// Campi per gli eventi timed/allDay
+	dateend: Date | "";
+	allDay: "on" | null;
+	duration: string | "";
+	// Campo per la rrule
+	rrule?: any;
+	// Campo per il colore
+	color: string;
+};

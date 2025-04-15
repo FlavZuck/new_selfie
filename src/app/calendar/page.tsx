@@ -8,32 +8,53 @@ import rrulePlugin from "@fullcalendar/rrule";
 import { useEffect, useState } from "react";
 import { getAllActivities } from "../actions/cale_logic/activity_logic";
 import { getAllEvents } from "../actions/cale_logic/event_logic";
-import ActivityCard from "../ui/ui_cale/actv-card";
+import { Activity_FullCalendar } from "../lib/definitions/def_actv";
+import { Event_FullCalendar } from "../lib/definitions/def_event";
+import {
+	ActivityCalendarCard,
+	ActivityListCard
+} from "../ui/ui_cale/actv-cards";
 import ActivityForm from "../ui/ui_cale/actv-form";
+import ActvList from "../ui/ui_cale/actv-list";
 import EventCard from "../ui/ui_cale/event-card";
 import EventForm from "../ui/ui_cale/event-form";
 import "./calendar.css";
 
 export default function PageCalendar() {
-	// Inizializzazione degli stati
+	// Stati per le fetch
+	const [events, setEvents] = useState([]);
+	const [allactv, setAllActv] = useState<Activity_FullCalendar[]>();
+
+	// Stati per i modali di FullCalendar
 	const [show_Event_create, setShow_Event_Create] = useState(false);
 	const [show_Event_card, setShow_Event_Card] = useState(false);
 	const [show_Activity_create, setShow_Activity_Create] = useState(false);
 	const [show_Activity_card, setShow_Activity_Card] = useState(false);
+
+	// Stato per il modale della ActivityList
+	const [show_ActvList_card, setShow_ActvList_Card] = useState(false);
+
+	// Stato per l'oggetto dell'attività selezionata (ActivityList)
+	const [actvList_obj, setActvList_obj] = useState<Activity_FullCalendar>();
+	// Stato per l'oggetto dell'evento selezionato (FullCalendar)
 	const [info, setInfo] = useState<EventClickArg | null>(null);
-	const [events, setEvents] = useState([]);
 
 	// Funzione che si occupa di fetchare gli eventi ed attività
 	// (da mettere apposto il tipaggio tbf)
 	async function fetchEvents() {
 		try {
 			// Prendiamo gli eventi e le attività
-			const fetchedEvents: any[] = await getAllEvents();
-			const fetchedActivities: any[] = await getAllActivities();
-			// Uniamo i fetch
-			const united_fetch: any = fetchedEvents.concat(fetchedActivities);
-			// Settiamo
+			const fetchedEvents: Event_FullCalendar[] = await getAllEvents();
+			const fetchedActivities: Activity_FullCalendar[] =
+				await getAllActivities();
+			// Uniamo i fetch per FullCalendar
+			const united_fetch: any = fetchedEvents.concat(
+				fetchedActivities as any
+			);
+			// Settiamo per il FullCalendar
 			setEvents(united_fetch);
+			// Settiamo per la lista delle attività
+			setAllActv(fetchedActivities as Activity_FullCalendar[]);
 		} catch (error) {
 			console.error("Error fetching events or activities :", error);
 		}
@@ -143,15 +164,35 @@ export default function PageCalendar() {
 			</div>
 
 			{/*SEZIONE COMPONENTI CALENDARIO */}
-			<FullCalendar
-				plugins={[dayGridPlugin, interactionPlugin, rrulePlugin]}
-				initialView="dayGridMonth"
-				eventClick={function (info) {
-					setInfo(info); // Aggiorniamo lo stato info
-				}}
-				selectable={true}
-				events={events}
-			/>
+			<div
+				className="body-calendar"
+				style={{ display: "flex", gap: "2rem" }}
+			>
+				<div style={{ flex: "3" }}>
+					<FullCalendar
+						plugins={[
+							dayGridPlugin,
+							interactionPlugin,
+							rrulePlugin
+						]}
+						initialView="dayGridMonth"
+						eventClick={function (info) {
+							setInfo(info);
+						}}
+						selectable={true}
+						events={events}
+					/>
+				</div>
+				<div style={{ flex: "1" }}>
+					<ActvList
+						allactv={allactv ? allactv : []}
+						listClick={show_ActvList_card}
+						setListClick={setShow_ActvList_Card}
+						activity={actvList_obj}
+						set_activity={setActvList_obj}
+					/>
+				</div>
+			</div>
 			<EventForm
 				show={show_Event_create}
 				setShow={setShow_Event_Create}
@@ -168,10 +209,16 @@ export default function PageCalendar() {
 				setShow={setShow_Activity_Create}
 				refetch={fetchEvents}
 			/>
-			<ActivityCard
+			<ActivityCalendarCard
 				show={show_Activity_card}
 				setShow={setShow_Activity_Card}
 				info={info}
+				refetch={fetchEvents}
+			/>
+			<ActivityListCard
+				show={show_ActvList_card}
+				setShow={setShow_ActvList_Card}
+				activity={actvList_obj}
 				refetch={fetchEvents}
 			/>
 		</div>

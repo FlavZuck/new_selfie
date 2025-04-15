@@ -1,6 +1,11 @@
 "use server";
 
-import { EventFormSchema, EventState } from "@/app/lib/definitions/def_event";
+import {
+	EventFormSchema,
+	EventState,
+	Event_DB,
+	Event_FullCalendar
+} from "@/app/lib/definitions/def_event";
 import { ObjectId } from "mongodb";
 import { EVENTS, deleteDB, findAllDB, insertDB } from "../../lib/mongodb";
 import { getCurrentID } from "../auth";
@@ -53,8 +58,7 @@ function FullCalendar_EventParser(event_array: any) {
 			id: event._id.toString(),
 			allDay: event.allDay,
 			title: event.title,
-			// La data di inizio talvolta non è presente, quindi controlliamo se esiste
-			start: event.start ? event.start.toISOString() : null,
+			start: event.start,
 			// La data di fine talvolta non è presente, quindi controlliamo se esiste
 			end: event.dateend ? event.dateend.toISOString() : null,
 			// Passiamo il colore dell'evento
@@ -67,7 +71,7 @@ function FullCalendar_EventParser(event_array: any) {
 				duration: event.duration,
 				description: event.description,
 				place: event.place,
-				type : "EVENT"
+				type: "EVENT"
 			}
 		};
 	});
@@ -277,20 +281,17 @@ export async function delete_event(eventId: string) {
 }
 
 // Funzione per recuperare tutti gli eventi dell'utente corrente
-export async function getAllEvents() {
+export async function getAllEvents(): Promise<Event_FullCalendar[]> {
 	const ID = await getCurrentID();
 
 	// Check banale
 	if (!ID) {
 		console.log("User not found");
-		return {
-			message: "User not found"
-		};
 	}
 
-	const all_events = await findAllDB(EVENTS, {
+	const all_events = (await findAllDB(EVENTS, {
 		userId: ID
-	});
+	})) as Event_DB[];
 
 	// Formattiamo gli eventi per FullCalendar
 	return FullCalendar_EventParser(all_events);

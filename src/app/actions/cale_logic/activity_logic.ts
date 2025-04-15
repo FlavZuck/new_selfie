@@ -1,6 +1,11 @@
 "use server";
 
-import { ActivitySchema, ActivityState } from "@/app/lib/definitions/def_actv";
+import {
+	ActivitySchema,
+	ActivityState,
+	Activity_DB,
+	Activity_FullCalendar
+} from "@/app/lib/definitions/def_actv";
 import { ObjectId } from "mongodb";
 import { ACTIVITIES, deleteDB, findAllDB, insertDB } from "../../lib/mongodb";
 import { getCurrentID } from "../auth";
@@ -12,19 +17,18 @@ import { getCurrentID } from "../auth";
 
 // Funzione per parsare l'array di attività in un formato compatibile con FullCalendar
 // (Per adesso diamo per scontato che l'attività sia sempre all-day)
-function FullCalendar_ActivityParser(activity_array: any) {
-	return activity_array.map((activity: any) => {
+function FullCalendar_ActivityParser(activity_array: Activity_DB[]) {
+	return activity_array.map((activity: Activity_DB) => {
 		return {
 			id: activity._id.toString(),
 			allDay: true,
 			title: activity.title,
-			start: activity.expiration
-				? activity.expiration.toISOString()
-				: null,
+			// Lo salviamo come start solo per compatibilità con FullCalendar
+			start: activity.expiration,
 			color: activity.color,
 			extendedProps: {
 				description: activity.description,
-				type: "ACTIVITY"
+				type: "ACTIVITY" as const
 			}
 		};
 	});
@@ -77,7 +81,7 @@ export async function create_activity(
 // Funzione per eliminare un'attività
 export async function delete_activity(activity_id: string) {
 	const activityObjectId = new ObjectId(activity_id);
-	
+
 	// Eliminiamo l'attività dal database
 	await deleteDB(ACTIVITIES, {
 		_id: activityObjectId
@@ -85,20 +89,38 @@ export async function delete_activity(activity_id: string) {
 }
 
 // Funzione per ottenere tutte le attività dell'utente
-export async function getAllActivities() {
+export async function getAllActivities(): Promise<Activity_FullCalendar[]> {
 	const ID = await getCurrentID();
 
 	// Check banale
 	if (!ID) {
 		console.log("User not found");
-		return {
-			message: "User not found"
-		};
 	}
 
-	const all_activities = await findAllDB(ACTIVITIES, {
+	const all_activities = (await findAllDB(ACTIVITIES, {
 		userId: ID
-	});
+	})) as Activity_DB[];
 
+	// Ritorniamo le attività parsate in un formato compatibile con FullCalendar
 	return FullCalendar_ActivityParser(all_activities);
+}
+
+// Funzione per creare la lista delle attività in ordine di scadenza più vicina
+export async function getActivitiesList() {
+	// Otteniamo tutte le attività
+	const all_activities = await getAllActivities();
+
+	// Sortiamo le attività in base alla data di scadenza
+	all_activities.sort(
+		(a: Activity_FullCalendar, b: Activity_FullCalendar) => {
+			// Initializziamo le date di scadenza
+			const a_scadenza = new Date(a.start);
+			const b_scadenza = new Date(b.start);
+
+			// Ritorniamo il sorting
+			return a_scadenza.getTime() - b_scadenza.getTime();
+		}
+	);
+
+	return all_activities;
 }

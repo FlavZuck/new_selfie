@@ -31,3 +31,24 @@ export type ActivityState =
 			message?: string;
 	  }
 	| undefined;
+
+export type Activity_FullCalendar = {
+	id: string;
+	allDay: boolean;
+	title: string;
+	start: Date;
+	color: string;
+	extendedProps: {
+		description: string;
+		type: "ACTIVITY";
+	};
+};
+
+export type Activity_DB = {
+	_id: string;
+	userId: string;
+	title: string;
+	description: string;
+	expiration: Date;
+	color: string;
+};
