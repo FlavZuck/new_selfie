@@ -96,11 +96,11 @@ export async function login(state: FormState, formData: FormData) {
 		return { error: "User not found" };
 	} else {
 		// If user is found
-		console.log("User found");
+		console.log("User found", user);
 		// 4. Creation of the session token
 		//Compare the password
 		if (await bcrypt.compare(password, user.password)) {
-			const token = await generateSessionToken(user._id);
+			const token = await generateSessionToken(user._id.toHexString());
 			const biscottino = await cookies();
 			biscottino.set("session", token, {
 				httpOnly: true,
@@ -123,9 +123,13 @@ export async function login(state: FormState, formData: FormData) {
 export async function getSession(biscottino: RequestCookies | null = null) {
 	let sessionCookie;
 	if (biscottino) {
+		// Check if biscottino is provided
 		sessionCookie = biscottino.get("session")?.value;
+		console.log("Session cookie provided:");
 	} else {
+		// If not, call cookies() to get the session cookie
 		sessionCookie = (await cookies()).get("session")?.value;
+		console.log("Session cookie from cookies():");
 	}
 	const sessionData = sessionCookie ? await decrypt(sessionCookie) : null;
 	return sessionData;

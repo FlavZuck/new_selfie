@@ -50,7 +50,7 @@ export async function findDB<T>(
 ): Promise<T | null> {
 	const collection = await findCollection(collectionName);
 	const output = await collection.findOne(filter);
-	console.log(output);
+	console.log("Questo è l'output:", output);
 	return output as T | null;
 }
 
@@ -81,6 +81,12 @@ export async function deleteDB(collectionName: string, filter: any) {
 }
 
 export async function findUserById(userId: string): Promise<User | null> {
+	console.log("userId", userId);
+	if (!ObjectId.isValid(userId)) {
+		console.log("Invalid userId", userId);
+		console.error(`Invalid userId: ${userId}`);
+		return null;
+	}
 	const objectId = new ObjectId(userId);
 	return findDB<User>(USERS, { _id: objectId });
 }

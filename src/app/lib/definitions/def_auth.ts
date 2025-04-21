@@ -1,3 +1,4 @@
+import { ObjectId } from "mongodb";
 import { z } from "zod";
 
 // The following regex are completely unintelligible to me, be warned :)
@@ -62,7 +63,7 @@ export type SessionPayload = {
 };
 
 export type User = {
-	_id: string;
+	_id: ObjectId;
 	name: string;
 	surname: string;
 	birthdate: Date;
