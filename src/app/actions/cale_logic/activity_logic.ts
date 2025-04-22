@@ -28,7 +28,10 @@ function FullCalendar_ActivityParser(activity_array: Activity_DB[]) {
 			color: activity.color,
 			extendedProps: {
 				description: activity.description,
-				type: "ACTIVITY" as const
+				type: "ACTIVITY" as const,
+				notification: activity.notification,
+				notificationtype: activity.notificationtype,
+				specificday: activity.specificday
 			}
 		};
 	});
@@ -42,7 +45,10 @@ export async function create_activity(
 	const validatedFields = ActivitySchema.safeParse({
 		title: formData.get("title"),
 		description: formData.get("description"),
-		expiration: formData.get("expiration")
+		expiration: formData.get("expiration"),
+		notification: formData.get("notification"),
+		notificationtype: formData.get("notificationtype"),
+		specificday: formData.get("specificday")
 	});
 
 	// If any form field is invalid, return the error
@@ -56,7 +62,14 @@ export async function create_activity(
 		};
 	}
 
-	const { title, description, expiration } = validatedFields.data;
+	const {
+		title,
+		description,
+		expiration,
+		notification,
+		notificationtype,
+		specificday
+	} = validatedFields.data;
 
 	const activityColor = "#0000FF"; // color = blue
 
@@ -67,7 +80,10 @@ export async function create_activity(
 		title,
 		description,
 		expiration,
-		color: activityColor
+		color: activityColor,
+		notification,
+		notificationtype,
+		specificday
 	};
 
 	// Insert the activity into the database

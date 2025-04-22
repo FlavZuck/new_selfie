@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const ActivitySchema = z.object({
+const BaseActivitySchema = z.object({
 	title: z
 		.string()
 		.min(1, { message: "The title must have at least one character." })
@@ -18,15 +18,55 @@ export const ActivitySchema = z.object({
 		.or(z.literal("")),
 	expiration: z.coerce.date().min(new Date(), {
 		message: "Please enter a date from tomorrow and onward."
-	})
+	}),
+	// Fields for notification
+	notification: z.literal("on").or(z.literal(null)),
+	notificationtype: z.enum(["stesso", "prima", "specifico"]),
+	specificday: z.coerce
+		.date()
+		.max(new Date(), {
+			message: "Please enter a date from yesterday and backward."
+		})
+		.or(z.literal(""))
 });
+
+export const ActivitySchema = BaseActivitySchema.superRefine(
+	({ expiration, notification, notificationtype, specificday }, ctx) => {
+		// To ensure that the expiration date is always after the notification date
+		if (notification === "on" && notificationtype === "specifico") {
+			if (specificday && expiration < specificday) {
+				ctx.addIssue({
+					code: z.ZodIssueCode.custom,
+					message:
+						"Notification date must be before expiration date .",
+					path: ["specificday"]
+				});
+			} else if (!specificday) {
+				ctx.addIssue({
+					code: z.ZodIssueCode.custom,
+					message: "Please select a specific day.",
+					path: ["specificday"]
+				});
+			}
+		} else if (notification === null) {
+			if (notificationtype === "specifico" && specificday) {
+				specificday = "";
+			}
+		}
+	}
+);
 
 export type ActivityState =
 	| {
 			errors?: {
+				// Base fields
 				title?: string[];
 				description?: string[];
 				expiration?: string[];
+				// Notification
+				notification?: string[];
+				notificationtype?: string[];
+				specificday?: string[];
 			};
 			message?: string;
 	  }
@@ -41,6 +81,9 @@ export type Activity_FullCalendar = {
 	extendedProps: {
 		description: string;
 		type: "ACTIVITY";
+		notification: boolean;
+		notificationtype: "stesso" | "prima" | "specifico";
+		specificday: Date | null;
 	};
 };
 
@@ -51,4 +94,7 @@ export type Activity_DB = {
 	description: string;
 	expiration: Date;
 	color: string;
+	notification: boolean;
+	notificationtype: "stesso" | "prima" | "specifico";
+	specificday: Date | null;
 };

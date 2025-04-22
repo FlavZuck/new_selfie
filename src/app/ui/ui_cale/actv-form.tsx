@@ -2,7 +2,7 @@
 
 import { create_activity } from "@/app/actions/cale_logic/activity_logic";
 import styles from "@/app/page.module.css";
-import { useActionState, useEffect } from "react";
+import { useActionState, useEffect, useState } from "react";
 
 type ActivityFormProps = {
 	show: boolean;
@@ -15,8 +15,14 @@ export default function ActivityForm({
 	setShow,
 	refetch
 }: ActivityFormProps) {
-	//
+	// Action state for the create_activity action
 	const [state, action, pending] = useActionState(create_activity, undefined);
+
+	// State to manage the visibility of the notification fields
+	const [notif, setNotif] = useState(false);
+
+	// State to manage the visibility of the specific day input
+	const [spec_day, setSpec_day] = useState(false);
 
 	// This function will be called when the event is created and calls the refetch function
 	// to update the events
@@ -24,6 +30,7 @@ export default function ActivityForm({
 		if (state?.message && !state?.errors && !pending) {
 			refetch();
 			setShow(false);
+			setSpec_day(false);
 		}
 	}
 	// This useEffect will refetch the events only when the state changes or the pending state changes
@@ -43,7 +50,10 @@ export default function ActivityForm({
 			<div className={styles.modalContent}>
 				<button
 					type="button"
-					onClick={() => setShow(false)}
+					onClick={() => {
+						setShow(false);
+						setSpec_day(false);
+					}}
 					className={styles.closeButton}
 				>
 					&times;
@@ -83,6 +93,65 @@ export default function ActivityForm({
 					/>
 				</div>
 				{state?.errors?.expiration && <p>{state.errors.expiration}</p>}
+
+				{/*NOTIFICATION*/}
+				<div>
+					<label htmlFor="notification">Notifiche</label>
+					<input
+						type="checkbox"
+						id="notification"
+						name="notification"
+						defaultChecked={false}
+						onChange={(e) => {
+							if (e.target.checked) {
+								setNotif(true);
+							} else {
+								setNotif(false);
+							}
+						}}
+					/>
+				</div>
+				{state?.errors?.notification && (
+					<p>{state.errors.notification}</p>
+				)}
+				<div hidden={!notif}>
+					{/*NOTIFICATION TYPE*/}
+					<div>
+						<label htmlFor="notificationtype">Tipo notifica </label>
+						<select
+							id="notificationtype"
+							name="notificationtype"
+							onChange={(e) => {
+								if (e.target.value == "specifico") {
+									setSpec_day(true);
+								} else {
+									setSpec_day(false);
+								}
+							}}
+						>
+							<option value="stesso">Giorno stesso</option>
+							<option value="prima">Giorno prima</option>
+							<option value="specifico">Giorno specifico </option>
+						</select>
+					</div>
+					{state?.errors?.notificationtype && (
+						<p>{state.errors.notificationtype}</p>
+					)}
+					{/*SPECIFIC DAY*/}
+					<div hidden={!spec_day}>
+						<label htmlFor="specificday">Giorno specifico </label>
+						<input
+							type="date"
+							id="specificday"
+							name="specificday"
+							placeholder="Giorno specifico"
+						/>
+						{state?.errors?.specificday && (
+							<p>{state.errors.specificday}</p>
+						)}
+					</div>
+				</div>
+
 				{/*SUBMIT BUTTON*/}
 				<button
 					className={styles.button}
