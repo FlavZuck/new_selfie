@@ -6,6 +6,7 @@ export const USERS = "users";
 export const EVENTS = "Events";
 export const POMODORO = "Pomodoro";
 export const ACTIVITIES = "Activities";
+export const SUBSCRIPTIONS = "Subscriptions";
 
 // Recupera la stringa di connessione dal file di ambiente
 const DB_URI = process.env.DB_URI as string;

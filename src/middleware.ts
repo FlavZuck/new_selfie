@@ -23,7 +23,8 @@ export async function middleware(request: NextRequest) {
 		pathname.startsWith("/logout") ||
 		pathname.startsWith("/calendar") ||
 		pathname.startsWith("/pomodoro") ||
-		pathname.startsWith("/notes")
+		pathname.startsWith("/notes") ||
+		pathname.startsWith("/notifications")
 	) {
 		if (await isAuthenticated(cookie)) {
 			return NextResponse.next();
