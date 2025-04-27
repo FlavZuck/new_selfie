@@ -18,7 +18,7 @@ export async function isUserSubscribed() {
 	if (!userId) {
 		return false;
 	} else {
-		// Check if the user is already subscribed
+		// We get the subscription from the database (if it exists)
 		const existingSubscription = await findAllDB(SUBSCRIPTIONS, { userId });
 
 		// If the user is already subscribed, we return true
@@ -47,7 +47,6 @@ export async function saveSubscription(subscription: PushSubscriptionJSON) {
 	}
 	//If all goes well, we can save the subscription
 	else {
-		console.log("Saving subscription:", subscription);
 		await insertDB(SUBSCRIPTIONS, { userId, subscription });
 	}
 }

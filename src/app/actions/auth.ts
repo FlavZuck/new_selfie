@@ -125,11 +125,9 @@ export async function getSession(biscottino: RequestCookies | null = null) {
 	if (biscottino) {
 		// Check if biscottino is provided
 		sessionCookie = biscottino.get("session")?.value;
-		console.log("Session cookie provided:");
 	} else {
 		// If not, call cookies() to get the session cookie
 		sessionCookie = (await cookies()).get("session")?.value;
-		console.log("Session cookie from cookies():");
 	}
 	const sessionData = sessionCookie ? await decrypt(sessionCookie) : null;
 	return sessionData;
@@ -140,7 +138,6 @@ export default async function isAuthenticated(
 ) {
 	const sessionData = await getSession(biscottino);
 	const isAuthenticated = Boolean(sessionData && "userId" in sessionData);
-	console.log("isAuthenticated", isAuthenticated);
 	return isAuthenticated;
 }
 

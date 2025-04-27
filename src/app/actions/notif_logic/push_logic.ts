@@ -40,7 +40,6 @@ export async function send_TEST_NotificationToAll() {
 	};
 
 	const all_subscriptions = await getAllSubscriptions();
-	console.log("Subscriptions found: ", all_subscriptions);
 	await Promise.all(
 		all_subscriptions.map((data) => {
 			const subscription = data.subscription as webpush.PushSubscription;

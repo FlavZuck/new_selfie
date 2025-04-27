@@ -35,18 +35,15 @@ export default function NotificationsTestPage() {
 				}
 
 				// Se il permesso è concesso, procediamo a subscribere l'utente
-				console.log("Permission granted, subscribing user...");
 				set_sub_Status("Subscribing...");
 				const subscription = await createSubscription();
 
 				// Se la subscription è andata a buon fine, salviamo la subscription nel DB
 				const subscriptionData = subscription.toJSON();
 				await saveSubscription(subscriptionData);
-				console.log("Subscription saved:", subscriptionData);
 				set_sub_Status("Subscription saved");
 			} else {
 				// Se l'utente è già subscribato, mostriamo un messaggio
-				console.log("User already subscribed");
 				set_sub_Status("User already subscribed");
 			}
 		} catch (err) {
@@ -58,12 +55,10 @@ export default function NotificationsTestPage() {
 	const handleSend = async () => {
 		try {
 			// Sapendo che l'utente è subscribato, inviamo una notifica di test
-			console.log("Sending test notification...");
 			set_send_Status("Sending test notification...");
 			await send_TEST_NotificationToAll();
 
 			// Se tutto va bene, mostriamo un messaggio di successo
-			console.log("Test notification sent");
 			set_send_Status("Test notification sent");
 		} catch (err) {
 			console.error(err);

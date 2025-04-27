@@ -21,7 +21,6 @@ const clientDB = new MongoClient(DB_URI, {});
 export async function connectToClient() {
 	try {
 		await clientDB.connect();
-		console.log("Successfully connected to MongoDB Atlas!");
 	} catch (error) {
 		console.error("Connection to MongoDB Atlas failed!", error);
 		process.exit();
@@ -51,7 +50,6 @@ export async function findDB<T>(
 ): Promise<T | null> {
 	const collection = await findCollection(collectionName);
 	const output = await collection.findOne(filter);
-	console.log("Questo è l'output:", output);
 	return output as T | null;
 }
 
@@ -82,7 +80,6 @@ export async function deleteDB(collectionName: string, filter: any) {
 }
 
 export async function findUserById(userId: string): Promise<User | null> {
-	console.log("userId", userId);
 	if (!ObjectId.isValid(userId)) {
 		console.log("Invalid userId", userId);
 		console.error(`Invalid userId: ${userId}`);
