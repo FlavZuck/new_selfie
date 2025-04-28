@@ -1,37 +1,31 @@
 "use server";
 
-import { Pomodoro } from "@/app/lib/definitions/def_pomo";
+import { Pomodoro_DB } from "@/app/lib/definitions/def_pomo";
 import { POMODORO, findDB, insertDB, updateDB } from "../lib/mongodb";
 import { getCurrentID } from "./auth";
 
-export async function loadPomodoro(): Promise<Pomodoro | null> {
+export async function loadPomodoro(): Promise<Pomodoro_DB | null> {
 	const userId = await getCurrentID();
 	if (!userId) return null;
 
-	const config = await findDB<Pomodoro>(POMODORO, { userId });
+	const config = (await findDB<Pomodoro_DB>(POMODORO, {
+		userId
+	})) as Pomodoro_DB;
 	if (!config) return null;
 
-	return {
-		userId: config.userId,
-		date: config.date,
-		timerConfig: {
-			studyMin: config.timerConfig.studyMin,
-			pauseMin: config.timerConfig.pauseMin,
-			savedCycles: config.timerConfig.savedCycles
-		}
-	};
+	return config;
 }
 
 export async function savePomodoro(
 	studyMin: string,
 	pauseMin: string,
 	savedCycles: number
-): Promise<void> {
+) {
 	const userId = await getCurrentID();
 	if (!userId) return;
 
 	const currDate = new Date();
-	const config: Pomodoro = {
+	const config = {
 		userId,
 		date: currDate,
 		timerConfig: {
@@ -46,7 +40,7 @@ export async function savePomodoro(
 	};
 
 	// Cerca se esiste già una config
-	const existing = await findDB<Pomodoro>(POMODORO, { userId });
+	const existing = await findDB<Pomodoro_DB>(POMODORO, { userId });
 
 	if (existing) {
 		await updateDB(
@@ -61,4 +55,6 @@ export async function savePomodoro(
 	} else {
 		await insertDB(POMODORO, config);
 	}
+
+	return { message: "Pomodoro created successfully" };
 }

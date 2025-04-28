@@ -1,9 +1,13 @@
 "use client";
 
+import {
+	PomodoroProposal,
+	PomodoroSchema
+} from "@/app/lib/definitions/def_pomo";
 import Image from "next/image";
 import React, { useEffect, useState } from "react";
-import { loadPomodoro, savePomodoro } from "../actions/pomodoro_logic";
-import pomodoro from "../pomodoro/pomodoro.module.css";
+import { loadPomodoro, savePomodoro } from "../../actions/pomodoro_logic";
+import pomodoro from "../../pomodoro/pomodoro.module.css";
 
 export default function PomodoroTimer() {
 	const [studyTime, setStudyTime] = useState("00:00:10");
@@ -16,9 +20,21 @@ export default function PomodoroTimer() {
 	const [currentCycle, setCurrentCycle] = useState(1);
 	const [animationClass, setAnimationClass] = useState("");
 
+	const [availableTime, setAvailableTime] = useState("");
+	const [proposals, setProposals] = useState<PomodoroProposal[]>([]);
+	const [showProposals, setShowProposals] = useState(false);
+	const [timeUnit, setTimeUnit] = useState<"minutes" | "hours">("minutes");
+
 	const inSeconds = (time: string) => {
 		const splitted = time.split(":").map(Number);
 		return splitted[0] * 3600 + splitted[1] * 60 + splitted[2];
+	};
+
+	const displayTime = (seconds: number) => {
+		const hour = Math.floor(seconds / 3600);
+		const min = Math.floor((seconds % 3600) / 60);
+		const sec = seconds % 60;
+		return `${String(hour).padStart(2, "0")}:${String(min).padStart(2, "0")}:${String(sec).padStart(2, "0")}`;
 	};
 
 	useEffect(() => {
@@ -98,7 +114,25 @@ export default function PomodoroTimer() {
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
 		console.log("form submitted:", studyTime, pauseTime, cycles);
+		const validation = PomodoroSchema.safeParse({
+			studyMin: studyTime,
+			pauseMin: pauseTime,
+			savedCycles: cycles
+		});
+		console.log("validation", validation);
+		if (!validation.success) {
+			console.error(
+				"Validation failed:",
+				validation.error.flatten().fieldErrors
+			);
+			return {
+				errors: validation.error.flatten().fieldErrors
+			};
+		}
+
 		await savePomodoro(studyTime, pauseTime, cycles);
+		setShowProposals(false);
+		setAvailableTime("");
 		Start();
 	};
 
@@ -143,12 +177,39 @@ export default function PomodoroTimer() {
 		return () => clearInterval(timer);
 	}, [isPlaying, isStudyPhase, currentCycle, cycles, studyTime, pauseTime]);
 
-	const displayTime = (seconds: number) => {
-		const hour = Math.floor(seconds / 3600);
-		const min = Math.floor((seconds % 3600) / 60);
-		const sec = seconds % 60;
-		return `${String(hour).padStart(2, "0")}:${String(min).padStart(2, "0")}:${String(sec).padStart(2, "0")}`;
-	};
+	function calculateProposals(totalMinutes: number): PomodoroProposal[] {
+		const proposals: PomodoroProposal[] = [];
+
+		// Common study/pause time combinations
+		const combinations = [
+			{ study: 25, pause: 5 },
+			{ study: 35, pause: 5 },
+			{ study: 40, pause: 5 },
+			{ study: 45, pause: 5 },
+			{ study: 50, pause: 5 },
+			{ study: 30, pause: 10 },
+			{ study: 35, pause: 10 },
+			{ study: 45, pause: 10 },
+			{ study: 50, pause: 10 }
+		];
+
+		combinations.forEach(({ study, pause }) => {
+			const cycleTime = study + pause;
+			const possibleCycles = Math.floor(totalMinutes / cycleTime);
+			const totalTime = possibleCycles * cycleTime;
+
+			if (totalTime === totalMinutes) {
+				proposals.push({
+					cycles: possibleCycles,
+					studyMinutes: study,
+					pauseMinutes: pause,
+					totalTime
+				});
+			}
+		});
+
+		return proposals;
+	}
 
 	function studyAnimation(seconds: number) {
 		console.log("studyanim");
@@ -262,6 +323,102 @@ export default function PomodoroTimer() {
 				<div id={pomodoro.juice} className={animationClass}></div>
 				{isPlaying && (
 					<h2 id={pomodoro.timer}>{displayTime(secondsLeft)}</h2>
+				)}
+			</div>
+
+			<div className={pomodoro.proposalSection}>
+				<h2>Find the Best Study Schedule</h2>
+				<form
+					onSubmit={(e) => {
+						e.preventDefault();
+						const value = Number(availableTime);
+						const totalMinutes =
+							timeUnit === "hours" ? value * 60 : value;
+
+						const newProposals = calculateProposals(totalMinutes);
+						setProposals(newProposals);
+						setShowProposals(true);
+					}}
+				>
+					<div className={pomodoro.inputWrapper}>
+						<label htmlFor="availableTime">Available Time:</label>
+						<div className={pomodoro.timeInputGroup}>
+							<input
+								type="number"
+								id="availableTime"
+								value={availableTime}
+								onChange={(e) =>
+									setAvailableTime(e.target.value)
+								}
+								min="1"
+								max={timeUnit === "hours" ? "24" : "1440"}
+								required
+							/>
+							<select
+								value={timeUnit}
+								onChange={(e) =>
+									setTimeUnit(
+										e.target.value as "minutes" | "hours"
+									)
+								}
+							>
+								<option value="minutes">Minutes</option>
+								<option value="hours">Hours</option>
+							</select>
+						</div>
+						<button type="submit">Get Proposals</button>
+					</div>
+				</form>
+
+				{showProposals && (
+					<div className={pomodoro.proposalsList}>
+						{proposals.length > 0 ? (
+							<select
+								className={pomodoro.proposalDropdown}
+								onChange={(e) => {
+									const selected =
+										proposals[Number(e.target.value)];
+									console.log("Selected proposal:", selected);
+									setStudyTime(
+										`00:${selected.studyMinutes
+											.toString()
+											.padStart(2, "0")}:00`
+									);
+									setPauseTime(
+										`00:${selected.pauseMinutes
+											.toString()
+											.padStart(2, "0")}:00`
+									);
+									console.log(
+										"Selected study time:",
+										studyTime
+									);
+									console.log(
+										"Selected pause time:",
+										pauseTime
+									);
+									setCycles(selected.cycles);
+									// setShowProposals(false);
+									// setAvailableTime("");
+								}}
+								defaultValue=""
+							>
+								<option hidden>Select a schedule</option>
+								{proposals.map((proposal, index) => (
+									<option key={index} value={index}>
+										{proposal.cycles} cycles:{" "}
+										{proposal.studyMinutes}min study /{" "}
+										{proposal.pauseMinutes}min break
+									</option>
+								))}
+							</select>
+						) : (
+							<p className={pomodoro.noResults}>
+								No perfect matches found. Try a different
+								duration.
+							</p>
+						)}
+					</div>
 				)}
 			</div>
 		</div>
