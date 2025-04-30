@@ -13,7 +13,16 @@ export async function loadPomodoro(): Promise<Pomodoro_DB | null> {
 	})) as Pomodoro_DB;
 	if (!config) return null;
 
-	return config;
+	return {
+		_id: config._id.toString(), // Convert ObjectId to string
+		userId: config.userId,
+		date: config.date, // Convert Date to string
+		timerConfig: {
+			studyMin: config.timerConfig.studyMin,
+			pauseMin: config.timerConfig.pauseMin,
+			savedCycles: config.timerConfig.savedCycles
+		}
+	};
 }
 
 export async function savePomodoro(
