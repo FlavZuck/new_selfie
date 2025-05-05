@@ -137,7 +137,15 @@ export default function EventForm({ show, setShow, refetch }: EventFormProps) {
 						{/* ---------------------------------------------------*/}
 						<div>
 							<label htmlFor="duration">Durata </label>
-							<input type="time" id="duration" name="duration" />
+							<input
+								type="number"
+								id="duration"
+								name="duration"
+								defaultValue={0}
+								min={0}
+								max={24}
+								step={0.5}
+							/>
 							{state?.errors?.duration && (
 								<p>{state.errors.duration}</p>
 							)}

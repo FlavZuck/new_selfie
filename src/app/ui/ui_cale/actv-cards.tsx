@@ -22,9 +22,12 @@ export function ActivityCalendarCard({
 		return <></>;
 	}
 
+	// Prendiamo l'attività
 	const activity = info.event;
-	// To ensure that if the description is empty, we hide the description
+
+	// Prepariamo le variabili per nascondere i campi
 	const showdescription = activity.extendedProps.description == "";
+	const shownotification = activity.extendedProps.notification;
 
 	return (
 		<div className={styles.modalBackground}>
@@ -54,6 +57,17 @@ export function ActivityCalendarCard({
 				<div hidden={showdescription} className={styles.modalSection}>
 					<h3>Descrizione :</h3>
 					<p>{activity.extendedProps.description}</p>
+				</div>
+
+				{/* NOTIFICATION TIME*/}
+				<div className={styles.modalSection} hidden={!shownotification}>
+					<h3>Orario :</h3>
+					<p>
+						{activity.start.toLocaleTimeString("it-IT", {
+							hour: "2-digit",
+							minute: "2-digit"
+						})}
+					</p>
 				</div>
 
 				{/* DELETE BUTTON */}
@@ -100,8 +114,9 @@ export function ActivityListCard({
 		return <></>;
 	}
 
-	// To ensure that if the description is empty, we hide the description
+	// Prepariamo le variabili per nascondere i campi
 	const showdescription = activity.extendedProps.description == "";
+	const shownotification = activity.extendedProps.notification;
 
 	return (
 		<div className={styles.modalBackground}>
@@ -136,6 +151,20 @@ export function ActivityListCard({
 					>
 						<h3>Descrizione :</h3>
 						<p>{activity.extendedProps.description}</p>
+					</div>
+
+					{/* NOTIFICATION TIME*/}
+					<div
+						className={styles.modalSection}
+						hidden={!shownotification}
+					>
+						<h3>Orario :</h3>
+						<p>
+							{activity.start.toLocaleTimeString("it-IT", {
+								hour: "2-digit",
+								minute: "2-digit"
+							})}
+						</p>
 					</div>
 
 					{/* DELETE BUTTON */}

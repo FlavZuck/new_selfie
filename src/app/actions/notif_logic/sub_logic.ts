@@ -2,7 +2,7 @@
 
 import { Subscription_DB } from "@/app/lib/definitions/def_notf";
 import { SUBSCRIPTIONS, findAllDB, insertDB } from "../../lib/mongodb";
-import { getCurrentID } from "../auth";
+import { getCurrentID } from "../auth_logic";
 
 // Function to get all subscriptions from the database
 export async function getAllSubscriptions(): Promise<Subscription_DB[]> {

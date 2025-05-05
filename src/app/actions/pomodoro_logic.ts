@@ -2,7 +2,7 @@
 
 import { Pomodoro_DB } from "@/app/lib/definitions/def_pomo";
 import { POMODORO, findDB, insertDB, updateDB } from "../lib/mongodb";
-import { getCurrentID } from "./auth";
+import { getCurrentID } from "./auth_logic";
 
 export async function loadPomodoro(): Promise<Pomodoro_DB | null> {
 	const userId = await getCurrentID();

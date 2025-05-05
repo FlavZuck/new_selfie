@@ -21,6 +21,9 @@ const BaseActivitySchema = z.object({
 	}),
 	// Fields for notification
 	notification: z.literal("on").or(z.literal(null)),
+	notificationtime: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/, {
+		message: "Please enter a valid time in HH:mm format."
+	}),
 	notificationtype: z.enum(["stesso", "prima", "specifico"]),
 	specificday: z.coerce
 		.date()
@@ -95,6 +98,7 @@ export type Activity_DB = {
 	expiration: Date;
 	color: string;
 	notification: boolean;
+	notificationtime: string;
 	notificationtype: "stesso" | "prima" | "specifico";
 	specificday: Date | null;
 };

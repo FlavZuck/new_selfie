@@ -70,12 +70,12 @@ const EventTimedSchema = z.object({
 		message: "Please enter a valid time in HH:mm format."
 	}),
 	// The duration of the event in hours and minutes
-	duration: z
-		.string()
-		.regex(
-			/^(0[0-9]|1[0-9]|2[0-3]):([0-5][0-9])$/,
-			"Please enter a valid duration in HH:mm format."
-		)
+	duration: z.coerce
+		.number()
+		.min(1, { message: "Please enter a positive number." })
+		.max(24, {
+			message: "Please enter a number less than 24."
+		})
 		.or(z.literal(""))
 });
 
@@ -279,7 +279,7 @@ export type Event_FullCalendar = {
 	color: string;
 	rrule?: any;
 	extendedProps: {
-		duration: string | "";
+		duration: number;
 		description: string;
 		place: string | "";
 		type: "EVENT";
@@ -298,8 +298,8 @@ export type Event_DB = {
 	// Campi per gli eventi timed/allDay
 	dateend: Date | "";
 	allDay: "on" | null;
-	duration: string | "";
-	// Campo per la rrule
+	duration: number;
+	// Campo per la rrule (non ci rompiamo a tipizzarla)
 	rrule?: any;
 	// Campo per il colore
 	color: string;

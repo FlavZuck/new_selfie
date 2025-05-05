@@ -8,7 +8,7 @@ import {
 } from "@/app/lib/definitions/def_event";
 import { ObjectId } from "mongodb";
 import { EVENTS, deleteDB, findAllDB, insertDB } from "../../lib/mongodb";
-import { getCurrentID } from "../auth";
+import { getCurrentID } from "../auth_logic";
 
 // Funzione per parsare la data e ora in un formato compatibile con FullCalendar
 function parseDate(date: Date, time: string) {

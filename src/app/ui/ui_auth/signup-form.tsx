@@ -1,6 +1,6 @@
 "use client";
 
-import { signup } from "@/app/actions/auth";
+import { signup } from "@/app/actions/auth_logic";
 import styles from "@/app/page.module.css";
 import { useRouter } from "next/navigation";
 import { useActionState } from "react";

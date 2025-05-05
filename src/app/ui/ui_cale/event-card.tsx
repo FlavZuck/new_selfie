@@ -81,7 +81,7 @@ export default function EventCard({
 							hidden={showduration}
 							className={styles.modalSection}
 						>
-							<h3>Durata :</h3>
+							<h3>Durata in ore:</h3>
 							<p>{event.extendedProps.duration}</p>
 						</div>
 					</div>

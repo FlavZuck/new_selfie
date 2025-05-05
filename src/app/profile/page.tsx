@@ -1,4 +1,4 @@
-import { getCurrentUser } from "../actions/auth";
+import { getCurrentUser } from "../actions/auth_logic";
 import styles from "../page.module.css";
 
 export default async function ProfilePage() {

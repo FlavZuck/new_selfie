@@ -8,7 +8,7 @@ import {
 } from "@/app/lib/definitions/def_actv";
 import { ObjectId } from "mongodb";
 import { ACTIVITIES, deleteDB, findAllDB, insertDB } from "../../lib/mongodb";
-import { getCurrentID } from "../auth";
+import { getCurrentID } from "../auth_logic";
 
 // NOTA BENE:
 // Molta della logica usata è piuttosto simile a quella usata per gli eventi,
@@ -30,6 +30,7 @@ function FullCalendar_ActivityParser(activity_array: Activity_DB[]) {
 				description: activity.description,
 				type: "ACTIVITY" as const,
 				notification: activity.notification,
+				notificationtime: activity.notificationtime,
 				notificationtype: activity.notificationtype,
 				specificday: activity.specificday
 			}
@@ -47,6 +48,7 @@ export async function create_activity(
 		description: formData.get("description"),
 		expiration: formData.get("expiration"),
 		notification: formData.get("notification"),
+		notificationtime: formData.get("notificationtime"),
 		notificationtype: formData.get("notificationtype"),
 		specificday: formData.get("specificday")
 	});
@@ -67,6 +69,7 @@ export async function create_activity(
 		description,
 		expiration,
 		notification,
+		notificationtime,
 		notificationtype,
 		specificday
 	} = validatedFields.data;
@@ -82,6 +85,7 @@ export async function create_activity(
 		expiration,
 		color: activityColor,
 		notification,
+		notificationtime,
 		notificationtype,
 		specificday
 	};

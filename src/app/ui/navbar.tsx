@@ -1,7 +1,7 @@
 import Link from "next/link";
 import React from "react";
-import isAuthenticated from "../actions/auth";
-import { getCurrentUser } from "../actions/auth";
+import isAuthenticated from "../actions/auth_logic";
+import { getCurrentUser } from "../actions/auth_logic";
 
 // Obblighiamo il componente a essere dinamico, in modo che venga ricaricato ogni volta
 export const dynamic = "force-dynamic";

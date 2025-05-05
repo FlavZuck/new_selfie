@@ -24,13 +24,19 @@ export default function ActivityForm({
 	// State to manage the visibility of the specific day input
 	const [spec_day, setSpec_day] = useState(false);
 
+	function resetStates() {
+		// Reset the state of the form
+		setNotif(false);
+		setSpec_day(false);
+		setShow(false);
+	}
+
 	// This function will be called when the event is created and calls the refetch function
 	// to update the events
 	function handleEventCreation() {
 		if (state?.message && !state?.errors && !pending) {
 			refetch();
-			setShow(false);
-			setSpec_day(false);
+			resetStates();
 		}
 	}
 	// This useEffect will refetch the events only when the state changes or the pending state changes
@@ -51,8 +57,7 @@ export default function ActivityForm({
 				<button
 					type="button"
 					onClick={() => {
-						setShow(false);
-						setSpec_day(false);
+						resetStates();
 					}}
 					className={styles.closeButton}
 				>
@@ -115,6 +120,22 @@ export default function ActivityForm({
 					<p>{state.errors.notification}</p>
 				)}
 				<div hidden={!notif}>
+					{/*NOTIFICATION TIME*/}
+					<div>
+						<label htmlFor="notificationtime">Ora notifica </label>
+						<input
+							type="time"
+							id="notificationtime"
+							name="notificationtime"
+							placeholder="Ora notifica"
+							defaultValue="08:00"
+							required
+						/>
+						{state?.errors?.notificationtime && (
+							<p>{state.errors.notificationtime}</p>
+						)}
+					</div>
+
 					{/*NOTIFICATION TYPE*/}
 					<div>
 						<label htmlFor="notificationtype">Tipo notifica </label>

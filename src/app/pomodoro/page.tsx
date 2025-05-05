@@ -1,4 +1,4 @@
-import PomodoroTimer from "../ui/ui_pomo/pomodoro-form";
+import PomodoroTimer from "../ui/ui_pomo/pomo-form";
 
 export default function Pomodoro() {
 	return (
