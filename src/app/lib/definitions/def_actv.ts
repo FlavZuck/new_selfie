@@ -16,10 +16,9 @@ const BaseActivitySchema = z.object({
 			message: "Description must have not more than 200 characters."
 		})
 		.or(z.literal("")),
-	expiration: z.coerce.date().min(new Date(), {
-		message: "Please enter a date from tomorrow and onward."
+	expiration: z.coerce.date().min(new Date(new Date().setHours(0, 0, 0, 0)), {
+		message: "Please enter a date from today and onward."
 	}),
-	// Fields for notification
 	notification: z.literal("on").or(z.literal(null)),
 	notificationtime: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/, {
 		message: "Please enter a valid time in HH:mm format."
@@ -85,7 +84,8 @@ export type Activity_FullCalendar = {
 		description: string;
 		type: "ACTIVITY";
 		notification: boolean;
-		notificationtype: "stesso" | "prima" | "specifico";
+		notificationtime: string;
+		notificationtype: string;
 		specificday: Date | null;
 	};
 };
@@ -99,6 +99,6 @@ export type Activity_DB = {
 	color: string;
 	notification: boolean;
 	notificationtime: string;
-	notificationtype: "stesso" | "prima" | "specifico";
+	notificationtype: string;
 	specificday: Date | null;
 };

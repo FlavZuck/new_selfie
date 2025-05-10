@@ -1,8 +1,17 @@
 self.addEventListener("push", (event) => {
+	// Per il debug
+	console.log("[SW] Push event data:", event.data?.text());
+
 	const data = event.data ? event.data.json() : {};
-	const { title, body, data: payloadData } = data;
-	const options = { body, data: payloadData };
-	event.waitUntil(self.registration.showNotification(title, options));
+	const title = data.title ?? "Notifica generica";
+	const body = data.body ?? "Non è stato fornito alcun corpo";
+
+	event.waitUntil(
+		self.registration.showNotification(title, {
+			body,
+			data: data.data ?? {}
+		})
+	);
 });
 
 self.addEventListener("notificationclick", (event) => {

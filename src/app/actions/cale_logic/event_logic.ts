@@ -10,7 +10,7 @@ import { ObjectId } from "mongodb";
 import { EVENTS, deleteDB, findAllDB, insertDB } from "../../lib/mongodb";
 import { getCurrentID } from "../auth_logic";
 
-// Funzione per parsare la data e ora in un formato compatibile con FullCalendar
+// Funzione per parsare la data e ora in un formato compatibile con lo Date standard
 function parseDate(date: Date, time: string) {
 	if (time == "") {
 		return date;

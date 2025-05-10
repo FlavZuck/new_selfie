@@ -1,12 +1,25 @@
 "use server";
 
 import { Subscription_DB } from "@/app/lib/definitions/def_notf";
-import { SUBSCRIPTIONS, findAllDB, insertDB } from "../../lib/mongodb";
+import { SUBSCRIPTIONS, findAllDB, findDB, insertDB } from "../../lib/mongodb";
 import { getCurrentID } from "../auth_logic";
 
 // Function to get all subscriptions from the database
 export async function getAllSubscriptions(): Promise<Subscription_DB[]> {
-	return findAllDB(SUBSCRIPTIONS, {});
+	return await findAllDB(SUBSCRIPTIONS, {});
+}
+
+// Function to get the subscription of a specific user
+export async function getUserSubscription(
+	userId: string
+): Promise<Subscription_DB | null> {
+	const subscription = await findDB<Subscription_DB>(SUBSCRIPTIONS, {
+		userId
+	});
+	if (!subscription) {
+		throw new Error("Subscription not found");
+	}
+	return subscription;
 }
 
 // Function to check if the user is subscribed

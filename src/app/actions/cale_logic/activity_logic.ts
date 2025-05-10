@@ -9,11 +9,7 @@ import {
 import { ObjectId } from "mongodb";
 import { ACTIVITIES, deleteDB, findAllDB, insertDB } from "../../lib/mongodb";
 import { getCurrentID } from "../auth_logic";
-
-// NOTA BENE:
-// Molta della logica usata è piuttosto simile a quella usata per gli eventi,
-// per cui appena abbiam tempo meglio se asportiamo le cose in comune in un file
-// separato e importiamo quello.
+import { notif_time_handler } from "../notif_logic/push_logic";
 
 // Funzione per parsare l'array di attività in un formato compatibile con FullCalendar
 // (Per adesso diamo per scontato che l'attività sia sempre all-day)
@@ -36,6 +32,25 @@ function FullCalendar_ActivityParser(activity_array: Activity_DB[]) {
 			}
 		};
 	});
+}
+
+// Funzione per parsare la data e ora in un formato compatibile con lo Date standard
+function parseDate(date: Date | "", time: string) {
+	if (time == "") {
+		return date;
+	}
+	if (date == "") {
+		return "";
+	}
+
+	const dateTime = new Date(date);
+	const [hours, minutes] = time.split(":").map(Number);
+
+	// Aggiungi ore e minuti alla data
+	dateTime.setHours(hours);
+	dateTime.setMinutes(minutes);
+
+	return dateTime;
 }
 
 export async function create_activity(
@@ -78,16 +93,19 @@ export async function create_activity(
 
 	const userId = await getCurrentID();
 
+	const expiration_parsed = parseDate(expiration, notificationtime);
+	const specificday_parsed = parseDate(specificday, notificationtime);
+
 	const Activity = {
 		userId,
 		title,
 		description,
-		expiration,
+		expiration: expiration_parsed,
 		color: activityColor,
 		notification,
 		notificationtime,
 		notificationtype,
-		specificday
+		specificday: specificday_parsed
 	};
 
 	// Insert the activity into the database
@@ -123,6 +141,30 @@ export async function getAllActivities(): Promise<Activity_FullCalendar[]> {
 
 	// Ritorniamo le attività parsate in un formato compatibile con FullCalendar
 	return FullCalendar_ActivityParser(all_activities);
+}
+
+// Funzione per ottenere le attività in scadenza
+export async function getActivitiesToNotify(
+	current_date: Date
+): Promise<Activity_DB[]> {
+	// Otteniamo tutte le attività dell'utente con le notifiche attive
+	const all_activities = (await findAllDB(ACTIVITIES, {
+		notification: "on"
+	})) as Activity_DB[];
+
+	// Prima generiamo un array di booleani che ci dice se l'attività è in scadenza o meno
+	const checkResults = await Promise.all(
+		all_activities.map((activity) =>
+			notif_time_handler(activity, current_date)
+		)
+	);
+	// Dopo di che filtriamo le attività in base a questo array
+	const activities_to_notify = all_activities.filter(
+		(_, i) => checkResults[i]
+	);
+
+	// Ritorniamo le attività in scadenza
+	return activities_to_notify;
 }
 
 // Funzione per creare la lista delle attività in ordine di scadenza più vicina

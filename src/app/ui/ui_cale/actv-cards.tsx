@@ -61,13 +61,8 @@ export function ActivityCalendarCard({
 
 				{/* NOTIFICATION TIME*/}
 				<div className={styles.modalSection} hidden={!shownotification}>
-					<h3>Orario :</h3>
-					<p>
-						{activity.start.toLocaleTimeString("it-IT", {
-							hour: "2-digit",
-							minute: "2-digit"
-						})}
-					</p>
+					<h3>Notification Time :</h3>
+					<p>{activity.extendedProps.notificationtime}</p>
 				</div>
 
 				{/* DELETE BUTTON */}
@@ -158,13 +153,8 @@ export function ActivityListCard({
 						className={styles.modalSection}
 						hidden={!shownotification}
 					>
-						<h3>Orario :</h3>
-						<p>
-							{activity.start.toLocaleTimeString("it-IT", {
-								hour: "2-digit",
-								minute: "2-digit"
-							})}
-						</p>
+						<h3>Notification Time :</h3>
+						<p>{activity.extendedProps.notificationtime}</p>
 					</div>
 
 					{/* DELETE BUTTON */}

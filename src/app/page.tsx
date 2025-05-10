@@ -1,9 +1,20 @@
 import "bootstrap/dist/css/bootstrap.min.css";
 import Image from "next/image";
 import Link from "next/link";
+import { isUserSubscribed } from "./actions/notif_logic/sub_logic";
+import { requestNotificationPermission } from "./actions/notif_logic/sw_logic";
 import styles from "./page.module.css";
 
 export default async function Home() {
+	// Controlliamo se l'utente ha le notifiche attive
+	if ((await isUserSubscribed()) === false) {
+		console.log("User not subscribed, requesting permission...");
+		await requestNotificationPermission();
+		console.log("Permission requested");
+	} else {
+		console.log("User already subscribed to notifications");
+	}
+
 	return (
 		<div className={styles.page}>
 			{/* === HERO SECTION === */}
