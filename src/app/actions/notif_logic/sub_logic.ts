@@ -1,7 +1,13 @@
 "use server";
 
 import { Subscription_DB } from "@/app/lib/definitions/def_notf";
-import { SUBSCRIPTIONS, findAllDB, findDB, insertDB } from "../../lib/mongodb";
+import {
+	SUBSCRIPTIONS,
+	deleteDB,
+	findAllDB,
+	findDB,
+	insertDB
+} from "../../lib/mongodb";
 import { getCurrentID } from "../auth_logic";
 
 // Function to get all subscriptions from the database
@@ -10,10 +16,10 @@ export async function getAllSubscriptions(): Promise<Subscription_DB[]> {
 }
 
 // Function to get the subscription of a specific user
-export async function getUserSubscription(
+export async function getUserSubscriptions(
 	userId: string
-): Promise<Subscription_DB | null> {
-	const subscription = await findDB<Subscription_DB>(SUBSCRIPTIONS, {
+): Promise<Subscription_DB[]> {
+	const subscription = await findAllDB<Subscription_DB>(SUBSCRIPTIONS, {
 		userId
 	});
 	if (!subscription) {
@@ -54,12 +60,33 @@ export async function saveSubscription(subscription: PushSubscriptionJSON) {
 	if (!userId) {
 		throw new Error("User not logged in");
 	}
-	// If the user is already subscribed, we don't need to save it again
-	else if (await isUserSubscribed()) {
-		throw new Error("User already subscribed");
-	}
+
 	//If all goes well, we can save the subscription
 	else {
 		await insertDB(SUBSCRIPTIONS, { userId, subscription });
+	}
+}
+
+// Function to delete the subscription from the database
+export async function deleteSubscription(subscription: Subscription_DB) {
+	await deleteDB(SUBSCRIPTIONS, {
+		_id: subscription._id
+	});
+}
+
+// Function to search for a device for a specific user
+export async function checkDeviceSubscriptionForUser(
+	userId: string,
+	subscription: PushSubscriptionJSON
+): Promise<boolean> {
+	const existingSubscription = await findDB<Subscription_DB>(SUBSCRIPTIONS, {
+		userId,
+		subscription
+	});
+	console.log("Existing subscription:", existingSubscription);
+	if (existingSubscription) {
+		return false;
+	} else {
+		return true;
 	}
 }

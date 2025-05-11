@@ -1,9 +1,13 @@
 "use server";
 
 import { Activity_DB } from "@/app/lib/definitions/def_actv";
-import { payload_type } from "@/app/lib/definitions/def_notf";
+import { Subscription_DB, payload_type } from "@/app/lib/definitions/def_notf";
 import webpush from "web-push";
-import { getAllSubscriptions, getUserSubscription } from "./sub_logic";
+import {
+	deleteSubscription,
+	getAllSubscriptions,
+	getUserSubscriptions
+} from "./sub_logic";
 
 // Set VAPID details
 const publicVapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
@@ -22,16 +26,40 @@ webpush.setVapidDetails(
 	privateVapidKey
 );
 
+// Funzione per inviare una notifica (primitiva)
 export async function sendNotification(
-	subscription: webpush.PushSubscription,
+	subscriptionDB: Subscription_DB,
 	payload: any
 ) {
 	try {
+		const subscription =
+			subscriptionDB.subscription as webpush.PushSubscription;
 		await webpush.sendNotification(subscription, JSON.stringify(payload));
 	} catch (err: any) {
+		if (err.statusCode === 410 || err.statusCode === 404) {
+			await deleteSubscription(subscriptionDB);
+		}
 		console.log("Error sending notification: ", err);
 		throw new Error("Error sending notification: " + err);
 	}
+}
+
+// Funzione per inviare la notifica all'utente su tutti i dispositivi
+export async function sendNotificationToAllDevices(
+	subscription_array: Subscription_DB[],
+	payload: any
+) {
+	if (!subscription_array) {
+		throw new Error("Subscription array is empty");
+	}
+
+	//
+
+	await Promise.all(
+		subscription_array.map((subscription) => {
+			sendNotification(subscription, payload);
+		})
+	);
 }
 
 export async function sendNotification_forActivity(
@@ -39,15 +67,22 @@ export async function sendNotification_forActivity(
 	payload: payload_type
 ) {
 	const userId = activity.userId;
-	const user_sub = await getUserSubscription(userId);
-	if (!user_sub) {
+	const subscription_array = await getUserSubscriptions(userId);
+
+	// Controlliamo se l'array è vuoto
+	if (!subscription_array) {
 		throw new Error("User subscription not found");
 	}
-	const subscription = user_sub.subscription as webpush.PushSubscription;
+	// Controlliamo se l'array è un array
+	if (!Array.isArray(subscription_array)) {
+		throw new Error("Subscription array is not an array");
+	}
+	// Stampiamo l'array per debug
+	console.log("Subscription array: ", subscription_array);
 
 	// Proviamo a inviare la notifica
 	try {
-		await sendNotification(subscription, payload);
+		await sendNotificationToAllDevices(subscription_array, payload);
 	} catch (err: any) {
 		console.log("Activity causing the error: ", activity.title);
 		//throw new Error("Error sending notification: " + err);
@@ -64,10 +99,6 @@ export async function notif_time_handler(
 		case "stesso":
 			// Togliamo i millisecondi e i secondi dalla data corrente
 			current_date.setMilliseconds(0);
-
-			// DEBUG
-			console.log("Current date: ", current_date);
-			console.log("Notification time: ", activity.expiration);
 
 			if (current_date.getTime() === activity.expiration.getTime()) {
 				return true;
@@ -86,10 +117,6 @@ export async function notif_time_handler(
 			// Togliamo i millisecondi e i secondi dalla data corrente
 			current_date.setMilliseconds(0);
 
-			// DEBUG
-			console.log("Current date: ", current_date);
-			console.log("Notification time: ", notif_time_specific);
-
 			if (current_date.getTime() === notif_time_specific.getTime()) {
 				return true;
 			} else {
@@ -102,10 +129,6 @@ export async function notif_time_handler(
 			);
 			// Togliamo i millisecondi e i secondi dalla data corrente
 			current_date.setMilliseconds(0);
-
-			// DEBUG
-			console.log("Current date: ", current_date);
-			console.log("Notification time: ", notif_time_prima);
 
 			if (current_date.getTime() === notif_time_prima.getTime()) {
 				return true;
@@ -131,7 +154,7 @@ export async function send_TEST_NotificationToAll() {
 	const all_subscriptions = await getAllSubscriptions();
 	await Promise.all(
 		all_subscriptions.map((data) => {
-			const subscription = data.subscription as webpush.PushSubscription;
+			const subscription = data as Subscription_DB;
 
 			sendNotification(subscription, payload);
 		})

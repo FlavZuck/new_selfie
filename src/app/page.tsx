@@ -1,19 +1,73 @@
+"use client";
+
 import "bootstrap/dist/css/bootstrap.min.css";
 import Image from "next/image";
 import Link from "next/link";
-import { isUserSubscribed } from "./actions/notif_logic/sub_logic";
-import { requestNotificationPermission } from "./actions/notif_logic/sw_logic";
+import { useEffect } from "react";
+import { getCurrentID } from "./actions/auth_logic";
+import {
+	isUserSubscribed,
+	saveSubscription
+} from "./actions/notif_logic/sub_logic";
+import {
+	createSubscription,
+	reSubscribeDevice,
+	requestNotificationPermission
+} from "./actions/notif_logic/sw_logic";
 import styles from "./page.module.css";
 
-export default async function Home() {
-	// Controlliamo se l'utente ha le notifiche attive
-	if ((await isUserSubscribed()) === false) {
-		console.log("User not subscribed, requesting permission...");
-		await requestNotificationPermission();
-		console.log("Permission requested");
-	} else {
-		console.log("User already subscribed to notifications");
+async function subscription_process() {
+	console.log("User not subscribed, requesting permission...");
+	const permission = await requestNotificationPermission();
+	// Se l'utente non ha dato il permesso, usciamo dalla funzione
+	if (permission !== "granted") {
+		console.log("Permission not granted");
+		return;
 	}
+	// Se l'utente ha dato il permesso, procediamo a subscribere l'utente
+	console.log("Permission requested");
+	const subscription = await createSubscription();
+	// Se la subscription è andata a buon fine, salviamo la subscription nel DB
+	const subscriptionData = subscription.toJSON();
+	await saveSubscription(subscriptionData);
+	console.log("Subscription saved");
+}
+
+export default function Home() {
+	async function checkNotificationPermission() {
+		try {
+			// Controlla se l'utente è già subscribato
+			if (await isUserSubscribed()) {
+				console.log("User already subscribed");
+
+				const user_id = await getCurrentID();
+				// Check per user id
+				if (!user_id) {
+					console.log("User not logged in");
+					return;
+				}
+
+				if (await reSubscribeDevice(user_id)) {
+					// Se il device delll'utente non è subscribato, procediamo a risubscrivere l'utente
+					console.log("Device not subscribed, re-subscribing...");
+					await subscription_process();
+				} else {
+					// Se l'utente è subscribato, non facciamo nulla :)
+					console.log("Device already subscribed");
+				}
+			} else {
+				// Se l'utente non è subscribato, procediamo a subscribere l'utente
+				await subscription_process();
+			}
+		} catch (error) {
+			console.error("Error checking notification permission:", error);
+		}
+	}
+
+	// Chiamata alla funzione per controllare le notifiche
+	useEffect(() => {
+		checkNotificationPermission();
+	}, []);
 
 	return (
 		<div className={styles.page}>
