@@ -15,7 +15,7 @@ import {
 	ActivityListCard
 } from "../ui/ui_cale/actv-cards";
 import ActivityForm from "../ui/ui_cale/actv-form";
-import ActvList from "../ui/ui_cale/actv-list";
+import { ActvList, ExpActvList } from "../ui/ui_cale/actv-list";
 import EventCard from "../ui/ui_cale/event-card";
 import EventForm from "../ui/ui_cale/event-form";
 import "./calendar.css";
@@ -31,13 +31,18 @@ export default function PageCalendar() {
 	const [show_Activity_create, setShow_Activity_Create] = useState(false);
 	const [show_Activity_card, setShow_Activity_Card] = useState(false);
 
-	// Stato per il modale della ActivityList
+	// Stato per il modale della ActivityList ed ExpActvList
 	const [show_ActvList_card, setShow_ActvList_Card] = useState(false);
+	const [show_ExpActvList_card, setShow_ExpActvList_Card] = useState(false);
 
-	// Stato per l'oggetto dell'attività selezionata (ActivityList)
+	// Stato per l'oggetto dell'attività selezionata (ActivityList e ExpActvList)
+	// entrambe le liste condividono lo stesso oggetto, dato che sono simili e solo una card può essere aperta alla volta
 	const [actvList_obj, setActvList_obj] = useState<Activity_FullCalendar>();
+
 	// Stato per l'oggetto dell'evento selezionato (FullCalendar)
 	const [info, setInfo] = useState<EventClickArg | null>(null);
+	// Costante con la data odierna
+	const current_date = new Date();
 
 	// Funzione che si occupa di fetchare gli eventi ed attività
 	// (da mettere apposto il tipaggio tbf)
@@ -183,14 +188,28 @@ export default function PageCalendar() {
 						events={events}
 					/>
 				</div>
-				<div style={{ flex: "1" }}>
-					<ActvList
-						allactv={allactv ? allactv : []}
-						listClick={show_ActvList_card}
-						setListClick={setShow_ActvList_Card}
-						activity={actvList_obj}
-						set_activity={setActvList_obj}
-					/>
+				{/* SEZIONE DELLE LISTE */}
+				<div>
+					<div>
+						<ExpActvList
+							allactv={allactv ? allactv : []}
+							listClick={show_ExpActvList_card}
+							setListClick={setShow_ExpActvList_Card}
+							activity={actvList_obj}
+							set_activity={setActvList_obj}
+							current_date={current_date}
+						/>
+					</div>
+					<div style={{ flex: "1" }}>
+						<ActvList
+							allactv={allactv ? allactv : []}
+							listClick={show_ActvList_card}
+							setListClick={setShow_ActvList_Card}
+							activity={actvList_obj}
+							set_activity={setActvList_obj}
+							current_date={current_date}
+						/>
+					</div>
 				</div>
 			</div>
 			<EventForm

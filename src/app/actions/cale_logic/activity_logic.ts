@@ -186,3 +186,5 @@ export async function getActivitiesList() {
 
 	return all_activities;
 }
+
+

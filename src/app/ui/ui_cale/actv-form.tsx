@@ -75,6 +75,7 @@ export default function ActivityForm({
 						required
 					/>
 				</div>
+				{state?.errors?.title && <p>{state.errors.title}</p>}
 				{/*DESCRIPTION*/}
 				<div>
 					<label htmlFor="description">Descrizione </label>
