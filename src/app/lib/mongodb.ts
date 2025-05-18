@@ -67,10 +67,15 @@ export async function findAllDB<T>(
 export async function updateDB(
 	collectionName: string,
 	filter: any,
-	updates: any
+	updates: any,
+	remove: any = null
 ) {
 	const collection = await findCollection(collectionName);
-	collection.updateMany(filter, { $set: updates });
+	if (remove === null) {
+		collection.updateOne(filter, { $set: updates });
+	} else {
+		collection.updateOne(filter, { $set: updates, $unset: remove });
+	}
 }
 
 // Elimina i documenti nella collezione che soddisfano il filtro

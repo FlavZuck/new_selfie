@@ -1,11 +1,14 @@
 "use client";
 
 import { delete_event } from "@/app/actions/cale_logic/event_logic";
+import { Event_FullCalendar } from "@/app/lib/definitions/def_event";
 import styles from "@/app/page.module.css";
 
 type EventClickProps = {
 	show: boolean;
 	setShow: (show: boolean) => void;
+	setEventToUpdate: (event: Event_FullCalendar | null) => void;
+	setShow_Update_Event: (show: boolean) => void;
 	info: any;
 	refetch: () => Promise<void>;
 };
@@ -13,21 +16,30 @@ type EventClickProps = {
 export default function EventCard({
 	show,
 	setShow,
+	setEventToUpdate,
+	setShow_Update_Event,
 	info,
 	refetch
 }: EventClickProps) {
-	if (!show) {
-		return <></>;
-	}
+	// single early-return guard
+	if (!show) return null;
 
 	const event = info.event;
-
-	// Check if the event is all-day, if so, hide the time
 	const showtime = event.allDay;
-	// Check if duration was provided, if not, hide the duration
-	const showduration = event.extendedProps.duration == "";
-	//
-	const showplace = event.extendedProps.place == "";
+	const showduration = event.extendedProps.duration === "";
+	const showplace = event.extendedProps.place === "";
+
+	const handleUpdate = () => {
+		setEventToUpdate(event);
+		setShow(false);
+		setShow_Update_Event(true);
+	};
+
+	const handleDelete = () => {
+		delete_event(event.id);
+		setShow(false);
+		refetch();
+	};
 
 	return (
 		<div className={styles.modalBackground}>
@@ -69,7 +81,7 @@ export default function EventCard({
 					{/* TIME AND DURATION */}
 					<div hidden={showtime}>
 						<div className={styles.modalSection}>
-							<h3 className="bg-primary">Orario :</h3>
+							<h3>Orario :</h3>
 							<p>
 								{event.start.toLocaleTimeString([], {
 									hour: "2-digit",
@@ -90,15 +102,21 @@ export default function EventCard({
 						<button
 							className={styles.deleteButton}
 							onClick={() => {
-								// Call the delete function
-								delete_event(event.id);
-								// Close the modal
-								setShow(false);
-								// Refetch the events
-								refetch();
+								handleDelete();
 							}}
 						>
 							Elimina evento
+						</button>
+					</div>
+					{/* UPDATE BUTTON */}
+					<div className={styles.modalSection}>
+						<button
+							className={styles.updateButton}
+							onClick={() => {
+								handleUpdate();
+							}}
+						>
+							Modifica evento
 						</button>
 					</div>
 				</div>

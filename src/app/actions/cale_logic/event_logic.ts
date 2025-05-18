@@ -7,7 +7,13 @@ import {
 	Event_FullCalendar
 } from "@/app/lib/definitions/def_event";
 import { ObjectId } from "mongodb";
-import { EVENTS, deleteDB, findAllDB, insertDB } from "../../lib/mongodb";
+import {
+	EVENTS,
+	deleteDB,
+	findAllDB,
+	insertDB,
+	updateDB
+} from "../../lib/mongodb";
 import { getCurrentID } from "../auth_logic";
 
 // Funzione per parsare la data e ora in un formato compatibile con lo Date standard
@@ -295,4 +301,131 @@ export async function getAllEvents(): Promise<Event_FullCalendar[]> {
 
 	// Formattiamo gli eventi per FullCalendar
 	return FullCalendar_EventParser(all_events);
+}
+
+export async function update_event(
+	eventId: string,
+	EventState: EventState,
+	formData: FormData
+) {
+	// Validate form fields
+	const validatedFields = EventFormSchema.safeParse({
+		// Base event fields
+		title: formData.get("title"),
+		place: formData.get("place"),
+		datestart: formData.get("datestart"),
+		description: formData.get("description"),
+		// Timed/allDay event fields
+		allDay: formData.get("allDay"),
+		dateend: formData.get("dateend"),
+		time: formData.get("time"),
+		duration: formData.get("duration"),
+		// Recurrence fields
+		recurrence: formData.get("recurrence"),
+		frequency: formData.get("frequency"),
+		dayarray: formData.get("dayarray"),
+		mh_day: formData.get("mh_day"),
+		yh_month: formData.get("yh_month"),
+		yh_day: formData.get("yh_day"),
+		undef: formData.get("undef"),
+		count: formData.get("count"),
+		until: formData.get("until")
+	});
+
+	if (!validatedFields.success) {
+		console.log(
+			"Validation failed",
+			validatedFields.error.flatten().fieldErrors
+		);
+		return {
+			errors: validatedFields.error.flatten().fieldErrors
+		};
+	}
+
+	// Prepare data for insertion into database
+	const {
+		title,
+		place,
+		datestart,
+		description,
+		allDay,
+		dateend,
+		time,
+		duration,
+		recurrence,
+		frequency,
+		dayarray,
+		mh_day,
+		yh_month,
+		yh_day,
+		count,
+		until
+	} = validatedFields.data;
+
+	// Preparazioni varie per l'update
+	const start = parseDate(datestart, time);
+	const normalColor = "#FF5733"; // color = red
+	const recurringColor = "#33FF57"; // color = green
+	const userId = await getCurrentID();
+
+	// Create event object
+	const NormalEvent = {
+		userId,
+		title,
+		description,
+		place,
+		allDay,
+		start,
+		dateend,
+		duration,
+		color: normalColor
+	};
+
+	// Check if it's a normal event or a recurring event
+	if (recurrence) {
+		// Parse recurrence data
+		const rrule = parseRrule(
+			frequency,
+			dayarray,
+			mh_day,
+			yh_month,
+			yh_day,
+			count,
+			until,
+			start
+		);
+
+		// Add recurrence data to event object
+		const RecurringEvent = {
+			userId,
+			allDay,
+			title,
+			duration,
+			description,
+			place,
+			rrule,
+			color: recurringColor
+		};
+		// Insert the RecurrentEvent into database
+		await updateDB(
+			EVENTS,
+			{
+				_id: new ObjectId(eventId)
+			},
+			RecurringEvent
+		);
+	} else {
+		// Insert the NormalEvent into database
+		await updateDB(
+			EVENTS,
+			{
+				_id: new ObjectId(eventId)
+			},
+			NormalEvent,
+			{
+				rrule: ""
+			}
+		);
+	}
+	return { message: "Event updated successfully" };
 }

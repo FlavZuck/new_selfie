@@ -59,7 +59,7 @@ const EventAllDaySchema = z.object({
 	// The start time of the event, which is not needed for all-day events
 	time: z.literal(""),
 	// The duration of the event in hours and minutes, which is not needed for all-day events
-	duration: z.literal("")
+	duration: z.literal("0")
 });
 const EventTimedSchema = z.object({
 	// Both the allDay and dateend properties are not needed for timed events
@@ -76,7 +76,7 @@ const EventTimedSchema = z.object({
 		.max(24, {
 			message: "Please enter a number less than 24."
 		})
-		.or(z.literal(""))
+		.or(z.literal("0"))
 });
 
 const EventRecurrenceSchema = z.object({
