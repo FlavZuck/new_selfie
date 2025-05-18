@@ -85,7 +85,8 @@ export async function reSubscribeDevice(userId: string): Promise<boolean> {
 
 	// check per evitare errori
 	if (!sub_not_parsed) {
-		throw new Error("Service worker not found");
+		console.log("Service worker not registered");
+		return true;
 	}
 	// Convertiamo la subscription in un oggetto JSON per il confronto
 	const sub = sub_not_parsed.toJSON();

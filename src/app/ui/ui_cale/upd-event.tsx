@@ -124,19 +124,25 @@ export default function UpdateEventForm({
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [pending]);
 
+	// Initialize form state when modal is shown or event changes
+	useEffect(() => {
+		if (show && event) {
+			stateHandler_EventUpdate(
+				event,
+				setAllDay,
+				setRec,
+				setUndef,
+				setFreqform,
+				setSelectedDays
+			);
+		}
+	}, [show, event]);
+
 	if (!show || !event) {
 		return <div></div>;
 	}
 
-	// Prima di far iniziare il form, settiamo i valori di default in base all'evento passato
-	stateHandler_EventUpdate(
-		event,
-		setAllDay,
-		setRec,
-		setUndef,
-		setFreqform,
-		setSelectedDays
-	);
+	// stateHandler_EventUpdate call removed to prevent re-renders
 
 	return (
 		<div className={styles.modalBackground}>

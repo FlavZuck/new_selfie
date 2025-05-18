@@ -17,7 +17,7 @@ import {
 import styles from "./page.module.css";
 
 async function subscription_process() {
-	console.log("User not subscribed, requesting permission...");
+	console.log("User or Device not subscribed, requesting permission...");
 	const permission = await requestNotificationPermission();
 	// Se l'utente non ha dato il permesso, usciamo dalla funzione
 	if (permission !== "granted") {
