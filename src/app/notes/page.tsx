@@ -1,13 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import type { note } from "../lib/definitions/def_note";
 
 export default function Notes() {
 	// Logica per la gestione delle note
 	const [notes, setNotes] = useState(data);
 	const [title, setTitle] = useState("");
 	const [content, setContent] = useState("");
-	const [count, setCount] = useState(3);
+	const [count, setCount] = useState(data.length);
 
 	function removeNote(key: any) {
 		// Rimuove la nota con la chiave key
