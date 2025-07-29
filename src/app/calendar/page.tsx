@@ -18,6 +18,7 @@ import ActivityForm from "../ui/ui_cale/actv-form";
 import { ActvList, ExpActvList } from "../ui/ui_cale/actv-list";
 import EventCard from "../ui/ui_cale/event-card";
 import EventForm from "../ui/ui_cale/event-form";
+import UpdateActivityForm from "../ui/ui_cale/upd-actv";
 import UpdateEventForm from "../ui/ui_cale/upd-event";
 import "./calendar.css";
 
@@ -29,6 +30,7 @@ export default function PageCalendar() {
 	// Stati per i modali per FullCalendar
 	const [show_Event_create, setShow_Event_Create] = useState(false);
 	const [show_Update_Event, setShow_Update_Event] = useState(false);
+	const [show_Update_Activity, setShow_Update_Activity] = useState(false);
 	const [show_Event_card, setShow_Event_Card] = useState(false);
 	const [show_Activity_create, setShow_Activity_Create] = useState(false);
 	const [show_Activity_card, setShow_Activity_Card] = useState(false);
@@ -47,6 +49,8 @@ export default function PageCalendar() {
 	// Stato per l'evento da aggiornare
 	const [eventToUpdate, setEventToUpdate] =
 		useState<Event_FullCalendar | null>(null);
+	const [activityToUpdate, setActivityToUpdate] =
+		useState<Activity_FullCalendar | null>(null);
 
 	// Costante con la data odierna
 	const current_date = new Date();
@@ -252,9 +256,17 @@ export default function PageCalendar() {
 				setShow={setShow_Activity_Create}
 				refetch={fetchEvents}
 			/>
+			<UpdateActivityForm
+				show={show_Update_Activity}
+				setShow={setShow_Update_Activity}
+				refetch={fetchEvents}
+				activity={activityToUpdate}
+			/>
 			<ActivityCalendarCard
 				show={show_Activity_card}
 				setShow={setShow_Activity_Card}
+				setActivity={setActivityToUpdate}
+				setShow_Update_Event={setShow_Update_Activity}
 				info={info}
 				refetch={fetchEvents}
 			/>

@@ -6,8 +6,15 @@ import {
 	Activity_DB,
 	Activity_FullCalendar
 } from "@/app/lib/definitions/def_actv";
+import { UpdateSchema, UpdateState } from "@/app/lib/definitions/def_updt";
 import { ObjectId } from "mongodb";
-import { ACTIVITIES, deleteDB, findAllDB, insertDB } from "../../lib/mongodb";
+import {
+	ACTIVITIES,
+	deleteDB,
+	findAllDB,
+	insertDB,
+	updateDB
+} from "../../lib/mongodb";
 import { getCurrentID } from "../auth_logic";
 import { notif_time_handler } from "../notif_logic/push_logic";
 
@@ -24,6 +31,7 @@ function FullCalendar_ActivityParser(activity_array: Activity_DB[]) {
 			color: activity.color,
 			extendedProps: {
 				description: activity.description,
+				place: activity.place,
 				type: "ACTIVITY" as const,
 				notification: activity.notification,
 				notificationtime: activity.notificationtime,
@@ -61,6 +69,7 @@ export async function create_activity(
 	const validatedFields = ActivitySchema.safeParse({
 		title: formData.get("title"),
 		description: formData.get("description"),
+		place: formData.get("place"),
 		expiration: formData.get("expiration"),
 		notification: formData.get("notification"),
 		notificationtime: formData.get("notificationtime"),
@@ -82,6 +91,7 @@ export async function create_activity(
 	const {
 		title,
 		description,
+		place,
 		expiration,
 		notification,
 		notificationtime,
@@ -100,6 +110,7 @@ export async function create_activity(
 		userId,
 		title,
 		description,
+		place,
 		expiration: expiration_parsed,
 		color: activityColor,
 		notification,
@@ -187,4 +198,54 @@ export async function getActivitiesList() {
 	return all_activities;
 }
 
+// Funzione per ottenere un'attività specifica in base al suo ID nella sua forma parsata da FullCalendar
+export async function get_ActivityById(
+	activity_id: string | null
+): Promise<Activity_FullCalendar | null> {
+	const activity_array = await getAllActivities();
+	const activity = activity_array.find(
+		(activity) => activity.id === activity_id
+	);
+	return activity || null;
+}
 
+export async function update_activity(
+	activityId: string,
+	ActivityState: UpdateState,
+	formData: FormData
+) {
+	// Validate form fields
+	const validatedFields = UpdateSchema.safeParse({
+		// The only fields that need to be updated
+		title: formData.get("title"),
+		place: formData.get("place"),
+		description: formData.get("description")
+	});
+
+	if (!validatedFields.success) {
+		console.log(
+			"Validation failed",
+			validatedFields.error.flatten().fieldErrors
+		);
+		return {
+			errors: validatedFields.error.flatten().fieldErrors
+		};
+	}
+
+	// Prepare data for insertion into database
+	const { title, place, description } = validatedFields.data;
+
+	const updates = {
+		title,
+		place,
+		description
+	};
+
+	const userId = await getCurrentID();
+	const objectId = new ObjectId(activityId);
+
+	// Update the activity in the database
+	await updateDB(ACTIVITIES, { _id: objectId, userId }, updates);
+
+	return { message: "Activity updated successfully" };
+}
