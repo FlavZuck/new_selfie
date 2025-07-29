@@ -15,7 +15,7 @@ type RRuleFormProps = {
 	undef: boolean;
 	setUndef: React.Dispatch<React.SetStateAction<boolean>>;
 	// This is the props for the WeeklyHandler
-	freqHandlerProps: {
+	WeeklyHandlerProps: {
 		selectedDays: string[];
 		setSelectedDays: React.Dispatch<React.SetStateAction<string[]>>;
 	};
@@ -26,7 +26,7 @@ export default function RRuleForm({
 	setFreqform,
 	undef,
 	setUndef,
-	freqHandlerProps: freqHandlerProps
+	WeeklyHandlerProps
 }: RRuleFormProps) {
 	return (
 		<div>
@@ -59,8 +59,8 @@ export default function RRuleForm({
 			{/* WEEKLY */}
 			<div hidden={Freqform !== "WEEKLY"}>
 				<WeeklyHandler
-					selectedDays={freqHandlerProps.selectedDays}
-					setSelectedDays={freqHandlerProps.setSelectedDays}
+					selectedDays={WeeklyHandlerProps.selectedDays}
+					setSelectedDays={WeeklyHandlerProps.setSelectedDays}
 				/>
 			</div>
 

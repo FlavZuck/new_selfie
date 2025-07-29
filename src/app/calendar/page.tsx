@@ -264,6 +264,12 @@ export default function PageCalendar() {
 				activity={actvList_obj}
 				refetch={fetchEvents}
 			/>
+			<ActivityListCard
+				show={show_ExpActvList_card}
+				setShow={setShow_ExpActvList_Card}
+				activity={actvList_obj}
+				refetch={fetchEvents}
+			/>
 		</div>
 	);
 }
