@@ -187,7 +187,10 @@ export default function EventForm({ show, setShow, refetch }: EventFormProps) {
 							setFreqform={setFreqform}
 							undef={undef}
 							setUndef={setUndef}
-							freqHandlerProps={{ selectedDays, setSelectedDays }}
+							WeeklyHandlerProps={{
+								selectedDays,
+								setSelectedDays
+							}}
 						/>
 					</div>
 

@@ -2,15 +2,22 @@ import styles from "@/app/page.module.css";
 
 // Function that takes selectedDays and srts them in the order of the week
 
-type freqHandlerProps = {
+type WeeklyHandlerProps = {
 	selectedDays: string[];
 	setSelectedDays: React.Dispatch<React.SetStateAction<string[]>>;
 };
+type MonthlyHandlerProps = {
+	mh_day?: number;
+};
+type YearlyHandlerProps = {
+	yh_day?: number;
+	yh_month?: number;
+};	
 
 export function WeeklyHandler({
 	selectedDays,
 	setSelectedDays
-}: freqHandlerProps) {
+}: WeeklyHandlerProps) {
 	const days = [
 		"Lunedì",
 		"Martedì",
@@ -61,25 +68,42 @@ export function WeeklyHandler({
 	);
 }
 
-export function MonthlyHandler() {
+export function MonthlyHandler({ mh_day = new Date().getDate() }: MonthlyHandlerProps) {
 	return (
 		<div>
 			<label htmlFor="mh_day">Giorno del mese</label>
-			<input type="number" id="mh_day" name="mh_day" min="1" max="31" />
+			<input
+				type="number"
+				id="mh_day"
+				name="mh_day"
+				defaultValue={mh_day}
+				min="1"
+				max="31"
+			/>
 		</div>
 	);
 }
 
-export function YearlyHandler() {
+export function YearlyHandler(
+	{ yh_day = new Date().getDate(), yh_month = new Date().getMonth() }: YearlyHandlerProps
+) {
 	return (
 		<div>
 			<label htmlFor="yh_day">Giorno</label>
-			<input type="number" id="yh_day" name="yh_day" min="1" max="31" />
+			<input
+				type="number"
+				id="yh_day"
+				name="yh_day"
+				defaultValue={yh_day}
+				min="1"
+				max="31"
+			/>
 			<label htmlFor="yh_month">Mese</label>
 			<input
 				type="number"
 				id="yh_month"
 				name="yh_month"
+				defaultValue={yh_month}
 				min="1"
 				max="12"
 			/>

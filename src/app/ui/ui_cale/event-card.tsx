@@ -1,6 +1,9 @@
 "use client";
 
-import { delete_event } from "@/app/actions/cale_logic/event_logic";
+import {
+	delete_event,
+	get_EventById
+} from "@/app/actions/cale_logic/event_logic";
 import { Event_FullCalendar } from "@/app/lib/definitions/def_event";
 import styles from "@/app/page.module.css";
 
@@ -21,7 +24,6 @@ export default function EventCard({
 	info,
 	refetch
 }: EventClickProps) {
-	// single early-return guard
 	if (!show) return null;
 
 	const event = info.event;
@@ -29,8 +31,12 @@ export default function EventCard({
 	const showduration = event.extendedProps.duration === "";
 	const showplace = event.extendedProps.place === "";
 
-	const handleUpdate = () => {
-		setEventToUpdate(event);
+	const handleUpdate = async () => {
+		const parsedevent = await get_EventById(event.id);
+		if (!parsedevent) {
+			console.error("Event not found");
+		}
+		setEventToUpdate(parsedevent as Event_FullCalendar);
 		setShow(false);
 		setShow_Update_Event(true);
 	};

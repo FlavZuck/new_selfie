@@ -35,7 +35,7 @@ type ActvListProps = {
 
 // Componente ActvList per il rendering della lista delle attività
 export function ActvList({
-	allactv,
+	allactv = [],
 	setListClick,
 	set_activity,
 	current_date
@@ -134,7 +134,7 @@ type ExpActvListProps = {
 };
 
 export function ExpActvList({
-	allactv,
+	allactv = [],
 	setListClick,
 	set_activity,
 	current_date
