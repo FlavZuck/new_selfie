@@ -26,12 +26,14 @@ export default function EventCard({
 }: EventClickProps) {
 	if (!show) return null;
 
+	// Prendiamo l'evento
 	const event = info.event;
+	// Prepariamo le variabili per nascondere i campi
 	const showtime = event.allDay;
 	const showduration = event.extendedProps.duration === "";
 	const showplace = event.extendedProps.place === "";
 
-	const handleUpdate = async () => {
+	const handleUpdate = async() => {
 		const parsedevent = await get_EventById(event.id);
 		if (!parsedevent) {
 			console.error("Event not found");

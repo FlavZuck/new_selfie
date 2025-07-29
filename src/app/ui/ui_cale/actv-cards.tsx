@@ -1,12 +1,17 @@
 "use client";
 
-import { delete_activity } from "@/app/actions/cale_logic/activity_logic";
+import {
+	delete_activity,
+	get_ActivityById
+} from "@/app/actions/cale_logic/activity_logic";
 import { Activity_FullCalendar } from "@/app/lib/definitions/def_actv";
 import styles from "@/app/page.module.css";
 
 type ActivityCalendarClickProps = {
 	show: boolean;
 	setShow: (show: boolean) => void;
+	setActivity: (activity: Activity_FullCalendar | null) => void;
+	setShow_Update_Event: (show: boolean) => void;
 	info: any;
 	refetch: () => Promise<void>;
 };
@@ -14,20 +19,39 @@ type ActivityCalendarClickProps = {
 export function ActivityCalendarCard({
 	show,
 	setShow,
+	setActivity,
+	setShow_Update_Event,
 	info,
 	refetch
 }: ActivityCalendarClickProps) {
 	// Stato neutrale mentre non va mostrato
-	if (!show) {
-		return <></>;
-	}
+	if (!show) return null;
 
 	// Prendiamo l'attività
 	const activity = info.event;
-
 	// Prepariamo le variabili per nascondere i campi
+	const showplace = activity.extendedProps.place === "";
 	const showdescription = activity.extendedProps.description == "";
 	const shownotification = activity.extendedProps.notification;
+
+	const handleDelete = () => {
+		// Call the delete function
+		delete_activity(activity.id);
+		// Close the modal
+		setShow(false);
+		// Refetch the events
+		refetch();
+	};
+
+	const handleUpdate = async () => {
+		const parsedActivity = await get_ActivityById(activity.id);
+		if (!parsedActivity) {
+			console.error("Activity not found");
+		}
+		setActivity(parsedActivity as Activity_FullCalendar);
+		setShow(false);
+		setShow_Update_Event(true);
+	};
 
 	return (
 		<div className={styles.modalBackground}>
@@ -53,6 +77,12 @@ export function ActivityCalendarCard({
 					<p>{activity.start.toDateString()}</p>
 				</div>
 
+				{/* PLACE */}
+				<div hidden={showplace} className={styles.modalSection}>
+					<h3>Luogo :</h3>
+					<p>{activity.extendedProps.place}</p>
+				</div>
+
 				{/* DESCRIPTION */}
 				<div hidden={showdescription} className={styles.modalSection}>
 					<h3>Descrizione :</h3>
@@ -71,14 +101,21 @@ export function ActivityCalendarCard({
 						className={styles.deleteButton}
 						onClick={() => {
 							// Call the delete function
-							delete_activity(activity.id);
-							// Close the modal
-							setShow(false);
-							// Refetch the events
-							refetch();
+							handleDelete();
 						}}
 					>
 						Elimina attività
+					</button>
+				</div>
+				{/* UPDATE BUTTON */}
+				<div>
+					<button
+						className={styles.updateButton}
+						onClick={() => {
+							handleUpdate();
+						}}
+					>
+						Modifica evento
 					</button>
 				</div>
 			</div>

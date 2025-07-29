@@ -88,6 +88,14 @@ export default function ActivityForm({
 				{state?.errors?.description && (
 					<p>{state.errors.description}</p>
 				)}
+
+				{/*PLACE*/}
+				<div>
+					<label htmlFor="place">Luogo </label>
+					<input id="place" name="place" placeholder="Luogo" />
+				</div>
+				{state?.errors?.place && <p>{state.errors.place}</p>}
+
 				{/*EXPIRATION*/}
 				<div>
 					<label htmlFor="expiration">Scadenza </label>

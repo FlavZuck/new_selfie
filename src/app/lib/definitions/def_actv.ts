@@ -4,9 +4,17 @@ const BaseActivitySchema = z.object({
 	title: z
 		.string()
 		.min(1, { message: "The title must have at least one character." })
-		.max(25, {
+		.max(50, {
 			message: "Title must have not more than 50 characters."
 		}),
+	// Place where the event will be held (optional)
+	place: z
+		.string()
+		.min(1, { message: "The place must have at least one character." })
+		.max(25, {
+			message: "Place must have not more than 50 characters."
+		})
+		.or(z.literal("")),
 	description: z
 		.string()
 		.min(1, {
@@ -64,6 +72,7 @@ export type ActivityState =
 				// Base fields
 				title?: string[];
 				description?: string[];
+				place?: string[];
 				expiration?: string[];
 				// Notification
 				notification?: string[];
@@ -82,6 +91,7 @@ export type Activity_FullCalendar = {
 	color: string;
 	extendedProps: {
 		description: string;
+		place: string;
 		type: "ACTIVITY";
 		notification: boolean;
 		notificationtime: string;
@@ -95,6 +105,7 @@ export type Activity_DB = {
 	userId: string;
 	title: string;
 	description: string;
+	place: string;
 	expiration: Date;
 	color: string;
 	notification: boolean;

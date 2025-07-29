@@ -1,55 +1,55 @@
 "use client";
 
-import { update_event } from "@/app/actions/cale_logic/event_logic";
-import { Event_FullCalendar } from "@/app/lib/definitions/def_event";
+import { update_activity } from "@/app/actions/cale_logic/activity_logic";
+import { Activity_FullCalendar } from "@/app/lib/definitions/def_actv";
 import styles from "@/app/page.module.css";
 import { useActionState, useEffect } from "react";
 
-type EventFormProps = {
+type ActivityFormProps = {
 	show: boolean;
 	setShow: (show: boolean) => void;
 	refetch: () => Promise<void>;
-	event: Event_FullCalendar | null;
+	activity: Activity_FullCalendar | null;
 };
 
-export default function UpdateEventForm({
+export default function UpdateActivityForm({
 	show,
 	setShow,
 	refetch,
-	event
-}: EventFormProps) {
-	let event_id = "";
+	activity
+}: ActivityFormProps) {
+	let activity_id = "";
 
-	if (event) {
-		event_id = event.id;
+	if (activity) {
+		activity_id = activity.id;
 	}
+
 	// This is a custom hook that manages the state of the action
-	// Unico modo per continuare a usare le action (magia nera)
+	// Magia nera, come sempre
 	const [state, action, pending] = useActionState(
-		update_event.bind(null, event_id),
+		update_activity.bind(null, activity_id),
 		undefined
 	);
 
-	// This function will be called when the event is created and calls the refetch function to update the events
-	function handleEventUpdate() {
+	// This function will be called when the activity is updated and calls the refetch function to update the activities
+	function handleActivityUpdate() {
 		if (state?.message && !state?.errors && !pending) {
 			refetch();
 			setShow(false);
 		}
 	}
 
-	// This useEffect will refetch the events only when the state changes or the pending state changes
+	// This useEffect will refetch the activities only when the state changes or the pending state changes
 	useEffect(() => {
-		// This is used to refetch the events when an event is created
-		handleEventUpdate();
+		// This is used to refetch the activities when an activity is updated
+		handleActivityUpdate();
 		// This comment is to avoid the exhaustive-deps warning from eslint
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [pending]);
 
-	if (!show || !event) {
+	if (!show || !activity) {
 		return <div></div>;
 	}
-
 
 	return (
 		<div className={styles.modalBackground}>
@@ -69,7 +69,7 @@ export default function UpdateEventForm({
 							id="title"
 							name="title"
 							placeholder="Titolo"
-							defaultValue={event.title}
+							defaultValue={activity.title}
 							required
 						/>
 					</div>
@@ -82,7 +82,7 @@ export default function UpdateEventForm({
 							id="place"
 							name="place"
 							placeholder="Luogo"
-							defaultValue={event.extendedProps.place}
+							defaultValue={activity.extendedProps.place}
 						/>
 					</div>
 					{state?.errors?.place && <p>{state.errors.place}</p>}
@@ -94,7 +94,7 @@ export default function UpdateEventForm({
 							id="description"
 							name="description"
 							placeholder="Descrizione"
-							defaultValue={event.extendedProps.description}
+							defaultValue={activity.extendedProps.description}
 							required
 						/>
 					</div>

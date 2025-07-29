@@ -28,7 +28,7 @@ const baseEventSchema = z.object({
 	place: z
 		.string()
 		.min(1, { message: "The place must have at least one character." })
-		.max(25, {
+		.max(50, {
 			message: "Place must have not more than 50 characters."
 		})
 		.or(z.literal("")),
@@ -292,8 +292,8 @@ export type Event_DB = {
 	userId: string;
 	// Campi base (obbligatori tranne per place)
 	title: string;
-	place: string | "";
 	description: string;
+	place: string | "";
 	datestart: Date;
 	// Campi per gli eventi timed/allDay
 	dateend: Date | "";
