@@ -8,6 +8,7 @@ import rrulePlugin from "@fullcalendar/rrule";
 import { useEffect, useState } from "react";
 import { getAllActivities } from "../actions/cale_logic/activity_logic";
 import { getAllEvents } from "../actions/cale_logic/event_logic";
+import { getVirtualDate } from "../actions/timemach_logic";
 import { Activity_FullCalendar } from "../lib/definitions/def_actv";
 import { Event_FullCalendar } from "../lib/definitions/def_event";
 import {
@@ -26,6 +27,7 @@ export default function PageCalendar() {
 	// Stati per le fetch
 	const [events, setEvents] = useState([]);
 	const [allactv, setAllActv] = useState<Activity_FullCalendar[]>();
+	const [now, setNow] = useState<Date>(new Date());
 
 	// Stati per i modali per FullCalendar
 	const [show_Event_create, setShow_Event_Create] = useState(false);
@@ -76,10 +78,23 @@ export default function PageCalendar() {
 		}
 	}
 
-	// Funzione che si occupa di fetchare gli eventi e le attività
-	// al cambio di stato
+	async function fetchVirtualDate() {
+		try {
+			const vd = await getVirtualDate();
+			if (!vd) {
+				console.log("No virtual date set, current date will be used.");
+			} else {
+				setNow(vd);
+			}
+		} catch (error) {
+			console.error("Error fetching virtual date:", error);
+		}
+	}
+
+	// UseEffect che si occupa di fetchare gli eventi,le attività e la data virtual
 	useEffect(() => {
 		fetchEvents();
+		fetchVirtualDate();
 	}, []);
 
 	// Aggiungiamo un useEffect per osservare i cambiamenti di info
@@ -187,6 +202,7 @@ export default function PageCalendar() {
 				{/* FULLCALENDAR */}
 				<div style={{ flex: "3" }}>
 					<FullCalendar
+						key={now.toISOString()} // forza il rerender del calendar quando cambia la virt_date
 						plugins={[
 							dayGridPlugin,
 							interactionPlugin,
@@ -201,6 +217,7 @@ export default function PageCalendar() {
 						eventClick={function (info) {
 							setInfo(info);
 						}}
+						now={now.toISOString()}
 						selectable={true}
 						events={events}
 					/>

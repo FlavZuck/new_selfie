@@ -8,6 +8,8 @@ export const POMODORO = "Pomodoro";
 export const ACTIVITIES = "Activities";
 export const SUBSCRIPTIONS = "Subscriptions";
 export const NOTES = "Notes";
+// Collection for global settings
+export const SETTINGS = "settings";
 
 // Recupera la stringa di connessione dal file di ambiente
 const DB_URI = process.env.DB_URI as string;
