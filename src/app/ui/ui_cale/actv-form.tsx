@@ -129,6 +129,19 @@ export default function ActivityForm({
 					<p>{state.errors.notification}</p>
 				)}
 				<div hidden={!notif}>
+					{/*REMINDER*/}
+					<div>
+						<label htmlFor="reminder">
+							Promemoria dopo la scadenza
+						</label>
+						<input
+							type="checkbox"
+							id="reminder"
+							name="reminder"
+							defaultChecked={false}
+						/>
+					</div>
+
 					{/*NOTIFICATION TIME*/}
 					<div>
 						<label htmlFor="notificationtime">Ora notifica </label>

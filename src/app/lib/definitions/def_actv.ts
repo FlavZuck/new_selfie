@@ -1,4 +1,7 @@
 import { z } from "zod";
+import { getVirtualDate } from "../../actions/timemach_logic";
+
+const current_date = (await getVirtualDate()) ?? new Date();
 
 const BaseActivitySchema = z.object({
 	title: z
@@ -24,17 +27,21 @@ const BaseActivitySchema = z.object({
 			message: "Description must have not more than 200 characters."
 		})
 		.or(z.literal("")),
-	expiration: z.coerce.date().min(new Date(new Date().setHours(0, 0, 0, 0)), {
-		message: "Please enter a date from today and onward."
-	}),
+	expiration: z.coerce
+		.date()
+		.min(new Date(current_date.setHours(0, 0, 0, 0)), {
+			message: "Please enter a date from today and onward."
+		}),
+	// Notification settings
 	notification: z.literal("on").or(z.literal(null)),
+	reminder: z.literal("on").or(z.literal(null)),
 	notificationtime: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/, {
 		message: "Please enter a valid time in HH:mm format."
 	}),
 	notificationtype: z.enum(["stesso", "prima", "specifico"]),
 	specificday: z.coerce
 		.date()
-		.max(new Date(), {
+		.max(current_date, {
 			message: "Please enter a date from yesterday and backward."
 		})
 		.or(z.literal(""))
@@ -76,6 +83,7 @@ export type ActivityState =
 				expiration?: string[];
 				// Notification
 				notification?: string[];
+				reminder?: string[];
 				notificationtype?: string[];
 				specificday?: string[];
 			};
@@ -94,6 +102,7 @@ export type Activity_FullCalendar = {
 		place: string;
 		type: "ACTIVITY";
 		notification: boolean;
+		reminder: boolean;
 		notificationtime: string;
 		notificationtype: string;
 		specificday: Date | null;
@@ -109,6 +118,7 @@ export type Activity_DB = {
 	expiration: Date;
 	color: string;
 	notification: boolean;
+	reminder: boolean;
 	notificationtime: string;
 	notificationtype: string;
 	specificday: Date | null;

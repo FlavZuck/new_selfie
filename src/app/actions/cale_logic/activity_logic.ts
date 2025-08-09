@@ -1,5 +1,6 @@
 "use server";
 
+import { getVirtualDate } from "@/app/actions/timemach_logic";
 import {
 	ActivitySchema,
 	ActivityState,
@@ -34,6 +35,7 @@ function FullCalendar_ActivityParser(activity_array: Activity_DB[]) {
 				place: activity.place,
 				type: "ACTIVITY" as const,
 				notification: activity.notification,
+				reminder: activity.reminder,
 				notificationtime: activity.notificationtime,
 				notificationtype: activity.notificationtype,
 				specificday: activity.specificday
@@ -72,6 +74,7 @@ export async function create_activity(
 		place: formData.get("place"),
 		expiration: formData.get("expiration"),
 		notification: formData.get("notification"),
+		reminder: formData.get("reminder"),
 		notificationtime: formData.get("notificationtime"),
 		notificationtype: formData.get("notificationtype"),
 		specificday: formData.get("specificday")
@@ -94,6 +97,7 @@ export async function create_activity(
 		place,
 		expiration,
 		notification,
+		reminder,
 		notificationtime,
 		notificationtype,
 		specificday
@@ -114,6 +118,7 @@ export async function create_activity(
 		expiration: expiration_parsed,
 		color: activityColor,
 		notification,
+		reminder,
 		notificationtime,
 		notificationtype,
 		specificday: specificday_parsed
@@ -176,6 +181,25 @@ export async function getActivitiesToNotify(
 
 	// Ritorniamo le attività in scadenza
 	return activities_to_notify;
+}
+
+// Funzione per ottenere le attività scadute con reminder attivo da notificare
+export async function getExpiredActvitiesToRemind() {
+	// Gettiamo la data virtuale corrente o la data odierna se non è impostata
+	const current_date = (await getVirtualDate()) ?? new Date();
+
+	// Otteniamo tutte le attività scadute
+	const all_activities = (await findAllDB(ACTIVITIES, {
+		notification: "on",
+		reminder: "on"
+	})) as Activity_DB[];
+	// Filtriamo le attività scadute con reminder attivo
+	const expired_activities = all_activities.filter(
+		(activity) =>
+			activity.expiration < current_date && activity.reminder === true
+	);
+
+	return expired_activities;
 }
 
 // Funzione per creare la lista delle attività in ordine di scadenza più vicina
