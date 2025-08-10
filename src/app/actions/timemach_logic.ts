@@ -1,7 +1,8 @@
 "use server";
 
 // Le seguenti funzioni gestiscono la data virtuale per la Time Machine
-// L'uso del localStorage è un po' cope, però ci gestiamo così
+/* La data virtuale viene calcolata dal momento attuale più un offset
+ che viene salvato nel database. Questo ci permette di simulare il passare del tempo */
 import { SETTINGS, findCollection } from "../lib/mongodb";
 
 const VIRTUAL_DATE_KEY = "virtualDate";
@@ -9,8 +10,13 @@ const VIRTUAL_DATE_KEY = "virtualDate";
 export async function getVirtualDate(): Promise<Date | null> {
 	const collection = await findCollection(SETTINGS);
 	const doc = await collection.findOne({ key: VIRTUAL_DATE_KEY });
-	const date = doc?.value ? new Date(doc.value) : null;
-	return date ?? null;
+	// Il documento potrebbe non esistere, quindi usiamo ?
+	const timeoffset = doc?.value ? doc.value : null;
+	if (!timeoffset) {
+		return null;
+	} else {
+		return new Date(Date.now() + timeoffset);
+	}
 }
 
 export async function setVirtualDate(date: Date): Promise<void> {
@@ -18,12 +24,13 @@ export async function setVirtualDate(date: Date): Promise<void> {
 		throw new Error("Date must be provided");
 	}
 	const collection = await findCollection(SETTINGS);
+	const timeoffset = date.getTime() - Date.now();
 	await collection.updateOne(
 		{ key: VIRTUAL_DATE_KEY },
-		{ $set: { value: date } },
-		{ upsert: true }
+		{ $set: { value: timeoffset } },
+		{ upsert: true } // Se il documento non esiste, lo creiamo
 	);
-	console.log(`Virtual date set to: ${date.toISOString()}`);
+	console.log(`Virtual date started at: ${date.toISOString()}`);
 }
 
 export async function resetVirtualDate(): Promise<void> {

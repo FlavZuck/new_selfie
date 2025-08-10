@@ -104,6 +104,7 @@ export async function scheduler_routine() {
 			expired_activities.length === 0
 		) {
 			console.log("No activities to notify...");
+			console.log("Current date: ", current_date.toISOString());
 		} else {
 			console.log("There are activities to notify!!!");
 
