@@ -95,3 +95,5 @@ export async function findUserById(userId: string): Promise<User | null> {
 	const objectId = new ObjectId(userId);
 	return findDB<User>(USERS, { _id: objectId });
 }
+
+

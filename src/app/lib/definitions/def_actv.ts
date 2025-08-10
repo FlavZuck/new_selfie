@@ -1,8 +1,6 @@
 import { z } from "zod";
 import { getVirtualDate } from "../../actions/timemach_logic";
 
-const current_date = (await getVirtualDate()) ?? new Date();
-
 const BaseActivitySchema = z.object({
 	title: z
 		.string()
@@ -29,9 +27,14 @@ const BaseActivitySchema = z.object({
 		.or(z.literal("")),
 	expiration: z.coerce
 		.date()
-		.min(new Date(current_date.setHours(0, 0, 0, 0)), {
-			message: "Please enter a date from today and onward."
-		}),
+		.min(
+			new Date(
+				((await getVirtualDate()) ?? new Date()).setHours(0, 0, 0, 0)
+			),
+			{
+				message: "Please enter a date from today and onward."
+			}
+		),
 	// Notification settings
 	notification: z.literal("on").or(z.literal(null)),
 	reminder: z.literal("on").or(z.literal(null)),
@@ -41,7 +44,7 @@ const BaseActivitySchema = z.object({
 	notificationtype: z.enum(["stesso", "prima", "specifico"]),
 	specificday: z.coerce
 		.date()
-		.max(current_date, {
+		.max((await getVirtualDate()) ?? new Date(), {
 			message: "Please enter a date from yesterday and backward."
 		})
 		.or(z.literal(""))
@@ -106,6 +109,7 @@ export type Activity_FullCalendar = {
 		notificationtime: string;
 		notificationtype: string;
 		specificday: Date | null;
+		completed: boolean;
 	};
 };
 
@@ -118,8 +122,10 @@ export type Activity_DB = {
 	expiration: Date;
 	color: string;
 	notification: boolean;
-	reminder: boolean;
 	notificationtime: string;
 	notificationtype: string;
 	specificday: Date | null;
+	reminder: boolean;
+	lastsent_reminder: boolean;
+	completed: boolean;
 };

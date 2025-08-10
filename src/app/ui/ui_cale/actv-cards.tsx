@@ -1,6 +1,7 @@
 "use client";
 
 import {
+	complete_activity,
 	delete_activity,
 	get_ActivityById
 } from "@/app/actions/cale_logic/activity_logic";
@@ -33,10 +34,11 @@ export function ActivityCalendarCard({
 	const showplace = activity.extendedProps.place === "";
 	const showdescription = activity.extendedProps.description == "";
 	const shownotification = activity.extendedProps.notification;
+	const showcompletion = activity.extendedProps.completed;
 
-	const handleDelete = () => {
+	const handleDelete = async () => {
 		// Call the delete function
-		delete_activity(activity.id);
+		await delete_activity(activity.id);
 		// Close the modal
 		setShow(false);
 		// Refetch the events
@@ -51,6 +53,14 @@ export function ActivityCalendarCard({
 		setActivity(parsedActivity as Activity_FullCalendar);
 		setShow(false);
 		setShow_Update_Event(true);
+	};
+
+	const handleComplete = async () => {
+		await complete_activity(activity.id);
+		// Close the modal
+		setShow(false);
+		// Refetch the events
+		refetch();
 	};
 
 	return (
@@ -118,6 +128,17 @@ export function ActivityCalendarCard({
 						Modifica evento
 					</button>
 				</div>
+				{/* COMPLETE BUTTON */}
+				<div className={styles.modalSection} hidden={showcompletion}>
+					<button
+						className={styles.updateButton}
+						onClick={() => {
+							handleComplete();
+						}}
+					>
+						Attività Completata
+					</button>
+				</div>
 			</div>
 		</div>
 	);
@@ -146,9 +167,27 @@ export function ActivityListCard({
 		return <></>;
 	}
 
+	const handleDelete = async () => {
+		// Call the delete function
+		await delete_activity(activity.id);
+		// Close the modal
+		setShow(false);
+		// Refetch the events
+		refetch();
+	};
+
+	const handleComplete = async () => {
+		await complete_activity(activity.id);
+		// Close the modal
+		setShow(false);
+		// Refetch the events
+		refetch();
+	};
+
 	// Prepariamo le variabili per nascondere i campi
 	const showdescription = activity.extendedProps.description == "";
 	const shownotification = activity.extendedProps.notification;
+	const showcompletion = activity.extendedProps.completed;
 
 	return (
 		<div className={styles.modalBackground}>
@@ -199,15 +238,24 @@ export function ActivityListCard({
 						<button
 							className={styles.deleteButton}
 							onClick={() => {
-								// Call the delete function
-								delete_activity(activity.id);
-								// Close the modal
-								setShow(false);
-								// Refetch the events
-								refetch();
+								handleDelete();
 							}}
 						>
 							Elimina attività
+						</button>
+					</div>
+					{/* COMPLETE BUTTON */}
+					<div
+						className={styles.modalSection}
+						hidden={showcompletion}
+					>
+						<button
+							className={styles.updateButton}
+							onClick={() => {
+								handleComplete();
+							}}
+						>
+							Attività Completata
 						</button>
 					</div>
 				</div>
