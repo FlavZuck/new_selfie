@@ -1,6 +1,5 @@
 "use server";
 
-import { getVirtualDate } from "@/app/actions/timemach_logic";
 import {
 	ActivitySchema,
 	ActivityState,
@@ -17,7 +16,10 @@ import {
 	updateDB
 } from "../../lib/mongodb";
 import { getCurrentID } from "../auth_logic";
-import { notif_time_handler } from "../notif_logic/push_logic";
+import {
+	notif_time_handler,
+	reminder_time_handler
+} from "../notif_logic/push_logic";
 
 // Funzione per parsare l'array di attività in un formato compatibile con FullCalendar
 // (Per adesso diamo per scontato che l'attività sia sempre all-day)
@@ -38,7 +40,8 @@ function FullCalendar_ActivityParser(activity_array: Activity_DB[]) {
 				reminder: activity.reminder,
 				notificationtime: activity.notificationtime,
 				notificationtype: activity.notificationtype,
-				specificday: activity.specificday
+				specificday: activity.specificday,
+				completed: activity.completed
 			}
 		};
 	});
@@ -103,13 +106,19 @@ export async function create_activity(
 		specificday
 	} = validatedFields.data;
 
+	// Costanti per l'attività
 	const activityColor = "#0000FF"; // color = blue
-
 	const userId = await getCurrentID();
 
+	// Parsiamo le date
 	const expiration_parsed = parseDate(expiration, notificationtime);
 	const specificday_parsed = parseDate(specificday, notificationtime);
 
+	// Costanti per le notifiche reminder
+	const lastsent_reminder = false;
+	const completed = false;
+
+	// Payload attività
 	const Activity = {
 		userId,
 		title,
@@ -118,17 +127,17 @@ export async function create_activity(
 		expiration: expiration_parsed,
 		color: activityColor,
 		notification,
-		reminder,
 		notificationtime,
 		notificationtype,
-		specificday: specificday_parsed
+		specificday: specificday_parsed,
+		reminder,
+		lastsent_reminder,
+		completed
 	};
 
 	// Insert the activity into the database
 	await insertDB(ACTIVITIES, Activity);
 
-	// Effettivamente andrebbe fatto un check per vedere se l'activity è stata
-	// inserita correttamente, quando puliamo il codice ricordiamoci di farlo
 	return { message: "Activity created successfully" };
 }
 
@@ -140,6 +149,21 @@ export async function delete_activity(activity_id: string) {
 	await deleteDB(ACTIVITIES, {
 		_id: activityObjectId
 	});
+}
+
+export async function complete_activity(activity_id: string) {
+	const activityObjectId = new ObjectId(activity_id);
+
+	// Updatiamo a true il completamento della attività
+	await updateDB(
+		ACTIVITIES,
+		{
+			_id: activityObjectId
+		},
+		{
+			completed: true
+		}
+	);
 }
 
 // Funzione per ottenere tutte le attività dell'utente
@@ -160,44 +184,45 @@ export async function getAllActivities(): Promise<Activity_FullCalendar[]> {
 }
 
 // Funzione per ottenere le attività in scadenza
-export async function getActivitiesToNotify(
+export async function getActvToNotify(
 	current_date: Date
 ): Promise<Activity_DB[]> {
 	// Otteniamo tutte le attività dell'utente con le notifiche attive
-	const all_activities = (await findAllDB(ACTIVITIES, {
+	const all_activitiesToNotify = (await findAllDB(ACTIVITIES, {
 		notification: "on"
 	})) as Activity_DB[];
 
-	// Prima generiamo un array di booleani che ci dice se l'attività è in scadenza o meno
-	const checkResults = await Promise.all(
-		all_activities.map((activity) =>
-			notif_time_handler(activity, current_date)
-		)
-	);
-	// Dopo di che filtriamo le attività in base a questo array
-	const activities_to_notify = all_activities.filter(
-		(_, i) => checkResults[i]
-	);
+	// Filtriamo le attività in scadenza
+	const activities_to_notify: Activity_DB[] = [];
+	for (const activity of all_activitiesToNotify) {
+		if (await notif_time_handler(activity, current_date)) {
+			activities_to_notify.push(activity);
+		}
+	}
 
 	// Ritorniamo le attività in scadenza
 	return activities_to_notify;
 }
 
-// Funzione per ottenere le attività scadute con reminder attivo da notificare
-export async function getExpiredActvitiesToRemind() {
-	// Gettiamo la data virtuale corrente o la data odierna se non è impostata
-	const current_date = (await getVirtualDate()) ?? new Date();
-
-	// Otteniamo tutte le attività scadute
-	const all_activities = (await findAllDB(ACTIVITIES, {
+// Funzione per ottenere le attività scadute con reminder attivo e non-completate
+export async function getExpActvToRemind(current_date: Date) {
+	// Otteniamo tutte le attività non completate con reminder attivo
+	const all_activitiesToRemind = (await findAllDB(ACTIVITIES, {
 		notification: "on",
-		reminder: "on"
+		reminder: "on",
+		completed: false
 	})) as Activity_DB[];
-	// Filtriamo le attività scadute con reminder attivo
-	const expired_activities = all_activities.filter(
-		(activity) =>
-			activity.expiration < current_date && activity.reminder === true
-	);
+
+	console.log("All activities to remind: ", all_activitiesToRemind);
+
+	const expired_activities: Activity_DB[] = [];
+
+	for (const activity of all_activitiesToRemind) {
+		// Controlliamo se l'attività è da "remindare"
+		if (await reminder_time_handler(activity, current_date)) {
+			expired_activities.push(activity);
+		}
+	}
 
 	return expired_activities;
 }

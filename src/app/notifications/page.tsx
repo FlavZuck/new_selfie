@@ -10,6 +10,7 @@ import {
 	isUserSubscribed,
 	saveSubscription
 } from "../actions/notif_logic/sub_logic";
+import { testsendEmail } from "../lib/nodemailer";
 
 export default function NotificationsTestPage() {
 	// Stato per gestire il messaggio sotto il bottone " Send Notifications"
@@ -66,6 +67,15 @@ export default function NotificationsTestPage() {
 		}
 	};
 
+	const handleTestEmail = async () => {
+		try {
+			await testsendEmail();
+			console.log("Test email sent successfully");
+		} catch (err) {
+			console.error("Error sending test email: ", err);
+		}
+	};
+
 	return (
 		<div>
 			<div style={{ padding: "2rem" }}>
@@ -76,6 +86,10 @@ export default function NotificationsTestPage() {
 			<div style={{ padding: "2rem" }}>
 				<button onClick={handleSend}>Send Notifications</button>
 				{send_status && <p>{send_status}</p>}
+			</div>
+
+			<div style={{ padding: "2rem" }}>
+				<button onClick={handleTestEmail}>Send Test Email</button>
 			</div>
 		</div>
 	);

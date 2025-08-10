@@ -1,3 +1,4 @@
+import { getVirtualDate } from "@/app/actions/timemach_logic";
 import { z } from "zod";
 
 // Funzione per verificare se il giorno è valido per il mese
@@ -33,9 +34,16 @@ const baseEventSchema = z.object({
 		})
 		.or(z.literal("")),
 	// The start date of the event
-	datestart: z.coerce.date().min(new Date(new Date().setHours(0, 0, 0, 0)), {
-		message: "Please enter a date from today onward."
-	}),
+	datestart: z.coerce
+		.date()
+		.min(
+			new Date(
+				(await getVirtualDate()) ?? new Date().setHours(0, 0, 0, 0)
+			),
+			{
+				message: "Please enter a date from today onward."
+			}
+		),
 	description: z
 		.string()
 		.min(1, {

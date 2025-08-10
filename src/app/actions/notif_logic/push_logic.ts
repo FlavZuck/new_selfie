@@ -2,6 +2,7 @@
 
 import { Activity_DB } from "@/app/lib/definitions/def_actv";
 import { Subscription_DB, payload_type } from "@/app/lib/definitions/def_notf";
+import { ACTIVITIES, updateDB } from "@/app/lib/mongodb";
 import webpush from "web-push";
 import {
 	deleteSubscription,
@@ -90,16 +91,15 @@ export async function sendNotification_forActivity(
 	}
 }
 
-// Funzione per capire se l'attività è scaduta o meno in base al time di notifica e noticationtype
+// Funzione per capire se l'attività sta per scadere o meno
 export async function notif_time_handler(
 	activity: Activity_DB,
 	current_date: Date
 ): Promise<boolean> {
+	current_date.setMilliseconds(0); // Rimuoviamo i millisecondi per evitare problemi di confronto
+
 	switch (activity.notificationtype) {
 		case "stesso":
-			// Togliamo i millisecondi e i secondi dalla data corrente
-			current_date.setMilliseconds(0);
-
 			if (current_date.getTime() === activity.expiration.getTime()) {
 				return true;
 			} else {
@@ -114,9 +114,6 @@ export async function notif_time_handler(
 				throw new Error("Specific day not set");
 			}
 
-			// Togliamo i millisecondi e i secondi dalla data corrente
-			current_date.setMilliseconds(0);
-
 			if (current_date.getTime() === notif_time_specific.getTime()) {
 				return true;
 			} else {
@@ -127,8 +124,6 @@ export async function notif_time_handler(
 			const notif_time_prima = new Date(
 				activity.expiration.getTime() - 24 * 60 * 60 * 1000
 			);
-			// Togliamo i millisecondi e i secondi dalla data corrente
-			current_date.setMilliseconds(0);
 
 			if (current_date.getTime() === notif_time_prima.getTime()) {
 				return true;
@@ -140,6 +135,39 @@ export async function notif_time_handler(
 				"Notification type not recognized" + activity.notificationtype
 			);
 			return false;
+	}
+}
+
+// Funzione che indica se l'attività va remindata o meno
+export async function reminder_time_handler(
+	activity: Activity_DB,
+	current_date: Date
+): Promise<boolean> {
+	current_date.setMilliseconds(0); // Rimuoviamo i millisecondi per evitare problemi di confronto
+	const one_day = 24 * 60 * 60 * 1000; // Un giorno in millisecondi
+	const two_days = 2 * one_day; // Due giorni in millisecondi
+
+	if (activity.lastsent_reminder === false) {
+		// Caso notifica push
+		if (
+			current_date.getTime() ===
+			activity.expiration.getTime() + one_day
+		) {
+			// Aggiorniamo il campo lastsent_reminder a true
+			await updateDB(
+				ACTIVITIES,
+				{ _id: activity._id },
+				{ lastsent_reminder: true }
+			);
+			return true;
+		} else {
+			return false;
+		}
+	} else {
+		// Caso email
+		return (
+			current_date.getTime() === activity.expiration.getTime() + two_days
+		);
 	}
 }
 

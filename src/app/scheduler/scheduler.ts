@@ -1,13 +1,14 @@
 import {
-	getActivitiesToNotify,
-	getExpiredActvitiesToRemind
+	getActvToNotify,
+	getExpActvToRemind
 } from "../actions/cale_logic/activity_logic";
 import { sendNotification_forActivity } from "../actions/notif_logic/push_logic";
 import { getVirtualDate } from "../actions/timemach_logic";
 import { Activity_DB } from "../lib/definitions/def_actv";
 import { payload_type } from "../lib/definitions/def_notf";
+import { sendEmail } from "../lib/nodemailer";
 
-function payload_creator(activity: Activity_DB) {
+function payload_creator(activity: Activity_DB): payload_type {
 	// In base al tipo di notifica, creiamo il payload da inviare con titolo e corpo
 	switch (activity.notificationtype) {
 		case "stesso":
@@ -36,75 +37,34 @@ function payload_creator(activity: Activity_DB) {
 	}
 }
 
-async function urgency_level_reminder(activity: Activity_DB): Promise<number> {
-	// Calcola il livello di urgenza del promemoria in base alla data di scadenza
-	const current_date = (await getVirtualDate()) ?? new Date();
-	const expiration_date = activity.expiration;
-	const time_difference = expiration_date.getTime() - current_date.getTime();
-
-	const one_day_in_ms = 24 * 60 * 60 * 1000;
-
-	if (time_difference == one_day_in_ms) {
-		// Se l'attività è scaduta da un giorno
-		return 1; // Low
-	} else if (time_difference == 7 * one_day_in_ms) {
-		// Se l'attività è scaduta da una settimana
-		return 2; // Medium
-	} else if (time_difference == 30 * one_day_in_ms) {
-		// Se l'attività è scaduta da un mese
-		return 3; // High
+function urgency_payload(activity: Activity_DB): payload_type | null {
+	if (activity.lastsent_reminder === false) {
+		return {
+			title: activity.title,
+			body: `L'attività "${activity.title}" è scaduta da un giorno!`,
+			data: { url: "/" }
+		} as payload_type;
 	} else {
-		// Se l'attività non corrisponde a nessun livello di urgenza
-		return -1; // Invalid
+		console.log("Sent email for activity: ", activity.title);
+		return null; // Non inviamo notifiche push per attività scadute che hanno già ricevuto un promemoria
 	}
 }
 
-async function urgency_payload(
-	activity: Activity_DB
-): Promise<payload_type | null> {
-	// Crea un payload di notifica in base al livello di urgenza
-	const urgency = await urgency_level_reminder(activity);
-
-	switch (urgency) {
-		case 1:
-			return {
-				title: activity.title,
-				body: `L'attività "${activity.title}" è scaduta da un giorno!`,
-				data: { url: "/" }
-			} as payload_type;
-		case 2:
-			return {
-				title: activity.title,
-				body: `L'attività "${activity.title}" è scaduta da una settimana!`,
-				data: { url: "/" }
-			} as payload_type;
-		case 3:
-			return {
-				title: activity.title,
-				body: `L'attività "${activity.title}" è scaduta da un mese!`,
-				data: { url: "/" }
-			} as payload_type;
-		case -1:
-			return null;
-		default:
-			console.log("Unexpected urgency level: ", urgency);
-			throw new Error("Unexpected urgency level");
-	}
-}
-
-export async function scheduler_routine() {
+export async function scheduler_routine(): Promise<void> {
 	setInterval(async () => {
 		const current_date = (await getVirtualDate()) ?? new Date();
 		// Funzione che si occupa di fornire l'array delle attività da notificare
-		const activities_to_notify = await getActivitiesToNotify(current_date);
-		const expired_activities = await getExpiredActvitiesToRemind();
+		const activities_to_notify = await getActvToNotify(current_date);
+		const expired_activities = await getExpActvToRemind(current_date);
 
 		if (
 			activities_to_notify.length === 0 &&
 			expired_activities.length === 0
 		) {
-			console.log("No activities to notify...");
-			console.log("Current date: ", current_date.toISOString());
+			console.log(
+				"No activities,Current date: ",
+				current_date.toISOString()
+			);
 		} else {
 			console.log("There are activities to notify!!!");
 
@@ -114,9 +74,17 @@ export async function scheduler_routine() {
 				await sendNotification_forActivity(activity, payload);
 			}
 			for (const activity of expired_activities) {
-				const payload = await urgency_payload(activity);
+				const payload = urgency_payload(activity);
 				if (payload != null) {
 					await sendNotification_forActivity(activity, payload);
+				} else {
+					console.log("Sent email for activity: ", activity.title);
+					// Invia l'email di promemoria
+					await sendEmail(
+						activity.userId,
+						`Attività scaduta: ${activity.title}`,
+						`L'attività "${activity.title}" è scaduta da due giorni.`
+					);
 				}
 			}
 		}

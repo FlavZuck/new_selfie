@@ -16,7 +16,11 @@ import {
 	ActivityListCard
 } from "../ui/ui_cale/actv-cards";
 import ActivityForm from "../ui/ui_cale/actv-form";
-import { ActvList, ExpActvList } from "../ui/ui_cale/actv-list";
+import {
+	ActvList,
+	CompletedActvList,
+	ExpActvList
+} from "../ui/ui_cale/actv-list";
 import EventCard from "../ui/ui_cale/event-card";
 import EventForm from "../ui/ui_cale/event-form";
 import UpdateActivityForm from "../ui/ui_cale/upd-actv";
@@ -40,6 +44,7 @@ export default function PageCalendar() {
 	// Stato per il modale della ActivityList ed ExpActvList
 	const [show_ActvList_card, setShow_ActvList_Card] = useState(false);
 	const [show_ExpActvList_card, setShow_ExpActvList_Card] = useState(false);
+	const [show_CompActv_card, setShowCompActv_Card] = useState(false);
 
 	// Stato per l'oggetto dell'attività selezionata (ActivityList e ExpActvList)
 	// entrambe le liste condividono lo stesso oggetto, dato che sono simili e solo una card può essere aperta alla volta
@@ -53,9 +58,6 @@ export default function PageCalendar() {
 		useState<Event_FullCalendar | null>(null);
 	const [activityToUpdate, setActivityToUpdate] =
 		useState<Activity_FullCalendar | null>(null);
-
-	// Costante con la data odierna
-	const current_date = new Date();
 
 	// Funzione che si occupa di fetchare gli eventi ed attività
 	// (da mettere apposto il tipaggio tbf)
@@ -225,24 +227,37 @@ export default function PageCalendar() {
 
 				{/* LISTE */}
 				<div>
-					<div>
-						<ExpActvList
-							allactv={allactv ? allactv : []}
-							listClick={show_ExpActvList_card}
-							setListClick={setShow_ExpActvList_Card}
-							activity={actvList_obj}
-							set_activity={setActvList_obj}
-							current_date={current_date}
-						/>
-					</div>
 					<div style={{ flex: "1" }}>
 						<ActvList
+							key={now.toISOString()} // forza il rerender della lista quando cambia la virt_date
 							allactv={allactv ? allactv : []}
 							listClick={show_ActvList_card}
 							setListClick={setShow_ActvList_Card}
 							activity={actvList_obj}
 							set_activity={setActvList_obj}
-							current_date={current_date}
+							current_date={now}
+						/>
+					</div>
+					<div>
+						<ExpActvList
+							key={now.toISOString()} // forza il rerender della lista quando cambia la virt_date
+							allactv={allactv ? allactv : []}
+							listClick={show_ExpActvList_card}
+							setListClick={setShow_ExpActvList_Card}
+							activity={actvList_obj}
+							set_activity={setActvList_obj}
+							current_date={now}
+						/>
+					</div>
+					<div style={{ flex: "1" }}>
+						<CompletedActvList
+							key={now.toISOString()} // forza il rerender della lista quando cambia la virt_date
+							allactv={allactv ? allactv : []}
+							listClick={show_CompActv_card}
+							setListClick={setShowCompActv_Card}
+							activity={actvList_obj}
+							set_activity={setActvList_obj}
+							current_date={now}
 						/>
 					</div>
 				</div>
@@ -296,6 +311,12 @@ export default function PageCalendar() {
 			<ActivityListCard
 				show={show_ExpActvList_card}
 				setShow={setShow_ExpActvList_Card}
+				activity={actvList_obj}
+				refetch={fetchEvents}
+			/>
+			<ActivityListCard
+				show={show_CompActv_card}
+				setShow={setShowCompActv_Card}
 				activity={actvList_obj}
 				refetch={fetchEvents}
 			/>

@@ -2,8 +2,6 @@ import { ObjectId } from "mongodb";
 import { z } from "zod";
 import { getVirtualDate } from "../../actions/timemach_logic";
 
-const current_date = (await getVirtualDate()) ?? new Date();
-
 // The following regex are completely unintelligible to me, be warned :)
 
 export const SignupFormSchema = z.object({
@@ -17,7 +15,9 @@ export const SignupFormSchema = z.object({
 		.trim(),
 	birthdate: z.coerce
 		.date()
-		.max(current_date, { message: "Please enter a valid date." }),
+		.max((await getVirtualDate()) ?? new Date(), {
+			message: "Please enter a valid date."
+		}),
 	email: z.string().email({ message: "Please enter a valid email." }).trim(),
 	password: z
 		.string()
