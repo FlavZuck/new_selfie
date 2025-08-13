@@ -3,29 +3,23 @@ import { NextRequest, NextResponse } from "next/server";
 import { getCurrentID } from "../../actions/auth_logic";
 import isAuthenticated from "../../actions/auth_logic";
 import type { note } from "../../lib/definitions/def_note";
-import {
-	NOTES,
-	//deleteDB,
-	findAllDB,
-	insertDB
-	//updateDB
-} from "../../lib/mongodb";
+import { NOTES, findAllDB, insertDB } from "../../lib/mongodb";
 
-export async function getNotes(): Promise<note[]> {
+async function getNotes(): Promise<note[]> {
 	const userId = await getCurrentID();
 
 	if (!userId) {
 		throw new Error("Utente non autenticato???");
 	}
 
-	const notes = await findAllDB<note>(NOTES, { owner: userId });
+	const notes = await findAllDB<note>(NOTES, { owner: new ObjectId(userId) });
 
-	console.log("trovate ", notes.length, " note");
+	console.log("trovate", notes.length, "note per l'utente");
 
 	return notes;
 }
 
-export async function addNote(note: note): Promise<void> {
+async function addNote(note: note): Promise<void> {
 	const userId = await getCurrentID();
 
 	if (!userId) {
@@ -58,7 +52,7 @@ export async function GET() {
 	return NextResponse.json(notes, { status: 200 });
 }
 
-export function POST(req: NextRequest) {
+export async function POST(req: NextRequest) {
 	/*if (!isAuthenticated()) {
 		return NextResponse.json(
 			{
