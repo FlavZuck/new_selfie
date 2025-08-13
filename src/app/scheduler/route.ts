@@ -1,4 +1,4 @@
-import { scheduler_routine } from "./scheduler";
+import scheduler_routine from "./scheduler";
 
 export async function GET() {
 	// Guard the route to ensure that it can only run once

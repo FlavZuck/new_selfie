@@ -1,8 +1,8 @@
 "use server";
 
 import { Activity_DB } from "@/app/lib/definitions/def_actv";
+import { Event_DB } from "@/app/lib/definitions/def_event";
 import { Subscription_DB, payload_type } from "@/app/lib/definitions/def_notf";
-import { ACTIVITIES, updateDB } from "@/app/lib/mongodb";
 import webpush from "web-push";
 import {
 	deleteSubscription,
@@ -63,111 +63,29 @@ export async function sendNotificationToAllDevices(
 	);
 }
 
-export async function sendNotification_forActivity(
-	activity: Activity_DB,
+export async function sendNotification_forCalendar(
+	cale_object: Activity_DB | Event_DB,
 	payload: payload_type
 ) {
-	const userId = activity.userId;
+	const userId = cale_object.userId;
 	const subscription_array = await getUserSubscriptions(userId);
 
 	// Controlliamo se l'array è vuoto
 	if (!subscription_array) {
 		throw new Error("User subscription not found");
 	}
-	// Controlliamo se l'array è un array
+	// Controlliamo se l'array è un array (non dovrebbe più succedere)
 	if (!Array.isArray(subscription_array)) {
 		throw new Error("Subscription array is not an array");
 	}
-	// Stampiamo l'array per debug
-	console.log("Subscription array: ", subscription_array);
 
 	// Proviamo a inviare la notifica
 	try {
 		await sendNotificationToAllDevices(subscription_array, payload);
 	} catch (err: any) {
-		console.log("Activity causing the error: ", activity.title);
+		console.log("Activity causing the error: ", cale_object.title);
 		//throw new Error("Error sending notification: " + err);
 		console.log("Error sending notification: ", err);
-	}
-}
-
-// Funzione per capire se l'attività sta per scadere o meno
-export async function notif_time_handler(
-	activity: Activity_DB,
-	current_date: Date
-): Promise<boolean> {
-	current_date.setMilliseconds(0); // Rimuoviamo i millisecondi per evitare problemi di confronto
-
-	switch (activity.notificationtype) {
-		case "stesso":
-			if (current_date.getTime() === activity.expiration.getTime()) {
-				return true;
-			} else {
-				return false;
-			}
-
-		case "specifico":
-			let notif_time_specific;
-			if (activity.specificday) {
-				notif_time_specific = new Date(activity.specificday);
-			} else {
-				throw new Error("Specific day not set");
-			}
-
-			if (current_date.getTime() === notif_time_specific.getTime()) {
-				return true;
-			} else {
-				return false;
-			}
-
-		case "prima":
-			const notif_time_prima = new Date(
-				activity.expiration.getTime() - 24 * 60 * 60 * 1000
-			);
-
-			if (current_date.getTime() === notif_time_prima.getTime()) {
-				return true;
-			} else {
-				return false;
-			}
-		default:
-			console.log(
-				"Notification type not recognized" + activity.notificationtype
-			);
-			return false;
-	}
-}
-
-// Funzione che indica se l'attività va remindata o meno
-export async function reminder_time_handler(
-	activity: Activity_DB,
-	current_date: Date
-): Promise<boolean> {
-	current_date.setMilliseconds(0); // Rimuoviamo i millisecondi per evitare problemi di confronto
-	const one_day = 24 * 60 * 60 * 1000; // Un giorno in millisecondi
-	const two_days = 2 * one_day; // Due giorni in millisecondi
-
-	if (activity.lastsent_reminder === false) {
-		// Caso notifica push
-		if (
-			current_date.getTime() ===
-			activity.expiration.getTime() + one_day
-		) {
-			// Aggiorniamo il campo lastsent_reminder a true
-			await updateDB(
-				ACTIVITIES,
-				{ _id: activity._id },
-				{ lastsent_reminder: true }
-			);
-			return true;
-		} else {
-			return false;
-		}
-	} else {
-		// Caso email
-		return (
-			current_date.getTime() === activity.expiration.getTime() + two_days
-		);
 	}
 }
 

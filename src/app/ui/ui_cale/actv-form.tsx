@@ -20,7 +20,6 @@ export default function ActivityForm({
 
 	// State to manage the visibility of the notification fields
 	const [notif, setNotif] = useState(false);
-
 	// State to manage the visibility of the specific day input
 	const [spec_day, setSpec_day] = useState(false);
 
