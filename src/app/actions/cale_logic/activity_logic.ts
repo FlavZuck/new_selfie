@@ -17,9 +17,9 @@ import {
 } from "../../lib/mongodb";
 import { getCurrentID } from "../auth_logic";
 import {
-	notif_time_handler,
+	activity_notif_time_handler,
 	reminder_time_handler
-} from "../notif_logic/push_logic";
+} from "../sched_logic";
 
 // Funzione per parsare l'array di attività in un formato compatibile con FullCalendar
 // (Per adesso diamo per scontato che l'attività sia sempre all-day)
@@ -195,7 +195,7 @@ export async function getActvToNotify(
 	// Filtriamo le attività in scadenza
 	const activities_to_notify: Activity_DB[] = [];
 	for (const activity of all_activitiesToNotify) {
-		if (await notif_time_handler(activity, current_date)) {
+		if (await activity_notif_time_handler(activity, current_date)) {
 			activities_to_notify.push(activity);
 		}
 	}
@@ -212,8 +212,6 @@ export async function getExpActvToRemind(current_date: Date) {
 		reminder: "on",
 		completed: false
 	})) as Activity_DB[];
-
-	console.log("All activities to remind: ", all_activitiesToRemind);
 
 	const expired_activities: Activity_DB[] = [];
 

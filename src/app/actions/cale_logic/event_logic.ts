@@ -8,6 +8,7 @@ import {
 } from "@/app/lib/definitions/def_event";
 import { UpdateSchema, UpdateState } from "@/app/lib/definitions/def_updt";
 import { ObjectId } from "mongodb";
+import { RRule } from "rrule";
 import {
 	EVENTS,
 	deleteDB,
@@ -16,6 +17,10 @@ import {
 	updateDB
 } from "../../lib/mongodb";
 import { getCurrentID } from "../auth_logic";
+import {
+	event_notif_time_handler,
+	recurrent_notif_time_handler
+} from "../sched_logic";
 
 // Funzione per parsare la data e ora in un formato compatibile con lo Date standard
 function parseDate(date: Date, time: string) {
@@ -176,6 +181,11 @@ export async function create_event(state: EventState, formData: FormData) {
 		dateend: formData.get("dateend"),
 		time: formData.get("time"),
 		duration: formData.get("duration"),
+		// Notification fields
+		notification: formData.get("notification"),
+		notificationtime: formData.get("notificationtime"),
+		notificationtype: formData.get("notificationtype"),
+		specificdelay: formData.get("specificdelay"),
 		// Recurrence fields
 		recurrence: formData.get("recurrence"),
 		frequency: formData.get("frequency"),
@@ -209,6 +219,10 @@ export async function create_event(state: EventState, formData: FormData) {
 		dateend,
 		time,
 		duration,
+		notification,
+		notificationtime,
+		notificationtype,
+		specificdelay,
 		recurrence,
 		frequency,
 		dayarray,
@@ -239,6 +253,10 @@ export async function create_event(state: EventState, formData: FormData) {
 		start,
 		dateend,
 		duration,
+		notification,
+		notificationtime,
+		notificationtype,
+		specificdelay,
 		color: normalColor
 	};
 
@@ -264,6 +282,10 @@ export async function create_event(state: EventState, formData: FormData) {
 			duration,
 			description,
 			place,
+			notification,
+			notificationtime,
+			notificationtype,
+			specificdelay,
 			rrule,
 			color: recurringColor
 		};
@@ -359,4 +381,63 @@ export async function update_event(
 	);
 
 	return { message: "Event updated successfully" };
+}
+
+// Funzione per ottenere gli eventi normali da notificare
+export async function getEventsToNotify(
+	current_date: Date
+): Promise<Event_DB[]> {
+	// Troviamo gli eventi normali con notifica attiva
+	const events = (await findAllDB(EVENTS, {
+		notification: "on",
+		rrule: { $exists: false }
+	})) as Event_DB[];
+
+	const events_to_notify: Event_DB[] = [];
+	for (const event of events) {
+		if (await event_notif_time_handler(event, current_date)) {
+			events_to_notify.push(event);
+		}
+	}
+
+	return events_to_notify;
+}
+
+export async function getRecEventsToNotify(
+	current_date: Date
+): Promise<Event_DB[]> {
+	// Troviamo gli eventi ricorrenti con notifica attiva e start >= current_date
+	const recurringEvents = (await findAllDB(EVENTS, {
+		notification: true,
+		rrule: { $exists: true }
+	})) as Event_DB[];
+
+	// Dobbiamo capire se la data corrente è compresa nell'intervallo di ricorrenza
+	const filtered_recurringEvents = recurringEvents.filter((event) => {
+		const rrule = event.rrule;
+		if (!rrule) return false;
+
+		const rule = new RRule(rrule);
+		const day = 1000 * 60 * 60 * 24; // Un giorno in millisecondi\
+		const week = day * 7; // Un intervallo di una settimana in millisecondi
+		// Facciamo un intervallo grande per evitare problemi di fuso orario
+		const occurrences = rule.between(
+			new Date(current_date.getTime() - week),
+			new Date(current_date.getTime() + day),
+			true
+		);
+		return occurrences.length > 0;
+	});
+
+	// Ora che abbiamo degli eventi con sicuro almeno qualcosa da notificare
+	// dobbiamo filtrare quelli che hanno effettivamente bisogno di una notifica
+	const events_to_notify: Event_DB[] = [];
+
+	for (const event of filtered_recurringEvents) {
+		if (await recurrent_notif_time_handler(event, current_date)) {
+			events_to_notify.push(event);
+		}
+	}
+
+	return events_to_notify;
 }

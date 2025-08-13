@@ -31,12 +31,18 @@ export default function EventForm({ show, setShow, refetch }: EventFormProps) {
 	const valori_frequenza = ["DAILY", "WEEKLY", "MONTHLY", "YEARLY"];
 	const [Freqform, setFreqform] = useState(valori_frequenza[0]);
 
+	// State to manage the visibility of the notification fields
+	const [notif, setNotif] = useState(false);
+	const [spec_delay, setSpec_delay] = useState(false);
+
 	// This function will be to reset the useStates when the form is closed
 	function resetStates() {
 		setAllDay(false);
 		setRec(false);
 		setUndef(true);
 		setFreqform(valori_frequenza[0]);
+		setNotif(false);
+		setSpec_delay(false);
 	}
 
 	// This function will be called when the event is created and calls the refetch function to update the events
@@ -127,7 +133,7 @@ export default function EventForm({ show, setShow, refetch }: EventFormProps) {
 					</div>
 					{state?.errors?.dateend && <p>{state.errors.dateend}</p>}
 
-					{/*TIME AND DURATION*/}
+					{/*TIMED EVENT SECTION*/}
 					<div hidden={allDay}>
 						<div>
 							<label htmlFor="time">Ora </label>
@@ -165,9 +171,95 @@ export default function EventForm({ show, setShow, refetch }: EventFormProps) {
 					{state?.errors?.description && (
 						<p>{state.errors.description}</p>
 					)}
+					{/*NOTIFICATION*/}
+					<div>
+						<label htmlFor="notification">Notifiche</label>
+						<input
+							type="checkbox"
+							id="notification"
+							name="notification"
+							defaultChecked={false}
+							onChange={(e) => {
+								if (e.target.checked) {
+									setNotif(true);
+								} else {
+									setNotif(false);
+								}
+							}}
+						/>
+					</div>
+					{state?.errors?.notification && (
+						<p>{state.errors.notification}</p>
+					)}
+
+					<div hidden={!notif}>
+						{/*NOTIFICATION TIME*/}
+						<div hidden={spec_delay}>
+							<label htmlFor="notificationtime">
+								Ora notifica{" "}
+							</label>
+							<input
+								type="time"
+								id="notificationtime"
+								name="notificationtime"
+								placeholder="Ora notifica"
+								defaultValue="08:00"
+								required
+							/>
+							{state?.errors?.notificationtime && (
+								<p>{state.errors.notificationtime}</p>
+							)}
+						</div>
+
+						{/*NOTIFICATION TYPE*/}
+						<div>
+							<label htmlFor="notificationtype">
+								Tipo notifica{" "}
+							</label>
+							<select
+								id="notificationtype"
+								name="notificationtype"
+								onChange={(e) => {
+									if (e.target.value == "specifico") {
+										setSpec_delay(true);
+									} else {
+										setSpec_delay(false);
+									}
+								}}
+							>
+								<option value="stesso">Giorno stesso</option>
+								<option value="prima">Giorno prima</option>
+								<option value="specifico">
+									Anticipo specifico{" "}
+								</option>
+							</select>
+						</div>
+						{state?.errors?.notificationtype && (
+							<p>{state.errors.notificationtype}</p>
+						)}
+						{/*SPECIFIC DELAY*/}
+						<div hidden={!spec_delay}>
+							<label htmlFor="specificdelay">
+								Con anticipo specifico{" "}
+							</label>
+							<input
+								type="number"
+								id="specificdelay"
+								name="specificdelay"
+								placeholder="Anticipo Specifico"
+								defaultValue={0}
+								min={0}
+								max={168}
+								step={1}
+							/>
+							{state?.errors?.specificdelay && (
+								<p>{state.errors.specificdelay}</p>
+							)}
+						</div>
+					</div>
 
 					{/*SHOW REC*/}
-					<div>
+					<div hidden={notif}>
 						<label htmlFor="allDay">Opzioni Ricorrenza </label>
 						<input
 							type="checkbox"

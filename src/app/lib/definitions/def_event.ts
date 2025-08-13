@@ -51,7 +51,22 @@ const baseEventSchema = z.object({
 		})
 		.max(200, {
 			message: "Description must have not more than 200 characters."
+		}),
+	// Notification settings
+	notification: z.literal("on").or(z.literal(null)),
+	notificationtime: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/, {
+		message: "Please enter a valid time in HH:mm format."
+	}),
+	notificationtype: z.enum(["stesso", "prima", "specifico"]),
+	specificdelay: z.coerce
+		.number()
+		.min(0, {
+			message: "Please enter a positive number of hours."
 		})
+		.max(168, {
+			message: "Please enter a number of hours lower than a week."
+		})
+		.or(z.literal(0))
 });
 
 const EventAllDaySchema = z.object({
@@ -60,9 +75,14 @@ const EventAllDaySchema = z.object({
 	// The start time of the event, which is not needed for all-day events
 	dateend: z.coerce
 		.date()
-		.min(new Date(), {
-			message: "Please enter a date from today onward."
-		})
+		.min(
+			new Date(
+				(await getVirtualDate()) ?? new Date().setHours(0, 0, 0, 0)
+			),
+			{
+				message: "Please enter a date from today onward."
+			}
+		)
 		.or(z.literal("")),
 	// The start time of the event, which is not needed for all-day events
 	time: z.literal(""),
@@ -84,7 +104,7 @@ const EventTimedSchema = z.object({
 		.max(24, {
 			message: "Please enter a number less than 24."
 		})
-		.or(z.literal("0"))
+		.or(z.literal(0))
 });
 
 const EventRecurrenceSchema = z.object({
@@ -170,7 +190,10 @@ export const EventFormSchema = z
 				mh_day,
 				yh_month,
 				yh_day,
-				until
+				until,
+				notification,
+				notificationtype,
+				specificdelay
 			},
 			ctx
 		) => {
@@ -246,6 +269,19 @@ export const EventFormSchema = z
 					path: ["undef"]
 				});
 			}
+			// To ensure that if notification is on and the notificationtype is specifico,
+			// the specificdelay is not empty
+			if (
+				notification === "on" &&
+				notificationtype === "specifico" &&
+				specificdelay === 0
+			) {
+				ctx.addIssue({
+					code: "custom",
+					message: "Please select a delay greater than 0.",
+					path: ["specificdelay"]
+				});
+			}
 		}
 	);
 
@@ -263,6 +299,10 @@ export type EventState =
 				dateend?: string[];
 				time?: string[];
 				duration?: string[];
+				// Notification
+				notification?: string[];
+				notificationtype?: string[];
+				specificdelay?: string[];
 				// Recurrence fields
 				recurrence?: string[];
 				frequency?: string[];
@@ -289,8 +329,12 @@ export type Event_FullCalendar = {
 	extendedProps: {
 		duration: number;
 		description: string;
-		place: string | "";
+		place: string;
 		type: "EVENT";
+		notification: boolean;
+		notificationtime: string;
+		notificationtype: string;
+		specificdelay: number | "";
 	};
 };
 
@@ -301,12 +345,17 @@ export type Event_DB = {
 	// Campi base (obbligatori tranne per place)
 	title: string;
 	description: string;
-	place: string | "";
-	datestart: Date;
+	place: string;
+	start: Date;
 	// Campi per gli eventi timed/allDay
 	dateend: Date | "";
 	allDay: "on" | null;
 	duration: number;
+	// Campi per le notifiche
+	notification: boolean;
+	notificationtime: string;
+	notificationtype: string;
+	specificdelay: number;
 	// Campo per la rrule (non ci rompiamo a tipizzarla)
 	rrule?: any;
 	// Campo per il colore
