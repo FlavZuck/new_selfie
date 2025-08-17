@@ -1,6 +1,13 @@
 import { getVirtualDate } from "@/app/actions/timemach_logic";
 import { z } from "zod";
 
+// Dynamic date validators to ensure thresholds update on each validation
+const dynamicMinDate = async (date: Date): Promise<boolean> => {
+	const v = (await getVirtualDate()) ?? new Date();
+	v.setHours(0, 0, 0, 0);
+	return date >= v;
+};
+
 // Funzione per verificare se il giorno è valido per il mese
 function ValidGiorniMese(giorno: number, mese: number) {
 	// Array dei mesi con 30 giorni
@@ -23,7 +30,7 @@ const baseEventSchema = z.object({
 		.string()
 		.min(1, { message: "The title must have at least one character." })
 		.max(25, {
-			message: "Title must have not more than 50 characters."
+			message: "Title must have not more than 25 characters."
 		}),
 	// Place where the event will be held (optional)
 	place: z
@@ -34,16 +41,9 @@ const baseEventSchema = z.object({
 		})
 		.or(z.literal("")),
 	// The start date of the event
-	datestart: z.coerce
-		.date()
-		.min(
-			new Date(
-				(await getVirtualDate()) ?? new Date().setHours(0, 0, 0, 0)
-			),
-			{
-				message: "Please enter a date from today onward."
-			}
-		),
+	datestart: z.coerce.date().refine(dynamicMinDate, {
+		message: "Please enter a date from today onward."
+	}),
 	description: z
 		.string()
 		.min(1, {
@@ -72,18 +72,13 @@ const baseEventSchema = z.object({
 const EventAllDaySchema = z.object({
 	// The pivotal property of the event, the allDay property
 	allDay: z.literal("on"),
-	// The start time of the event, which is not needed for all-day events
-	dateend: z.coerce
-		.date()
-		.min(
-			new Date(
-				(await getVirtualDate()) ?? new Date().setHours(0, 0, 0, 0)
-			),
-			{
-				message: "Please enter a date from today onward."
-			}
-		)
-		.or(z.literal("")),
+	// The end date of an all-day event
+	dateend: z.union([
+		z.coerce.date().refine(dynamicMinDate, {
+			message: "Please enter a date from today onward."
+		}),
+		z.literal("")
+	]),
 	// The start time of the event, which is not needed for all-day events
 	time: z.literal(""),
 	// The duration of the event in hours and minutes, which is not needed for all-day events

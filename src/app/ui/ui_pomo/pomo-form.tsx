@@ -114,7 +114,7 @@ export default function PomodoroTimer() {
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
 		console.log("form submitted:", studyTime, pauseTime, cycles);
-		const validation = PomodoroSchema.safeParse({
+		const validation = await PomodoroSchema.safeParseAsync({
 			studyMin: studyTime,
 			pauseMin: pauseTime,
 			savedCycles: cycles

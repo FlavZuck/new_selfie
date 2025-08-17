@@ -15,7 +15,7 @@ import { decrypt, deleteSession, generateSessionToken } from "../lib/session";
 
 export async function signup(state: FormState, formData: FormData) {
 	// Validate form fields
-	const validatedFields = SignupFormSchema.safeParse({
+	const validatedFields = await SignupFormSchema.safeParseAsync({
 		name: formData.get("name"),
 		surname: formData.get("surname"),
 		birthdate: formData.get("birthdate"),
@@ -68,7 +68,7 @@ export async function signup(state: FormState, formData: FormData) {
 }
 
 export async function login(state: FormState, formData: FormData) {
-	const validatedFields = SigninFormSchema.safeParse({
+	const validatedFields = await SigninFormSchema.safeParseAsync({
 		email: formData.get("email"),
 		password: formData.get("password")
 	});
