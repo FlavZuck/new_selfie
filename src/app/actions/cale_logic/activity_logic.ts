@@ -70,8 +70,8 @@ export async function create_activity(
 	state: ActivityState,
 	formData: FormData
 ) {
-	// Validate the form data using the schema
-	const validatedFields = ActivitySchema.safeParse({
+	// Validate the form data using the schema (await async refinements)
+	const validatedFields = await ActivitySchema.safeParseAsync({
 		title: formData.get("title"),
 		description: formData.get("description"),
 		place: formData.get("place"),

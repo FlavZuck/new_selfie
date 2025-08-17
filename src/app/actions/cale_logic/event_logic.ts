@@ -100,18 +100,26 @@ function parseRrule(
 	until: Date | string = "",
 	datestart: Date
 ) {
+	// Map string freq to RRule constant
+	const freqMap: Record<string, number> = {
+		DAILY: RRule.DAILY,
+		WEEKLY: RRule.WEEKLY,
+		MONTHLY: RRule.MONTHLY,
+		YEARLY: RRule.YEARLY
+	};
+	const freqNum = freqMap[freq] || RRule.DAILY;
 	// Abbiamo dovuto gestire count in sto modo
 	if (count > 0) {
 		if (freq == "DAILY") {
 			return {
-				freq: freq,
+				freq: freqNum,
 				dtstart: datestart,
 				count: count,
 				until: until
 			};
 		} else if (freq == "WEEKLY") {
 			return {
-				freq: freq,
+				freq: freqNum,
 				byweekday: formatDaysArray(dayarray),
 				dtstart: datestart,
 				count: count,
@@ -119,7 +127,7 @@ function parseRrule(
 			};
 		} else if (freq == "MONTHLY") {
 			return {
-				freq: freq,
+				freq: freqNum,
 				bymonthday: mh_day,
 				dtstart: datestart,
 				count: count,
@@ -127,7 +135,7 @@ function parseRrule(
 			};
 		} else if (freq == "YEARLY") {
 			return {
-				freq: freq,
+				freq: freqNum,
 				bymonth: yh_month,
 				bymonthday: yh_day,
 				dtstart: datestart,
@@ -138,27 +146,27 @@ function parseRrule(
 	} else {
 		if (freq == "DAILY") {
 			return {
-				freq: freq,
+				freq: freqNum,
 				dtstart: datestart,
 				until: until
 			};
 		} else if (freq == "WEEKLY") {
 			return {
-				freq: freq,
+				freq: freqNum,
 				byweekday: formatDaysArray(dayarray),
 				dtstart: datestart,
 				until: until
 			};
 		} else if (freq == "MONTHLY") {
 			return {
-				freq: freq,
+				freq: freqNum,
 				bymonthday: mh_day,
 				dtstart: datestart,
 				until: until
 			};
 		} else if (freq == "YEARLY") {
 			return {
-				freq: freq,
+				freq: freqNum,
 				bymonth: yh_month,
 				bymonthday: yh_day,
 				dtstart: datestart,
@@ -169,8 +177,8 @@ function parseRrule(
 }
 
 export async function create_event(state: EventState, formData: FormData) {
-	// Validate form fields
-	const validatedFields = EventFormSchema.safeParse({
+	// Validate form fields (await async refinements)
+	const validatedFields = await EventFormSchema.safeParseAsync({
 		// Base event fields
 		title: formData.get("title"),
 		place: formData.get("place"),
@@ -408,7 +416,7 @@ export async function getRecEventsToNotify(
 ): Promise<Event_DB[]> {
 	// Troviamo gli eventi ricorrenti con notifica attiva e start >= current_date
 	const recurringEvents = (await findAllDB(EVENTS, {
-		notification: true,
+		notification: "on",
 		rrule: { $exists: true }
 	})) as Event_DB[];
 
@@ -418,12 +426,12 @@ export async function getRecEventsToNotify(
 		if (!rrule) return false;
 
 		const rule = new RRule(rrule);
-		const day = 1000 * 60 * 60 * 24; // Un giorno in millisecondi\
-		const week = day * 7; // Un intervallo di una settimana in millisecondi
+		const day = 1000 * 60 * 60 * 24; // Un giorno in millisecondi
+		const week = day * 8; // Un intervallo di una settimana in millisecondi
 		// Facciamo un intervallo grande per evitare problemi di fuso orario
 		const occurrences = rule.between(
 			new Date(current_date.getTime() - week),
-			new Date(current_date.getTime() + day),
+			new Date(current_date.getTime() + day * 2),
 			true
 		);
 		return occurrences.length > 0;

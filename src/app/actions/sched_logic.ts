@@ -166,11 +166,13 @@ export async function event_notif_time_handler(
 			return current_date.getTime() === earlier_day;
 		}
 		case "specifico": {
-			// In questo caso non usiamo il notificationtime
+			// Calcoliamo il tempo di notifica specifico (n ore prima dell'inizio)
 			const start = new Date(event.start);
-			const notif_time =
-				start.getTime() - event.specificdelay * 60 * 1000;
-			return current_date.getTime() === notif_time;
+			const delayMs = event.specificdelay * 60 * 60 * 1000;
+			const notifDate = new Date(start.getTime() - delayMs);
+			// Azzeriamo millisecondi per confronto preciso
+			notifDate.setMilliseconds(0);
+			return current_date.getTime() === notifDate.getTime();
 		}
 		default:
 			console.log(
@@ -227,6 +229,7 @@ export async function recurrent_notif_time_handler(
 
 	const rrule = new RRule(event.rrule);
 	const between_dates = rrule.between(week_before, day_after, true);
+	console.log("Between dates for event: ", between_dates);
 
 	switch (event.notificationtype) {
 		case "stesso": {
@@ -255,9 +258,13 @@ export async function recurrent_notif_time_handler(
 			return false;
 		}
 		case "specifico": {
+			// Calcoliamo il tempo di notifica specifico per ogni occorrenza (n ore prima)
 			for (const eventdate of between_dates) {
-				const notif_time = eventdate.getTime() - event.specificdelay;
-				if (notif_time === current_date.getTime()) {
+				const delayMs = event.specificdelay * 60 * 60 * 1000;
+				const notifDate = new Date(eventdate.getTime() - delayMs);
+				// Azzeriamo millisecondi per confronto preciso
+				notifDate.setMilliseconds(0);
+				if (current_date.getTime() === notifDate.getTime()) {
 					return true;
 				}
 			}

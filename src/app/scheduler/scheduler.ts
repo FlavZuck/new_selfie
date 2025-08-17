@@ -2,7 +2,10 @@ import {
 	getActvToNotify,
 	getExpActvToRemind
 } from "../actions/cale_logic/activity_logic";
-import { getEventsToNotify } from "../actions/cale_logic/event_logic";
+import {
+	getEventsToNotify,
+	getRecEventsToNotify
+} from "../actions/cale_logic/event_logic";
 import { sendNotification_forCalendar } from "../actions/notif_logic/push_logic";
 import {
 	activity_payload_creator,
@@ -19,12 +22,15 @@ export default async function scheduler_routine(): Promise<void> {
 		const activities_to_notify = await getActvToNotify(current_date);
 		const events_to_notify = await getEventsToNotify(current_date);
 		const expired_activities = await getExpActvToRemind(current_date);
+		const recurrent_events_to_notify =
+			await getRecEventsToNotify(current_date);
 		console.log(events_to_notify);
 
 		if (
 			activities_to_notify.length === 0 &&
 			expired_activities.length === 0 &&
-			events_to_notify.length === 0
+			events_to_notify.length === 0 &&
+			recurrent_events_to_notify.length === 0
 		) {
 			console.log(
 				"Nothing to notify, Current date: ",
@@ -59,6 +65,10 @@ export default async function scheduler_routine(): Promise<void> {
 				}
 			}
 			// Loop per gli eventi ricorrenti da notificare
+			for (const event of recurrent_events_to_notify) {
+				const payload = await event_payload_creator(event);
+				await sendNotification_forCalendar(event, payload);
+			}
 		}
 	}, 1000); // Esegui ogni secondo
 }

@@ -259,7 +259,7 @@ export default function EventForm({ show, setShow, refetch }: EventFormProps) {
 					</div>
 
 					{/*SHOW REC*/}
-					<div hidden={notif}>
+					<div>
 						<label htmlFor="allDay">Opzioni Ricorrenza </label>
 						<input
 							type="checkbox"

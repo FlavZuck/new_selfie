@@ -1,6 +1,18 @@
 import { z } from "zod";
 import { getVirtualDate } from "../../actions/timemach_logic";
 
+// Dynamic date validators to ensure threshold updates on each validation
+const dynamicMinDate = async (date: Date): Promise<boolean> => {
+	const v = (await getVirtualDate()) ?? new Date();
+	v.setHours(0, 0, 0, 0);
+	return date >= v;
+};
+const dynamicMaxDate = async (date: Date): Promise<boolean> => {
+	const v = (await getVirtualDate()) ?? new Date();
+	v.setHours(0, 0, 0, 0);
+	return date <= v;
+};
+
 const BaseActivitySchema = z.object({
 	title: z
 		.string()
@@ -25,16 +37,9 @@ const BaseActivitySchema = z.object({
 			message: "Description must have not more than 200 characters."
 		})
 		.or(z.literal("")),
-	expiration: z.coerce
-		.date()
-		.min(
-			new Date(
-				((await getVirtualDate()) ?? new Date()).setHours(0, 0, 0, 0)
-			),
-			{
-				message: "Please enter a date from today and onward."
-			}
-		),
+	expiration: z.coerce.date().refine(dynamicMinDate, {
+		message: "Please enter a date from today and onward."
+	}),
 	// Notification settings
 	notification: z.literal("on").or(z.literal(null)),
 	reminder: z.literal("on").or(z.literal(null)),
@@ -42,12 +47,12 @@ const BaseActivitySchema = z.object({
 		message: "Please enter a valid time in HH:mm format."
 	}),
 	notificationtype: z.enum(["stesso", "prima", "specifico"]),
-	specificday: z.coerce
-		.date()
-		.max((await getVirtualDate()) ?? new Date(), {
+	specificday: z.union([
+		z.coerce.date().refine(dynamicMaxDate, {
 			message: "Please enter a date from yesterday and backward."
-		})
-		.or(z.literal(""))
+		}),
+		z.literal("")
+	])
 });
 
 export const ActivitySchema = BaseActivitySchema.superRefine(
