@@ -1,4 +1,4 @@
-import { MongoClient, ObjectId } from "mongodb";
+import { InsertOneResult, MongoClient, ObjectId } from "mongodb";
 import { User } from "./definitions/def_auth";
 
 // Nome della collezione per gli utenti
@@ -39,9 +39,12 @@ export async function findCollection(collectionName: string) {
 }
 
 // Inserisce un documento (data) nella collezione specificata
-export async function insertDB(collectionName: string, data: any) {
+export async function insertDB(
+	collectionName: string,
+	data: any
+): Promise<InsertOneResult> {
 	const collection = await findCollection(collectionName);
-	await collection.insertOne(data);
+	return await collection.insertOne(data);
 }
 
 // Cerca un documento nella collezione usando un filtro e restituisce il risultato (o null)
@@ -73,9 +76,12 @@ export async function updateDB(
 ) {
 	const collection = await findCollection(collectionName);
 	if (remove === null) {
-		collection.updateOne(filter, { $set: updates });
+		return await collection.updateOne(filter, { $set: updates });
 	} else {
-		collection.updateOne(filter, { $set: updates, $unset: remove });
+		return await collection.updateOne(filter, {
+			$set: updates,
+			$unset: remove
+		});
 	}
 }
 

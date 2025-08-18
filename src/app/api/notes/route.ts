@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getCurrentID } from "../../actions/auth_logic";
 import isAuthenticated from "../../actions/auth_logic";
 import type { note } from "../../lib/definitions/def_note";
-import { NOTES, findAllDB, insertDB } from "../../lib/mongodb";
+import { NOTES, findAllDB, findCollection, insertDB } from "../../lib/mongodb";
 
 async function getNotes(): Promise<note[]> {
 	const userId = await getCurrentID();
@@ -19,7 +19,7 @@ async function getNotes(): Promise<note[]> {
 	return notes;
 }
 
-async function addNote(note: note): Promise<void> {
+async function addNote(note: note): Promise<ObjectId> {
 	const userId = await getCurrentID();
 
 	if (!userId) {
@@ -35,7 +35,7 @@ async function addNote(note: note): Promise<void> {
 		modified: new Date()
 	};
 
-	await insertDB(NOTES, newNote);
+	return (await insertDB(NOTES, newNote)).insertedId;
 }
 
 export async function GET() {
@@ -62,8 +62,11 @@ export async function POST(req: NextRequest) {
 		);
 	}*/
 
+	const reqdata = await req.json();
+
+	let newNoteId: ObjectId;
 	try {
-		addNote(JSON.parse(String(req.body)) as note); //TODO: sfruttare gli header (content-type) e costruire per bene la richiesta
+		newNoteId = await addNote(reqdata as note);
 	} catch (error) {
 		console.log("Errore nell'inserimento della nota:", error);
 		return NextResponse.json(
@@ -73,7 +76,10 @@ export async function POST(req: NextRequest) {
 	}
 
 	let res = NextResponse.json(
-		{ message: "Nota aggiunta con successo" },
+		{
+			message: "Nota aggiunta con successo",
+			insertedId: newNoteId.toString()
+		},
 		{ status: 200 }
 	);
 	return res;
