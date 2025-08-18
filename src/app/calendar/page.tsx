@@ -23,6 +23,8 @@ import {
 } from "../ui/ui_cale/actv-list";
 import EventCard from "../ui/ui_cale/event-card";
 import EventForm from "../ui/ui_cale/event-form";
+import { ExportButton } from "../ui/ui_cale/export-button";
+import { ImportButton } from "../ui/ui_cale/import-button";
 import UpdateActivityForm from "../ui/ui_cale/upd-actv";
 import UpdateEventForm from "../ui/ui_cale/upd-event";
 import "./calendar.css";
@@ -147,6 +149,8 @@ export default function PageCalendar() {
 					>
 						Crea una Attività
 					</button>
+					<ExportButton />
+					<ImportButton />
 				</div>
 				<div
 					style={{
