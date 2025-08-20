@@ -2,12 +2,12 @@
 
 import { importCalendar } from "@/app/actions/cale_logic/port_logic";
 
-export function ImportButton() {
+export function ImportButton({ refetch }: { refetch: () => void }) {
 	const handleImport = async (file: File) => {
 		try {
 			const icalData = await file.text();
 			await importCalendar(icalData);
-			alert("Calendar imported successfully!");
+			refetch();
 		} catch (error) {
 			console.error("Error importing calendar:", error);
 			alert("Failed to import calendar.");

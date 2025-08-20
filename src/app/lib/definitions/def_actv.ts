@@ -1,3 +1,4 @@
+import { ObjectId } from "mongodb";
 import { z } from "zod";
 import { getVirtualDate } from "../../actions/timemach_logic";
 
@@ -119,7 +120,7 @@ export type Activity_FullCalendar = {
 };
 
 export type Activity_DB = {
-	_id: string;
+	_id: ObjectId;
 	userId: string;
 	title: string;
 	description: string;

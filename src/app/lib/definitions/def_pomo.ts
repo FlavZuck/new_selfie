@@ -1,3 +1,4 @@
+import { ObjectId } from "mongodb";
 import { z } from "zod";
 
 export const PomodoroSchema = z.object({
@@ -21,7 +22,7 @@ export type PomodoroState =
 	| undefined;
 
 export type Pomodoro_DB = {
-	_id: string;
+	_id: ObjectId;
 	userId: string;
 
 	date: Date;
