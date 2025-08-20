@@ -150,7 +150,7 @@ export default function PageCalendar() {
 						Crea una Attività
 					</button>
 					<ExportButton />
-					<ImportButton />
+					<ImportButton refetch={fetchEvents} />
 				</div>
 				<div
 					style={{

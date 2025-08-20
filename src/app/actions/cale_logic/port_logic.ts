@@ -2,9 +2,10 @@
 
 import { Activity_DB } from "@/app/lib/definitions/def_actv";
 import { Event_DB } from "@/app/lib/definitions/def_event";
-import { ACTIVITIES, EVENTS, findAllDB, insertDB } from "@/app/lib/mongodb";
+import { ACTIVITIES, EVENTS, findAllDB, upsertDB } from "@/app/lib/mongodb";
 import ical from "ical-generator";
 import ICAL from "ical.js";
+import { ObjectId } from "mongodb";
 import { getCurrentID } from "../auth_logic";
 
 async function getEventsDB(userId: string): Promise<Event_DB[]> {
@@ -30,6 +31,7 @@ export async function exportCalendar(): Promise<string> {
 	for (const event of events) {
 		const start = new Date(event.start);
 		calendar.createEvent({
+			id: event._id.toString(),
 			start,
 			end: event.dateend || undefined,
 			summary: event.title,
@@ -43,6 +45,7 @@ export async function exportCalendar(): Promise<string> {
 	// Aggiunta delle attività al calendario
 	for (const activity of activities) {
 		calendar.createEvent({
+			id: activity._id.toString(),
 			start: activity.expiration,
 			allDay: true,
 			summary: activity.title,
@@ -56,7 +59,10 @@ export async function exportCalendar(): Promise<string> {
 
 export async function importCalendar(icalData: string) {
 	// Inizializzazione del parser ICAL e degli array
-	const calendar = ICAL.parse(icalData);
+	const jcalData = ICAL.parse(icalData);
+	const vcalendar = new ICAL.Component(jcalData);
+	const vevents = vcalendar.getAllSubcomponents("vevent");
+	const vtodos = vcalendar.getAllSubcomponents("vtodo");
 	const userId = await getCurrentID();
 	const events: Event_DB[] = [];
 	const activities: Activity_DB[] = [];
@@ -66,54 +72,86 @@ export async function importCalendar(icalData: string) {
 	const recurringColor = "#33FF57"; // color = green
 	const activityColor = "#0000FF"; // color = blue
 
-	// Iterazione sul calendario per estrarre eventi e attività
-	for (const key in calendar) {
-		const event = calendar[key];
-		if (event.type === "VEVENT") {
-			// Parse event data
-			events.push({
-				_id: key,
-				userId,
-				title: event.summary || "no title",
-				description: event.description || "no description",
-				place: event.location || "",
-				start: new Date(event.start),
-				dateend: event.end ? new Date(event.end) : "",
-				allDay: event.allDay ? "on" : null,
-				color: event.rrule ? recurringColor : normalColor,
-				rrule: event.rrule || undefined,
-				notification: false,
-				notificationtime: "",
-				notificationtype: "",
-				specificdelay: 0
-			} as Event_DB);
-		} else if (event.type === "VTODO") {
-			// Parse activity data
-			activities.push({
-				_id: key,
-				userId,
-				title: event.summary || "",
-				description: event.description || "",
-				place: event.location || "",
-				expiration: new Date(event.due),
-				color: activityColor,
-				notification: false,
-				notificationtime: "",
-				notificationtype: "",
-				specificday: null,
-				reminder: false,
-				lastsent_reminder: false,
-				completed: false
-			} as Activity_DB);
+	// Iterazione VEVENT
+	for (const veventComp of vevents) {
+		const vevent = new ICAL.Event(veventComp);
+
+		// Attempt to reuse original ID from VEVENT UID if valid, else generate new
+		const veventUid = vevent.uid || "";
+		const eventId = ObjectId.isValid(veventUid)
+			? new ObjectId(veventUid)
+			: new ObjectId();
+
+		events.push({
+			_id: eventId,
+			userId,
+			title: vevent.summary || "no title",
+			description: vevent.description || "no description",
+			place: vevent.location || "",
+			start: vevent.startDate.toJSDate(),
+			dateend: vevent.endDate ? vevent.endDate.toJSDate() : "",
+			allDay: vevent.startDate.isDate ? "on" : null,
+			color: vevent.component.getFirstPropertyValue("rrule")
+				? recurringColor
+				: normalColor,
+			rrule: vevent.component.getFirstPropertyValue("rrule") || undefined,
+			notification: false,
+			notificationtime: "",
+			notificationtype: "",
+			specificdelay: 0
+		} as Event_DB);
+	}
+	// Iterazione VTODO
+	// Parte abbastanza macchinosa per colpa del formato VTODO non sempre presente
+	for (const vtodoComp of vtodos) {
+		const dueProp = vtodoComp.getFirstPropertyValue("due");
+		let expirationDate: Date;
+		if (dueProp && typeof dueProp !== "string" && "toJSDate" in dueProp) {
+			expirationDate = (dueProp as ICAL.Time).toJSDate();
+		} else if (typeof dueProp === "string") {
+			expirationDate = new Date(dueProp);
+		} else {
+			expirationDate = new Date();
 		}
+		const id = vtodoComp.getFirstPropertyValue("uid")?.toString() || "";
+		// Proviamo a riutilizzare l'ID, altrimenti ne generiamo uno nuovo
+		const activityId = ObjectId.isValid(id)
+			? new ObjectId(id)
+			: new ObjectId();
+
+		activities.push({
+			_id: activityId,
+			userId,
+			title: vtodoComp.getFirstPropertyValue("summary") || "",
+			description: vtodoComp.getFirstPropertyValue("description") || "",
+			place: vtodoComp.getFirstPropertyValue("location") || "",
+			expiration: expirationDate,
+			color: activityColor,
+			notification: false,
+			notificationtime: "",
+			notificationtype: "",
+			specificday: null,
+			reminder: false,
+			lastsent_reminder: false,
+			completed: false
+		} as Activity_DB);
 	}
 
 	// Loop di inserimento degli eventi nel database
-	for (const event of events) {
-		await insertDB(EVENTS, event);
+	for (const eventObj of events) {
+		// Verifica se esiste già un'attività con lo stesso _id (auto-importazioni)
+		const existAsActivity = await findAllDB(ACTIVITIES, {
+			_id: eventObj._id
+		});
+		if (existAsActivity.length > 0) {
+			continue;
+		} else {
+			// Importa o aggiorna l'evento: upsert evita duplicati nel collection EVENTS
+			await upsertDB(EVENTS, { _id: eventObj._id }, eventObj);
+		}
 	}
 	// Loop di inserimento delle attività nel database
-	for (const activity of activities) {
-		await insertDB(ACTIVITIES, activity);
+	for (const activityObj of activities) {
+		await upsertDB(ACTIVITIES, { _id: activityObj._id }, activityObj);
 	}
 }

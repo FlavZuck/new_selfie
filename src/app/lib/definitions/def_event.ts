@@ -1,4 +1,5 @@
 import { getVirtualDate } from "@/app/actions/timemach_logic";
+import { ObjectId } from "mongodb";
 import { z } from "zod";
 
 // Dynamic date validators to ensure thresholds update on each validation
@@ -335,7 +336,7 @@ export type Event_FullCalendar = {
 
 export type Event_DB = {
 	// Campi ID
-	_id: string;
+	_id: ObjectId;
 	userId: string;
 	// Campi base (obbligatori tranne per place)
 	title: string;

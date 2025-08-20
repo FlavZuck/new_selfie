@@ -1,4 +1,4 @@
-import { InsertOneResult, MongoClient, ObjectId } from "mongodb";
+import { InsertOneResult, MongoClient, ObjectId, UpdateResult } from "mongodb";
 import { User } from "./definitions/def_auth";
 
 // Nome della collezione per gli utenti
@@ -47,6 +47,19 @@ export async function insertDB(
 ): Promise<InsertOneResult> {
 	const collection = await findCollection(collectionName);
 	return await collection.insertOne(data);
+}
+
+export async function upsertDB(
+	collectionName: string,
+	filter: any,
+	data: any
+): Promise<UpdateResult> {
+	const collection = await findCollection(collectionName);
+	return collection.updateOne(
+		filter,
+		{ $setOnInsert: data },
+		{ upsert: true }
+	);
 }
 
 // Cerca un documento nella collezione usando un filtro e restituisce il risultato (o null)
@@ -102,5 +115,3 @@ export async function findUserById(userId: string): Promise<User | null> {
 	const objectId = new ObjectId(userId);
 	return findDB<User>(USERS, { _id: objectId });
 }
-
-
