@@ -1,8 +1,10 @@
 "use client";
 
 import { importCalendar } from "@/app/actions/cale_logic/port_logic";
+import { useRef } from "react";
 
 export function ImportButton({ refetch }: { refetch: () => void }) {
+	const fileInputRef = useRef<HTMLInputElement>(null);
 	const handleImport = async (file: File) => {
 		try {
 			const icalData = await file.text();
@@ -24,7 +26,15 @@ export function ImportButton({ refetch }: { refetch: () => void }) {
 						handleImport(e.target.files[0]);
 					}
 				}}
+				ref={fileInputRef}
+				style={{ display: "none" }}
 			/>
+			<button
+				className="fc-custom-button"
+				onClick={() => fileInputRef.current?.click()}
+			>
+				Importa Calendario
+			</button>
 		</div>
 	);
 }

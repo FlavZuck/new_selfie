@@ -138,13 +138,13 @@ export default function PageCalendar() {
 					}}
 				>
 					<button
-						className="create-event-button"
+						className="fc-custom-button"
 						onClick={() => setShow_Event_Create(true)}
 					>
 						Crea un Evento
 					</button>
 					<button
-						className="create-activity-button"
+						className="fc-custom-button"
 						onClick={() => setShow_Activity_Create(true)}
 					>
 						Crea una Attività

@@ -22,7 +22,9 @@ export function ExportButton() {
 
 	return (
 		<div>
-			<button onClick={handleExport}>Export Calendar</button>
+			<button className="fc-custom-button" onClick={handleExport}>
+				Esporta Calendario
+			</button>
 		</div>
 	);
 }
