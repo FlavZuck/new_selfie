@@ -78,226 +78,324 @@ export default function EventForm({ show, setShow, refetch }: EventFormProps) {
 				>
 					&times;
 				</button>
-				<form action={action}>
-					{/*TITLE*/}
-					<div>
-						<label htmlFor="title">Titolo </label>
-						<input
-							id="title"
-							name="title"
-							placeholder="Titolo"
-							required
-						/>
-					</div>
-					{state?.errors?.title && <p>{state.errors.title}</p>}
-
-					{/*PLACE*/}
-					<div>
-						<label htmlFor="place">Luogo </label>
-						<input id="place" name="place" placeholder="Luogo" />
-					</div>
-					{state?.errors?.place && <p>{state.errors.place}</p>}
-
-					{/*START DATE*/}
-					<div>
-						<label htmlFor="datestart">Inizio </label>
-						<input
-							type="date"
-							id="datestart"
-							name="datestart"
-							required
-						/>
-					</div>
-					{state?.errors?.datestart && (
-						<p>{state.errors.datestart}</p>
-					)}
-
-					{/*ALL DAY*/}
-					<div>
-						<label htmlFor="allDay">Tutto il giorno </label>
-						<input
-							type="checkbox"
-							id="allDay"
-							name="allDay"
-							defaultChecked={false}
-							onChange={(e) => {
-								setAllDay(e.target.checked);
-							}}
-						/>
-					</div>
-
-					{/*END DATE*/}
-					<div hidden={!allDay || rec}>
-						<label htmlFor="dateend">Fine </label>
-						<input type="date" id="dateend" name="dateend" />
-					</div>
-					{state?.errors?.dateend && <p>{state.errors.dateend}</p>}
-
-					{/*TIMED EVENT SECTION*/}
-					<div hidden={allDay}>
-						<div>
-							<label htmlFor="time">Ora </label>
-							<input type="time" id="time" name="time" />
-							{state?.errors?.time && <p>{state.errors.time}</p>}
-						</div>
-						{/* ---------------------------------------------------*/}
-						<div>
-							<label htmlFor="duration">Durata </label>
-							<input
-								type="number"
-								id="duration"
-								name="duration"
-								defaultValue={0}
-								min={0}
-								max={24}
-								step={0.5}
-							/>
-							{state?.errors?.duration && (
-								<p>{state.errors.duration}</p>
-							)}
-						</div>
-					</div>
-
-					{/*DESCRIPTION*/}
-					<div>
-						<label htmlFor="description">Descrizione </label>
-						<input
-							id="description"
-							name="description"
-							placeholder="Descrizione"
-							required
-						/>
-					</div>
-					{state?.errors?.description && (
-						<p>{state.errors.description}</p>
-					)}
-					{/*NOTIFICATION*/}
-					<div>
-						<label htmlFor="notification">Notifiche</label>
-						<input
-							type="checkbox"
-							id="notification"
-							name="notification"
-							defaultChecked={false}
-							onChange={(e) => {
-								if (e.target.checked) {
-									setNotif(true);
-								} else {
-									setNotif(false);
-								}
-							}}
-						/>
-					</div>
-					{state?.errors?.notification && (
-						<p>{state.errors.notification}</p>
-					)}
-
-					<div hidden={!notif}>
-						{/*NOTIFICATION TIME*/}
-						<div hidden={spec_delay}>
-							<label htmlFor="notificationtime">
-								Ora notifica{" "}
+				<div
+					style={{
+						overflowY: "auto",
+						maxHeight: "calc(90vh - 3rem)",
+						paddingRight: "1rem"
+					}}
+				>
+					<form action={action}>
+						{/*TITLE*/}
+						<div className={styles.formGroup}>
+							<label htmlFor="title" className={styles.formLabel}>
+								Titolo
 							</label>
 							<input
-								type="time"
-								id="notificationtime"
-								name="notificationtime"
-								placeholder="Ora notifica"
-								defaultValue="08:00"
+								id="title"
+								name="title"
+								placeholder="Titolo"
 								required
+								className={styles.formInput}
 							/>
-							{state?.errors?.notificationtime && (
-								<p>{state.errors.notificationtime}</p>
-							)}
+						</div>
+						{state?.errors?.title && <p>{state.errors.title}</p>}
+
+						{/*PLACE*/}
+						<div className={styles.formGroup}>
+							<label htmlFor="place" className={styles.formLabel}>
+								Luogo
+							</label>
+							<input
+								id="place"
+								name="place"
+								placeholder="Luogo"
+								className={styles.formInput}
+							/>
+						</div>
+						{state?.errors?.place && <p>{state.errors.place}</p>}
+
+						{/*START DATE*/}
+						<div className={styles.formGroup}>
+							<label
+								htmlFor="datestart"
+								className={styles.formLabel}
+							>
+								Inizio
+							</label>
+							<input
+								type="date"
+								id="datestart"
+								name="datestart"
+								required
+								className={styles.formInput}
+							/>
+						</div>
+						{state?.errors?.datestart && (
+							<p>{state.errors.datestart}</p>
+						)}
+
+						{/*ALL DAY*/}
+						<div className={styles.formGroup}>
+							<label
+								htmlFor="allDay"
+								className={styles.formLabel}
+							>
+								Tutto il giorno
+							</label>
+							<input
+								type="checkbox"
+								id="allDay"
+								name="allDay"
+								defaultChecked={false}
+								onChange={(e) => {
+									setAllDay(e.target.checked);
+								}}
+							/>
 						</div>
 
-						{/*NOTIFICATION TYPE*/}
-						<div>
-							<label htmlFor="notificationtype">
-								Tipo notifica{" "}
+						{/*END DATE*/}
+						<div
+							className={styles.formGroup}
+							hidden={!allDay || rec}
+						>
+							<label
+								htmlFor="dateend"
+								className={styles.formLabel}
+							>
+								Fine
 							</label>
-							<select
-								id="notificationtype"
-								name="notificationtype"
+							<input
+								type="date"
+								id="dateend"
+								name="dateend"
+								className={styles.formInput}
+							/>
+						</div>
+						{state?.errors?.dateend && (
+							<p>{state.errors.dateend}</p>
+						)}
+
+						{/*TIMED EVENT SECTION*/}
+						<div hidden={allDay}>
+							<div className={styles.formGroup}>
+								<label
+									htmlFor="time"
+									className={styles.formLabel}
+								>
+									Ora
+								</label>
+								<input
+									type="time"
+									id="time"
+									name="time"
+									className={styles.formInput}
+								/>
+								{state?.errors?.time && (
+									<p>{state.errors.time}</p>
+								)}
+							</div>
+							{/* ---------------------------------------------------*/}
+							<div className={styles.formGroup}>
+								<label
+									htmlFor="duration"
+									className={styles.formLabel}
+								>
+									Durata
+								</label>
+								<input
+									type="number"
+									id="duration"
+									name="duration"
+									defaultValue={0}
+									min={0}
+									max={24}
+									step={0.5}
+									className={styles.formInput}
+								/>
+								{state?.errors?.duration && (
+									<p>{state.errors.duration}</p>
+								)}
+							</div>
+						</div>
+
+						{/*DESCRIPTION*/}
+						<div className={styles.formGroup}>
+							<label
+								htmlFor="description"
+								className={styles.formLabel}
+							>
+								Descrizione
+							</label>
+							<input
+								id="description"
+								name="description"
+								placeholder="Descrizione"
+								required
+								className={styles.formInput}
+							/>
+						</div>
+						{state?.errors?.description && (
+							<p>{state.errors.description}</p>
+						)}
+						{/*NOTIFICATION*/}
+						<div className={styles.formGroup}>
+							<label
+								htmlFor="notification"
+								className={styles.formLabel}
+							>
+								Notifiche
+							</label>
+							<input
+								type="checkbox"
+								id="notification"
+								name="notification"
+								defaultChecked={false}
 								onChange={(e) => {
-									if (e.target.value == "specifico") {
-										setSpec_delay(true);
+									if (e.target.checked) {
+										setNotif(true);
 									} else {
-										setSpec_delay(false);
+										setNotif(false);
 									}
 								}}
-							>
-								<option value="stesso">Giorno stesso</option>
-								<option value="prima">Giorno prima</option>
-								<option value="specifico">
-									Anticipo specifico{" "}
-								</option>
-							</select>
+							/>
 						</div>
-						{state?.errors?.notificationtype && (
-							<p>{state.errors.notificationtype}</p>
+						{state?.errors?.notification && (
+							<p>{state.errors.notification}</p>
 						)}
-						{/*SPECIFIC DELAY*/}
-						<div hidden={!spec_delay}>
-							<label htmlFor="specificdelay">
-								Con anticipo specifico{" "}
+
+						<div hidden={!notif}>
+							{/*NOTIFICATION TIME*/}
+							<div
+								hidden={spec_delay}
+								className={styles.formGroup}
+							>
+								<label
+									htmlFor="notificationtime"
+									className={styles.formLabel}
+								>
+									Ora notifica
+								</label>
+								<input
+									type="time"
+									id="notificationtime"
+									name="notificationtime"
+									placeholder="Ora notifica"
+									defaultValue="08:00"
+									required
+									className={styles.formInput}
+								/>
+								{state?.errors?.notificationtime && (
+									<p>{state.errors.notificationtime}</p>
+								)}
+							</div>
+
+							{/*NOTIFICATION TYPE*/}
+							<div className={styles.formGroup}>
+								<label
+									htmlFor="notificationtype"
+									className={styles.formLabel}
+								>
+									Tipo notifica
+								</label>
+								<select
+									id="notificationtype"
+									name="notificationtype"
+									className={styles.formInput}
+									onChange={(e) => {
+										if (e.target.value == "specifico") {
+											setSpec_delay(true);
+										} else {
+											setSpec_delay(false);
+										}
+									}}
+								>
+									<option value="stesso">
+										Giorno stesso
+									</option>
+									<option value="prima">Giorno prima</option>
+									<option value="specifico">
+										Anticipo specifico
+									</option>
+								</select>
+							</div>
+							{state?.errors?.notificationtype && (
+								<p>{state.errors.notificationtype}</p>
+							)}
+							{/*SPECIFIC DELAY*/}
+							<div
+								hidden={!spec_delay}
+								className={styles.formGroup}
+							>
+								<label
+									htmlFor="specificdelay"
+									className={styles.formLabel}
+								>
+									Con anticipo specifico
+								</label>
+								<input
+									type="number"
+									id="specificdelay"
+									name="specificdelay"
+									placeholder="Anticipo Specifico"
+									defaultValue={0}
+									min={0}
+									max={168}
+									step={1}
+									className={styles.formInput}
+								/>
+								{state?.errors?.specificdelay && (
+									<p>{state.errors.specificdelay}</p>
+								)}
+							</div>
+						</div>
+
+						{/*SHOW REC*/}
+						<div className={styles.formGroup}>
+							<label
+								htmlFor="recurrence"
+								className={styles.formLabel}
+							>
+								Opzioni Ricorrenza
 							</label>
 							<input
-								type="number"
-								id="specificdelay"
-								name="specificdelay"
-								placeholder="Anticipo Specifico"
-								defaultValue={0}
-								min={0}
-								max={168}
-								step={1}
+								type="checkbox"
+								id="recurrence"
+								name="recurrence"
+								defaultChecked={false}
+								onChange={(e) => {
+									setRec(e.target.checked);
+								}}
 							/>
-							{state?.errors?.specificdelay && (
-								<p>{state.errors.specificdelay}</p>
-							)}
 						</div>
-					</div>
 
-					{/*SHOW REC*/}
-					<div>
-						<label htmlFor="allDay">Opzioni Ricorrenza </label>
-						<input
-							type="checkbox"
-							id="recurrence"
-							name="recurrence"
-							defaultChecked={false}
-							onChange={(e) => {
-								setRec(e.target.checked);
+						<div hidden={!rec}>
+							{/*RRULE*/}
+							<RRuleForm
+								Freqform={Freqform}
+								setFreqform={setFreqform}
+								undef={undef}
+								setUndef={setUndef}
+								WeeklyHandlerProps={{
+									selectedDays,
+									setSelectedDays
+								}}
+							/>
+						</div>
+
+						{/*SUBMIT BUTTON*/}
+						<button
+							className={styles.submitButton}
+							disabled={pending}
+							type="submit"
+							onClick={() => {
+								resetStates();
 							}}
-						/>
-					</div>
-
-					<div hidden={!rec}>
-						{/*RRULE*/}
-						<RRuleForm
-							Freqform={Freqform}
-							setFreqform={setFreqform}
-							undef={undef}
-							setUndef={setUndef}
-							WeeklyHandlerProps={{
-								selectedDays,
-								setSelectedDays
-							}}
-						/>
-					</div>
-
-					{/*SUBMIT BUTTON*/}
-					<button
-						className={styles.button}
-						disabled={pending}
-						type="submit"
-						onClick={() => {
-							resetStates();
-						}}
-					>
-						{pending ? "Creating event..." : "Create Event"}
-					</button>
-				</form>
+						>
+							{pending ? "Creazione in corso..." : "Crea Evento"}
+						</button>
+					</form>
+				</div>
 			</div>
 		</div>
 	);

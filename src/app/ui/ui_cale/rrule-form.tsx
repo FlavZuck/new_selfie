@@ -1,5 +1,6 @@
 "use client";
 
+import styles from "@/app/page.module.css";
 import {
 	MonthlyHandler,
 	WeeklyHandler,
@@ -31,11 +32,14 @@ export default function RRuleForm({
 	return (
 		<div>
 			{/* FREQUENCY */}
-			<div>
-				<label htmlFor="frequency">Frequenza </label>
+			<div className={styles.formGroup}>
+				<label htmlFor="frequency" className={styles.formLabel}>
+					Frequenza
+				</label>
 				<select
 					id="frequency"
 					name="frequency"
+					className={styles.formInput}
 					onChange={(e) => {
 						if (e.target.value === "DAILY") {
 							setFreqform("DAILY");
@@ -75,8 +79,10 @@ export default function RRuleForm({
 			</div>
 
 			{/* UNDEF */}
-			<div>
-				<label htmlFor="undef">Ricorrenza indefinita </label>
+			<div className={styles.formGroup}>
+				<label htmlFor="undef" className={styles.formLabel}>
+					Ricorrenza indefinita
+				</label>
 				<input
 					type="checkbox"
 					id="undef"
@@ -105,8 +111,10 @@ export default function RRuleForm({
 
 			<div hidden={undef}>
 				{/* COUNT */}
-				<div>
-					<label htmlFor="count">Numero di occorrenze </label>
+				<div className={styles.formGroup}>
+					<label htmlFor="count" className={styles.formLabel}>
+						Numero di occorrenze
+					</label>
 					<input
 						type="number"
 						id="count"
@@ -115,17 +123,21 @@ export default function RRuleForm({
 						max={100}
 						defaultValue={0}
 						placeholder="Numero di occorrenze"
+						className={styles.formInput}
 					/>
 				</div>
 
 				{/* UNTIL */}
-				<div>
-					<label htmlFor="until">Fino al </label>
+				<div className={styles.formGroup}>
+					<label htmlFor="until" className={styles.formLabel}>
+						Fino al
+					</label>
 					<input
 						type="date"
 						id="until"
 						name="until"
 						placeholder="Data di scadenza"
+						className={styles.formInput}
 					/>
 				</div>
 			</div>

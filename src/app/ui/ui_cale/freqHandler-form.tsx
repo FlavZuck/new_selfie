@@ -12,7 +12,7 @@ type MonthlyHandlerProps = {
 type YearlyHandlerProps = {
 	yh_day?: number;
 	yh_month?: number;
-};	
+};
 
 export function WeeklyHandler({
 	selectedDays,
@@ -50,9 +50,9 @@ export function WeeklyHandler({
 				name="dayarray"
 				value={selectedDays}
 			/>
-			<label className={styles.label}>Seleziona i giorni</label>
+			<label className={styles.formLabel}>Seleziona i giorni</label>
 			{days.map((day) => (
-				<div key={day}>
+				<div key={day} style={{ margin: "0.5rem 0" }}>
 					<input
 						type="checkbox"
 						id={day}
@@ -60,18 +60,25 @@ export function WeeklyHandler({
 							handleCheckboxChange(day);
 						}}
 						checked={selectedDays.includes(day)}
+						style={{ marginRight: "0.5rem" }}
 					/>
-					<label htmlFor={day}>{day}</label>
+					<label htmlFor={day} style={{ fontWeight: "normal" }}>
+						{day}
+					</label>
 				</div>
 			))}
 		</div>
 	);
 }
 
-export function MonthlyHandler({ mh_day = new Date().getDate() }: MonthlyHandlerProps) {
+export function MonthlyHandler({
+	mh_day = new Date().getDate()
+}: MonthlyHandlerProps) {
 	return (
-		<div>
-			<label htmlFor="mh_day">Giorno del mese</label>
+		<div className={styles.formGroup}>
+			<label htmlFor="mh_day" className={styles.formLabel}>
+				Giorno del mese
+			</label>
 			<input
 				type="number"
 				id="mh_day"
@@ -79,34 +86,46 @@ export function MonthlyHandler({ mh_day = new Date().getDate() }: MonthlyHandler
 				defaultValue={mh_day}
 				min="1"
 				max="31"
+				className={styles.formInput}
 			/>
 		</div>
 	);
 }
 
-export function YearlyHandler(
-	{ yh_day = new Date().getDate(), yh_month = new Date().getMonth() }: YearlyHandlerProps
-) {
+export function YearlyHandler({
+	yh_day = new Date().getDate(),
+	yh_month = new Date().getMonth()
+}: YearlyHandlerProps) {
 	return (
 		<div>
-			<label htmlFor="yh_day">Giorno</label>
-			<input
-				type="number"
-				id="yh_day"
-				name="yh_day"
-				defaultValue={yh_day}
-				min="1"
-				max="31"
-			/>
-			<label htmlFor="yh_month">Mese</label>
-			<input
-				type="number"
-				id="yh_month"
-				name="yh_month"
-				defaultValue={yh_month}
-				min="1"
-				max="12"
-			/>
+			<div className={styles.formGroup}>
+				<label htmlFor="yh_day" className={styles.formLabel}>
+					Giorno
+				</label>
+				<input
+					type="number"
+					id="yh_day"
+					name="yh_day"
+					defaultValue={yh_day}
+					min="1"
+					max="31"
+					className={styles.formInput}
+				/>
+			</div>
+			<div className={styles.formGroup}>
+				<label htmlFor="yh_month" className={styles.formLabel}>
+					Mese
+				</label>
+				<input
+					type="number"
+					id="yh_month"
+					name="yh_month"
+					defaultValue={yh_month}
+					min="1"
+					max="12"
+					className={styles.formInput}
+				/>
+			</div>
 		</div>
 	);
 }

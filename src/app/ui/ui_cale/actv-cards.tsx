@@ -65,7 +65,7 @@ export function ActivityCalendarCard({
 
 	return (
 		<div className={styles.modalBackground}>
-			<div className={`${styles.modal}`}>
+			<div className={styles.modalContent}>
 				<button
 					type="button"
 					// Close the modal when clicking outside of it
@@ -81,63 +81,74 @@ export function ActivityCalendarCard({
 					<h1 className={styles.modalTitle}>{activity.title}</h1>
 				</div>
 
-				{/* EXPIRATION DATE */}
-				<div>
-					<h3>Giorno di scadenza :</h3>
-					<p>{activity.start.toDateString()}</p>
-				</div>
+				<div className={styles.modalBody}>
+					{/* EXPIRATION DATE */}
+					<div className={styles.modalSection}>
+						<h3>Giorno di scadenza :</h3>
+						<p>{activity.start.toDateString()}</p>
+					</div>
 
-				{/* PLACE */}
-				<div hidden={showplace} className={styles.modalSection}>
-					<h3>Luogo :</h3>
-					<p>{activity.extendedProps.place}</p>
-				</div>
+					{/* PLACE */}
+					<div hidden={showplace} className={styles.modalSection}>
+						<h3>Luogo :</h3>
+						<p>{activity.extendedProps.place}</p>
+					</div>
 
-				{/* DESCRIPTION */}
-				<div hidden={showdescription} className={styles.modalSection}>
-					<h3>Descrizione :</h3>
-					<p>{activity.extendedProps.description}</p>
-				</div>
-
-				{/* NOTIFICATION TIME*/}
-				<div className={styles.modalSection} hidden={!shownotification}>
-					<h3>Notification Time :</h3>
-					<p>{activity.extendedProps.notificationtime}</p>
-				</div>
-
-				{/* DELETE BUTTON */}
-				<div className={styles.modalSection}>
-					<button
-						className={styles.deleteButton}
-						onClick={() => {
-							// Call the delete function
-							handleDelete();
-						}}
+					{/* DESCRIPTION */}
+					<div
+						hidden={showdescription}
+						className={styles.modalSection}
 					>
-						Elimina attività
-					</button>
-				</div>
-				{/* UPDATE BUTTON */}
-				<div>
-					<button
-						className={styles.updateButton}
-						onClick={() => {
-							handleUpdate();
-						}}
+						<h3>Descrizione :</h3>
+						<p>{activity.extendedProps.description}</p>
+					</div>
+
+					{/* NOTIFICATION TIME*/}
+					<div
+						className={styles.modalSection}
+						hidden={!shownotification}
 					>
-						Modifica evento
-					</button>
-				</div>
-				{/* COMPLETE BUTTON */}
-				<div className={styles.modalSection} hidden={showcompletion}>
-					<button
-						className={styles.updateButton}
-						onClick={() => {
-							handleComplete();
-						}}
+						<h3>Notification Time :</h3>
+						<p>{activity.extendedProps.notificationtime}</p>
+					</div>
+
+					{/* DELETE BUTTON */}
+					<div className={styles.modalSection}>
+						<button
+							className={styles.deleteButton}
+							onClick={() => {
+								// Call the delete function
+								handleDelete();
+							}}
+						>
+							Elimina attività
+						</button>
+					</div>
+					{/* UPDATE BUTTON */}
+					<div className={styles.modalSection}>
+						<button
+							className={styles.submitButton}
+							onClick={() => {
+								handleUpdate();
+							}}
+						>
+							Modifica evento
+						</button>
+					</div>
+					{/* COMPLETE BUTTON */}
+					<div
+						className={styles.modalSection}
+						hidden={showcompletion}
 					>
-						Attività Completata
-					</button>
+						<button
+							className={styles.updateButton}
+							onClick={() => {
+								handleComplete();
+							}}
+						>
+							Attività Completata
+						</button>
+					</div>
 				</div>
 			</div>
 		</div>
@@ -191,7 +202,7 @@ export function ActivityListCard({
 
 	return (
 		<div className={styles.modalBackground}>
-			<div className={`${styles.modal}`}>
+			<div className={styles.modalContent}>
 				<button
 					type="button"
 					// Close the modal when clicking outside of it
@@ -208,9 +219,9 @@ export function ActivityListCard({
 				</div>
 
 				{/* BODY */}
-				<div className={styles.modalSection}>
+				<div className={styles.modalBody}>
 					{/* EXPIRATION DATE */}
-					<div>
+					<div className={styles.modalSection}>
 						<h3>Giorno di scadenza :</h3>
 						<p>{activity.start.toDateString()}</p>
 					</div>
@@ -250,7 +261,7 @@ export function ActivityListCard({
 						hidden={showcompletion}
 					>
 						<button
-							className={styles.updateButton}
+							className={styles.submitButton}
 							onClick={() => {
 								handleComplete();
 							}}

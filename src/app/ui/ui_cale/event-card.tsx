@@ -33,7 +33,7 @@ export default function EventCard({
 	const showduration = event.extendedProps.duration === "";
 	const showplace = event.extendedProps.place === "";
 
-	const handleUpdate = async() => {
+	const handleUpdate = async () => {
 		const parsedevent = await get_EventById(event.id);
 		if (!parsedevent) {
 			console.error("Event not found");
@@ -51,7 +51,7 @@ export default function EventCard({
 
 	return (
 		<div className={styles.modalBackground}>
-			<div className={`${styles.modal}`}>
+			<div className={styles.modalContent}>
 				<button
 					type="button"
 					// Close the modal when clicking outside of it
@@ -119,7 +119,7 @@ export default function EventCard({
 					{/* UPDATE BUTTON */}
 					<div className={styles.modalSection}>
 						<button
-							className={styles.updateButton}
+							className={styles.submitButton}
 							onClick={() => {
 								handleUpdate();
 							}}
