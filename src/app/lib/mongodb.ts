@@ -88,7 +88,7 @@ export async function updateDB(
 // Elimina i documenti nella collezione che soddisfano il filtro
 export async function deleteDB(collectionName: string, filter: any) {
 	const collection = await findCollection(collectionName);
-	collection.deleteMany(filter);
+	return await collection.deleteMany(filter);
 }
 
 export async function findUserById(userId: string): Promise<User | null> {

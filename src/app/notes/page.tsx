@@ -13,11 +13,11 @@ import NoteCard from "../ui/ui_notes/note-card";
 //Strategy pattern perché posso
 // e tutti zitti
 /*interface NoteSorting {
-	sort(notes: note[]): note[];
+	sort(notes: note[], direction): note[];
 }
 
 class SortByModified implements NoteSorting {
-	sort(notes: note[]): note[] {
+	sort(notes: note[], direction): note[] {
 		notes.sort((a: note, b: note) => {
 			return b.modified.getTime() - a.modified.getTime();
 		});
@@ -26,7 +26,7 @@ class SortByModified implements NoteSorting {
 }
 
 class SortByCreated implements NoteSorting {
-	sort(notes: note[]): note[] {
+	sort(notes: note[], direction): note[] {
 		notes.sort((a: note, b: note) => {
 			return b.created.getTime() - a.created.getTime();
 		});
@@ -34,14 +34,14 @@ class SortByCreated implements NoteSorting {
 	}
 }
 class SortByTitle implements NoteSorting {
-	sort(notes: note[]): note[] {
+	sort(notes: note[], direction): note[] {
 		notes.sort();
 		return notes;
 	}
 }
 
 class SortByContentLength implements NoteSorting {
-	sort(notes: note[]): note[] {
+	sort(notes: note[], direction): note[] {
 		notes.sort((a: note, b: note) => {
 			if (a.content && !b.content) {
 				return -1;
@@ -58,8 +58,9 @@ class SortByContentLength implements NoteSorting {
 
 class SortingContext {
 	private strategy: NoteSorting;
+	private direction: "asc" | "desc";
 
-	constructor(mode: NoteSorting) {
+	constructor(mode: NoteSorting, direction: "asc" | "desc") {
 		this.strategy = mode;
 	}
 
@@ -67,7 +68,7 @@ class SortingContext {
 		this.strategy = mode;
 	}
 
-	sort(notearray: note[]): note[] {
+	sort(notearray: note[], direction): note[] {
 		return this.strategy.sort(notearray);
 	}
 }*/
@@ -75,6 +76,8 @@ class SortingContext {
 export default function Notes() {
 	const [notes, setNotes] = useState([] as note[]);
 	const [loading, setLoading] = useState(true);
+	//const [deletedId, setDeletedId] = useState(false);
+	//const [sortingMode, setSortingMode] = useState();
 	//const [openedId, setOpenedId] = useState(new ObjectId(""));
 
 	let openedId: ObjectId | null = null;
@@ -140,7 +143,7 @@ export default function Notes() {
 		dialog.showModal();
 	}
 
-	function openNote() {}
+	async function openNote(id: ObjectId) {}
 
 	function showNoteDialog() {}
 
@@ -162,12 +165,24 @@ export default function Notes() {
 			})
 		});
 		let sentNote = await PUTresponse.json();
-		let newNotes = notes;
-		newNotes.push(sentNote as note);
-		setNotes(newNotes);
+		setNotes(
+			notes.concat(sentNote).sort((a: note, b: note) => {
+				return (
+					new Date(b.modified).getTime() -
+					new Date(a.modified).getTime()
+				);
+			})
+		);
 		(document.querySelector("#noteForm") as HTMLFormElement).reset();
 		openedId = null;
 	}
+
+	/*function sortNotes() {
+	}
+
+	useEffect(() => {
+		sortNotes();
+	}, [[notes]]);*/
 
 	useEffect(() => {
 		fetchNotes();
@@ -183,10 +198,26 @@ export default function Notes() {
 			<button id="newNoteButton" onClick={newNote}>
 				Nuova nota
 			</button>
-			<ul style={{ display: "grid", gridTemplateColumns: "50vw 50vw" }}>
+			<ul
+				style={{
+					display: "grid",
+					gridTemplateColumns: "50vw 50vw",
+					listStyleType: "none"
+				}}
+			>
 				{notes.map((note, index) => (
 					<li key={index}>
-						<NoteCard passedNote={note}></NoteCard>
+						<NoteCard
+							passedNote={note}
+							onClick={() => {}}
+							onDelete={(id: string) => {
+								setNotes(
+									notes.filter(
+										(note) => String(note._id) !== id
+									)
+								);
+							}}
+						></NoteCard>
 					</li>
 				))}
 			</ul>

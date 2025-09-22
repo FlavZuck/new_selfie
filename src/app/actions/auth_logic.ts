@@ -148,6 +148,9 @@ export async function logout() {
 	redirect("/landing");
 }
 
+/**
+ * Get the current user's mongodb object ID from the session.
+ */
 export async function getCurrentID() {
 	const sessionData = await getSession();
 	if (!sessionData) {
