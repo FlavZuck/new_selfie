@@ -24,19 +24,23 @@ export type PomodoroState =
 export type Pomodoro_DB = {
 	_id: ObjectId;
 	userId: string;
-
 	date: Date;
 	timerConfig: {
 		studyMin: string;
 		pauseMin: string;
 		savedCycles: number;
 	};
+};
 
-	// 	cycles: {
-	// 		completed: number;
-	// 		missed: number;
-	// 		// carriedFromPreviousDay: number;
-	// 	};
+export type Pomodoro_CL = {
+	_id: string;
+	userId: string;
+	date: Date;
+	timerConfig: {
+		studyMin: string;
+		pauseMin: string;
+		savedCycles: number;
+	};
 };
 
 export type PomodoroProposal = {

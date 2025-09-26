@@ -1,7 +1,8 @@
+import "bootstrap/dist/css/bootstrap.min.css";
 import Link from "next/link";
-import Navbar from "./ui/navbar";
 import "./globals.css";
 import styles from "./page.module.css";
+import Navbar from "./ui/navbar";
 
 export const metadata = {
 	title: "Selfie",

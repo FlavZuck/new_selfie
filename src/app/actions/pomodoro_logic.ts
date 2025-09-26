@@ -1,10 +1,10 @@
 "use server";
 
-import { Pomodoro_DB } from "@/app/lib/definitions/def_pomo";
+import { Pomodoro_CL, Pomodoro_DB } from "@/app/lib/definitions/def_pomo";
 import { POMODORO, findDB, insertDB, updateDB } from "../lib/mongodb";
 import { getCurrentID } from "./auth_logic";
 
-export async function loadPomodoro(): Promise<Pomodoro_DB | null> {
+export async function getPomodoro(): Promise<Pomodoro_CL | null> {
 	const userId = await getCurrentID();
 	if (!userId) return null;
 
@@ -13,16 +13,18 @@ export async function loadPomodoro(): Promise<Pomodoro_DB | null> {
 	})) as Pomodoro_DB;
 	if (!config) return null;
 
-	return {
-		_id: config._id.toString(), // Convert ObjectId to string
+	const pomodoro: Pomodoro_CL = {
+		_id: config._id.toString(),
 		userId: config.userId,
-		date: config.date, // Convert Date to string
+		date: config.date,
 		timerConfig: {
 			studyMin: config.timerConfig.studyMin,
 			pauseMin: config.timerConfig.pauseMin,
 			savedCycles: config.timerConfig.savedCycles
 		}
 	};
+
+	return pomodoro;
 }
 
 export async function savePomodoro(
@@ -42,10 +44,6 @@ export async function savePomodoro(
 			pauseMin,
 			savedCycles
 		}
-		// cycles: {
-		// 	completed: 0,
-		// 	missed: 0
-		// }
 	};
 
 	// Cerca se esiste già una config
@@ -58,7 +56,6 @@ export async function savePomodoro(
 			{
 				date: currDate,
 				timerConfig: config.timerConfig
-				// cycles: config.cycles
 			}
 		);
 	} else {
