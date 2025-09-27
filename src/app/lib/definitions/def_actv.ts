@@ -17,40 +17,40 @@ const dynamicMaxDate = async (date: Date): Promise<boolean> => {
 const BaseActivitySchema = z.object({
 	title: z
 		.string()
-		.min(1, { message: "The title must have at least one character." })
+		.min(1, { message: "Il titolo deve avere almeno un carattere." })
 		.max(50, {
-			message: "Title must have not more than 50 characters."
+			message: "Il titolo deve avere al massimo 50 caratteri."
 		}),
 	// Place where the event will be held (optional)
 	place: z
 		.string()
-		.min(1, { message: "The place must have at least one character." })
+		.min(1, { message: "Il luogo deve avere almeno un carattere." })
 		.max(25, {
-			message: "Place must have not more than 50 characters."
+			message: "Il luogo deve avere al massimo 25 caratteri."
 		})
 		.or(z.literal("")),
 	description: z
 		.string()
 		.min(1, {
-			message: "The description must have at least one character."
+			message: "La descrizione deve avere almeno un carattere."
 		})
 		.max(200, {
-			message: "Description must have not more than 200 characters."
+			message: "La descrizione deve avere al massimo 200 caratteri."
 		})
 		.or(z.literal("")),
 	expiration: z.coerce.date().refine(dynamicMinDate, {
-		message: "Please enter a date from today and onward."
+		message: "Inserisci una data da oggi in poi."
 	}),
 	// Notification settings
 	notification: z.literal("on").or(z.literal(null)),
 	reminder: z.literal("on").or(z.literal(null)),
 	notificationtime: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/, {
-		message: "Please enter a valid time in HH:mm format."
+		message: "Inserisci un orario valido nel formato HH:mm."
 	}),
 	notificationtype: z.enum(["stesso", "prima", "specifico"]),
 	specificday: z.union([
 		z.coerce.date().refine(dynamicMaxDate, {
-			message: "Please enter a date from yesterday and backward."
+			message: "Inserisci una data da ieri ed indietro."
 		}),
 		z.literal("")
 	])
@@ -64,13 +64,13 @@ export const ActivitySchema = BaseActivitySchema.superRefine(
 				ctx.addIssue({
 					code: z.ZodIssueCode.custom,
 					message:
-						"Notification date must be before expiration date .",
+						"La data di notificazione deve essere prima della data di scadenza.",
 					path: ["specificday"]
 				});
 			} else if (!specificday) {
 				ctx.addIssue({
 					code: z.ZodIssueCode.custom,
-					message: "Please select a specific day.",
+					message: "Devi specificare una data per il promemoria.",
 					path: ["specificday"]
 				});
 			}

@@ -1,8 +1,7 @@
 "use client";
 
 import { create_event } from "@/app/actions/cale_logic/event_logic";
-import styles from "@/app/page.module.css";
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import RRuleForm from "./rrule-form";
 
 type EventFormProps = {
@@ -12,28 +11,23 @@ type EventFormProps = {
 };
 
 export default function EventForm({ show, setShow, refetch }: EventFormProps) {
-	// This is a custom hook that manages the state of the action
+	// Action state (Zod validation returned via server action)
 	const [state, action, pending] = useActionState(create_event, undefined);
 
-	// We use this state to manage when to hide the time input
-	const [allDay, setAllDay] = useState(false);
+	// Refs
+	const formRef = useRef<HTMLFormElement | null>(null);
 
-	// We use this state to manage when to hide the recurrence section
-	const [rec, setRec] = useState(false);
-
-	// We use this state to manage when to hide the count and until inside rrule-form
-	const [undef, setUndef] = useState(true);
-
-	// We use this state to manage the weekdays input
-	const [selectedDays, setSelectedDays] = useState<string[]>([]);
-
-	// We use this state to manage when to hide the weekdays input
-	const valori_frequenza = ["DAILY", "WEEKLY", "MONTHLY", "YEARLY"];
+	// Local UI state (kept until successful submission or manual close)
+	const [allDay, setAllDay] = useState(false); // hide/show time inputs
+	const [rec, setRec] = useState(false); // recurrence section toggle
+	const [undef, setUndef] = useState(true); // rrule count/until toggle
+	const [selectedDays, setSelectedDays] = useState<string[]>([]); // weekly selection
+	const valori_frequenza = ["DAILY", "WEEKLY", "MONTHLY", "YEARLY"]; // frequency options
 	const [Freqform, setFreqform] = useState(valori_frequenza[0]);
-
-	// State to manage the visibility of the notification fields
-	const [notif, setNotif] = useState(false);
-	const [spec_delay, setSpec_delay] = useState(false);
+	const [notif, setNotif] = useState(false); // notification toggle
+	const [spec_delay, setSpec_delay] = useState(false); // specific delay toggle
+	// Control visibility of validation errors so they disappear after closing the modal
+	const [errorVisible, setErrorVisible] = useState(false);
 
 	// This function will be to reset the useStates when the form is closed
 	function resetStates() {
@@ -43,25 +37,61 @@ export default function EventForm({ show, setShow, refetch }: EventFormProps) {
 		setFreqform(valori_frequenza[0]);
 		setNotif(false);
 		setSpec_delay(false);
+		setSelectedDays([]);
 	}
 
 	// This function will be called when the event is created and calls the refetch function to update the events
-	function handleEventCreation() {
+	function handleSuccess() {
 		if (state?.message && !state?.errors && !pending) {
+			// Successful creation -> refetch, reset, close and clear errors
 			refetch();
+			resetStates();
+			formRef.current?.reset();
+			setErrorVisible(false);
 			setShow(false);
 		}
 	}
 
 	// This useEffect will refetch the events only when the state changes or the pending state changes
+	// On successful submission only
 	useEffect(() => {
-		// This is a workaround to reset all the states when the form is closed
-		resetStates();
-		// This is used to refetch the events when an event is created
-		handleEventCreation();
-		// This comment is to avoid the exhaustive-deps warning from eslint
+		handleSuccess();
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [state, pending]);
+
+	// Focus first invalid field when errors are present
+	useEffect(() => {
+		if (state?.errors && Object.keys(state.errors).length > 0) {
+			const firstField = Object.keys(state.errors)[0];
+			const el: HTMLElement | null =
+				formRef.current?.querySelector(`[name="${firstField}"]`) ??
+				null;
+			el?.focus();
+		}
+	}, [state?.errors]);
+
+	// Quando la submission ritorna con errori può capitare (in certe condizioni di rimontaggio del componente)
+	// che gli input checkbox vengano visualmente resettati (unchecked) mentre lo state React resta quello precedente,
+	// lasciando visibili le sezioni condizionali. Questo effetto forza il riallineamento degli state ai valori
+	// effettivi presenti nel DOM dopo l'esito con errori, così l'interfaccia torna coerente.
+	useEffect(() => {
+		if (state?.errors && formRef.current) {
+			const getChecked = (id: string) =>
+				formRef.current?.querySelector<HTMLInputElement>(`#${id}`)
+					?.checked ?? false;
+			const allDayDom = getChecked("allDay");
+			const recDom = getChecked("recurrence");
+			const notifDom = getChecked("notification");
+			const undefDom = getChecked("undef");
+			// Aggiorna gli state solo se diverso (evita re-render inutili)
+			setAllDay((prev) => (prev !== allDayDom ? allDayDom : prev));
+			setRec((prev) => (prev !== recDom ? recDom : prev));
+			setNotif((prev) => (prev !== notifDom ? notifDom : prev));
+			setUndef((prev) => (prev !== undefDom ? undefDom : prev));
+			// Se la notifica è stata deselezionata azzera anche il flag dello specific delay
+			if (!notifDom) setSpec_delay(false);
+		}
+	}, [state?.errors]);
 
 	// Very inelegant way to keep the form closed (lol)
 	if (!show) {
@@ -69,26 +99,64 @@ export default function EventForm({ show, setShow, refetch }: EventFormProps) {
 	}
 
 	return (
-		<div className={styles.modalBackground}>
-			<div className={styles.modalContent}>
+		<div
+			className="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-flex align-items-start justify-content-center py-4 overflow-auto"
+			style={{ zIndex: 1050 }}
+		>
+			<div
+				className="bg-white rounded-4 shadow-lg p-4 w-100 position-relative"
+				style={{ maxWidth: 640 }}
+			>
 				<button
 					type="button"
-					onClick={() => setShow(false)}
-					className={styles.closeButton}
-				>
-					&times;
-				</button>
+					className="btn-close position-absolute end-0 top-0 m-3"
+					aria-label="Close"
+					onClick={() => {
+						resetStates();
+						formRef.current?.reset();
+						setErrorVisible(false); // hide any previous errors on close
+						setShow(false);
+					}}
+				/>
+				<h5 className="mb-4 fw-semibold text-primary">
+					Crea nuovo evento
+				</h5>
 				<div
 					style={{
 						overflowY: "auto",
-						maxHeight: "calc(90vh - 3rem)",
-						paddingRight: "1rem"
+						maxHeight: "calc(90vh - 7rem)"
 					}}
 				>
-					<form action={action}>
-						{/*TITLE*/}
-						<div className={styles.formGroup}>
-							<label htmlFor="title" className={styles.formLabel}>
+					<form
+						action={action}
+						ref={formRef}
+						className="needs-validation"
+						noValidate
+						onSubmit={() => setErrorVisible(true)}
+					>
+						{/* ERROR SUMMARY */}
+						{errorVisible && state?.errors && (
+							<div className="alert alert-danger" role="alert">
+								<p className="fw-semibold mb-2">
+									Correggi i seguenti errori:
+								</p>
+								<ul className="mb-0 small">
+									{Object.entries(state.errors).map(
+										([field, msg]) => (
+											<li key={field}>
+												<strong>{field}</strong>: {msg}
+											</li>
+										)
+									)}
+								</ul>
+							</div>
+						)}
+						{/* TITLE */}
+						<div className="mb-3">
+							<label
+								htmlFor="title"
+								className="form-label fw-medium"
+							>
 								Titolo
 							</label>
 							<input
@@ -96,30 +164,41 @@ export default function EventForm({ show, setShow, refetch }: EventFormProps) {
 								name="title"
 								placeholder="Titolo"
 								required
-								className={styles.formInput}
+								className="form-control"
 							/>
+							{errorVisible && state?.errors?.title && (
+								<p className="text-danger small mt-1 mb-0">
+									{state.errors.title}
+								</p>
+							)}
 						</div>
-						{state?.errors?.title && <p>{state.errors.title}</p>}
 
-						{/*PLACE*/}
-						<div className={styles.formGroup}>
-							<label htmlFor="place" className={styles.formLabel}>
+						{/* PLACE */}
+						<div className="mb-3">
+							<label
+								htmlFor="place"
+								className="form-label fw-medium"
+							>
 								Luogo
 							</label>
 							<input
 								id="place"
 								name="place"
 								placeholder="Luogo"
-								className={styles.formInput}
+								className="form-control"
 							/>
+							{errorVisible && state?.errors?.place && (
+								<p className="text-danger small mt-1 mb-0">
+									{state.errors.place}
+								</p>
+							)}
 						</div>
-						{state?.errors?.place && <p>{state.errors.place}</p>}
 
-						{/*START DATE*/}
-						<div className={styles.formGroup}>
+						{/* START DATE */}
+						<div className="mb-3">
 							<label
 								htmlFor="datestart"
-								className={styles.formLabel}
+								className="form-label fw-medium"
 							>
 								Inizio
 							</label>
@@ -128,40 +207,38 @@ export default function EventForm({ show, setShow, refetch }: EventFormProps) {
 								id="datestart"
 								name="datestart"
 								required
-								className={styles.formInput}
+								className="form-control"
 							/>
+							{errorVisible && state?.errors?.datestart && (
+								<p className="text-danger small mt-1 mb-0">
+									{state.errors.datestart}
+								</p>
+							)}
 						</div>
-						{state?.errors?.datestart && (
-							<p>{state.errors.datestart}</p>
-						)}
 
-						{/*ALL DAY*/}
-						<div className={styles.formGroup}>
-							<label
-								htmlFor="allDay"
-								className={styles.formLabel}
-							>
-								Tutto il giorno
-							</label>
+						{/* ALL DAY */}
+						<div className="form-check form-switch mb-3">
 							<input
 								type="checkbox"
 								id="allDay"
 								name="allDay"
-								defaultChecked={false}
-								onChange={(e) => {
-									setAllDay(e.target.checked);
-								}}
+								checked={allDay}
+								className="form-check-input"
+								onChange={(e) => setAllDay(e.target.checked)}
 							/>
+							<label
+								className="form-check-label"
+								htmlFor="allDay"
+							>
+								Tutto il giorno
+							</label>
 						</div>
 
-						{/*END DATE*/}
-						<div
-							className={styles.formGroup}
-							hidden={!allDay || rec}
-						>
+						{/* END DATE (only allDay single/multi-day, not recurring) */}
+						<div className="mb-3" hidden={!allDay || rec}>
 							<label
 								htmlFor="dateend"
-								className={styles.formLabel}
+								className="form-label fw-medium"
 							>
 								Fine
 							</label>
@@ -169,61 +246,69 @@ export default function EventForm({ show, setShow, refetch }: EventFormProps) {
 								type="date"
 								id="dateend"
 								name="dateend"
-								className={styles.formInput}
+								className="form-control"
 							/>
+							{errorVisible && state?.errors?.dateend && (
+								<p className="text-danger small mt-1 mb-0">
+									{state.errors.dateend}
+								</p>
+							)}
 						</div>
-						{state?.errors?.dateend && (
-							<p>{state.errors.dateend}</p>
-						)}
 
-						{/*TIMED EVENT SECTION*/}
+						{/* TIMED EVENT SECTION */}
 						<div hidden={allDay}>
-							<div className={styles.formGroup}>
-								<label
-									htmlFor="time"
-									className={styles.formLabel}
-								>
-									Ora
-								</label>
-								<input
-									type="time"
-									id="time"
-									name="time"
-									className={styles.formInput}
-								/>
-								{state?.errors?.time && (
-									<p>{state.errors.time}</p>
-								)}
-							</div>
-							{/* ---------------------------------------------------*/}
-							<div className={styles.formGroup}>
-								<label
-									htmlFor="duration"
-									className={styles.formLabel}
-								>
-									Durata
-								</label>
-								<input
-									type="number"
-									id="duration"
-									name="duration"
-									defaultValue={0}
-									min={0}
-									max={24}
-									step={0.5}
-									className={styles.formInput}
-								/>
-								{state?.errors?.duration && (
-									<p>{state.errors.duration}</p>
-								)}
+							<div className="row g-3">
+								<div className="col-sm-6">
+									<label
+										htmlFor="time"
+										className="form-label fw-medium"
+									>
+										Ora
+									</label>
+									<input
+										type="time"
+										id="time"
+										name="time"
+										className="form-control"
+									/>
+									{errorVisible && state?.errors?.time && (
+										<p className="text-danger small mt-1 mb-0">
+											{state.errors.time}
+										</p>
+									)}
+								</div>
+								<div className="col-sm-6">
+									<label
+										htmlFor="duration"
+										className="form-label fw-medium"
+									>
+										Durata (h)
+									</label>
+									<input
+										type="number"
+										id="duration"
+										name="duration"
+										defaultValue={0}
+										min={0}
+										max={24}
+										step={0.5}
+										className="form-control"
+									/>
+									{errorVisible &&
+										state?.errors?.duration && (
+											<p className="text-danger small mt-1 mb-0">
+												{state.errors.duration}
+											</p>
+										)}
+								</div>
 							</div>
 						</div>
 
-						{/*DESCRIPTION*/}
-						<div className={styles.formGroup}>
+						{/* DESCRIPTION */}
+						<div className="mb-3">
 							<label
 								htmlFor="description"
-								className={styles.formLabel}
+								className="form-label fw-medium"
 							>
 								Descrizione
 							</label>
@@ -232,47 +317,47 @@ export default function EventForm({ show, setShow, refetch }: EventFormProps) {
 								name="description"
 								placeholder="Descrizione"
 								required
-								className={styles.formInput}
+								className="form-control"
 							/>
+							{errorVisible && state?.errors?.description && (
+								<p className="text-danger small mt-1 mb-0">
+									{state.errors.description}
+								</p>
+							)}
 						</div>
-						{state?.errors?.description && (
-							<p>{state.errors.description}</p>
-						)}
-						{/*NOTIFICATION*/}
-						<div className={styles.formGroup}>
-							<label
-								htmlFor="notification"
-								className={styles.formLabel}
-							>
-								Notifiche
-							</label>
+
+						{/* NOTIFICATION TOGGLE */}
+						<div className="form-check form-switch mb-3">
 							<input
 								type="checkbox"
 								id="notification"
 								name="notification"
-								defaultChecked={false}
-								onChange={(e) => {
-									if (e.target.checked) {
-										setNotif(true);
-									} else {
-										setNotif(false);
-									}
-								}}
+								checked={notif}
+								className="form-check-input"
+								onChange={(e) => setNotif(e.target.checked)}
 							/>
-						</div>
-						{state?.errors?.notification && (
-							<p>{state.errors.notification}</p>
-						)}
-
-						<div hidden={!notif}>
-							{/*NOTIFICATION TIME*/}
-							<div
-								hidden={spec_delay}
-								className={styles.formGroup}
+							<label
+								className="form-check-label"
+								htmlFor="notification"
 							>
+								Notifiche
+							</label>
+							{errorVisible && state?.errors?.notification && (
+								<p className="text-danger small mt-1 mb-0">
+									{state.errors.notification}
+								</p>
+							)}
+						</div>
+
+						{/* NOTIFICATION OPTIONS */}
+						<div
+							hidden={!notif}
+							className="border rounded-3 p-3 mb-3 bg-light-subtle"
+						>
+							<div className="mb-3" hidden={spec_delay}>
 								<label
 									htmlFor="notificationtime"
-									className={styles.formLabel}
+									className="form-label fw-medium"
 								>
 									Ora notifica
 								</label>
@@ -283,27 +368,28 @@ export default function EventForm({ show, setShow, refetch }: EventFormProps) {
 									placeholder="Ora notifica"
 									defaultValue="08:00"
 									required
-									className={styles.formInput}
+									className="form-control"
 								/>
-								{state?.errors?.notificationtime && (
-									<p>{state.errors.notificationtime}</p>
-								)}
+								{errorVisible &&
+									state?.errors?.notificationtime && (
+										<p className="text-danger small mt-1 mb-0">
+											{state.errors.notificationtime}
+										</p>
+									)}
 							</div>
-
-							{/*NOTIFICATION TYPE*/}
-							<div className={styles.formGroup}>
+							<div className="mb-3">
 								<label
 									htmlFor="notificationtype"
-									className={styles.formLabel}
+									className="form-label fw-medium"
 								>
 									Tipo notifica
 								</label>
 								<select
 									id="notificationtype"
 									name="notificationtype"
-									className={styles.formInput}
+									className="form-select"
 									onChange={(e) => {
-										if (e.target.value == "specifico") {
+										if (e.target.value === "specifico") {
 											setSpec_delay(true);
 										} else {
 											setSpec_delay(false);
@@ -318,20 +404,19 @@ export default function EventForm({ show, setShow, refetch }: EventFormProps) {
 										Anticipo specifico
 									</option>
 								</select>
+								{errorVisible &&
+									state?.errors?.notificationtype && (
+										<p className="text-danger small mt-1 mb-0">
+											{state.errors.notificationtype}
+										</p>
+									)}
 							</div>
-							{state?.errors?.notificationtype && (
-								<p>{state.errors.notificationtype}</p>
-							)}
-							{/*SPECIFIC DELAY*/}
-							<div
-								hidden={!spec_delay}
-								className={styles.formGroup}
-							>
+							<div className="mb-3" hidden={!spec_delay}>
 								<label
 									htmlFor="specificdelay"
-									className={styles.formLabel}
+									className="form-label fw-medium"
 								>
-									Con anticipo specifico
+									Con anticipo specifico (ore)
 								</label>
 								<input
 									type="number"
@@ -342,35 +427,39 @@ export default function EventForm({ show, setShow, refetch }: EventFormProps) {
 									min={0}
 									max={168}
 									step={1}
-									className={styles.formInput}
+									className="form-control"
 								/>
-								{state?.errors?.specificdelay && (
-									<p>{state.errors.specificdelay}</p>
-								)}
+								{errorVisible &&
+									state?.errors?.specificdelay && (
+										<p className="text-danger small mt-1 mb-0">
+											{state.errors.specificdelay}
+										</p>
+									)}
 							</div>
 						</div>
 
-						{/*SHOW REC*/}
-						<div className={styles.formGroup}>
-							<label
-								htmlFor="recurrence"
-								className={styles.formLabel}
-							>
-								Opzioni Ricorrenza
-							</label>
+						{/* RECURRENCE TOGGLE */}
+						<div className="form-check form-switch mb-3">
 							<input
 								type="checkbox"
 								id="recurrence"
 								name="recurrence"
-								defaultChecked={false}
-								onChange={(e) => {
-									setRec(e.target.checked);
-								}}
+								checked={rec}
+								className="form-check-input"
+								onChange={(e) => setRec(e.target.checked)}
 							/>
+							<label
+								className="form-check-label"
+								htmlFor="recurrence"
+							>
+								Opzioni Ricorrenza
+							</label>
 						</div>
 
-						<div hidden={!rec}>
-							{/*RRULE*/}
+						<div
+							hidden={!rec}
+							className="mb-3 border rounded-3 p-3 bg-body-tertiary"
+						>
 							<RRuleForm
 								Freqform={Freqform}
 								setFreqform={setFreqform}
@@ -383,14 +472,11 @@ export default function EventForm({ show, setShow, refetch }: EventFormProps) {
 							/>
 						</div>
 
-						{/*SUBMIT BUTTON*/}
+						{/* SUBMIT BUTTON */}
 						<button
-							className={styles.submitButton}
+							className="btn btn-primary btn-lg w-100 mt-2"
 							disabled={pending}
 							type="submit"
-							onClick={() => {
-								resetStates();
-							}}
 						>
 							{pending ? "Creazione in corso..." : "Crea Evento"}
 						</button>

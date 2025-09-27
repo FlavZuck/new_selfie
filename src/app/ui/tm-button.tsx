@@ -1,6 +1,6 @@
 "use client";
 
-import styles from "@/app/page.module.css";
+// Migrated from CSS module to Bootstrap utilities + inline custom touches
 import { useEffect, useRef, useState } from "react";
 import {
 	getVirtualDate,
@@ -54,63 +54,95 @@ export default function TimeMachineButton() {
 
 	return (
 		<>
-			<div className={styles.timeMachineContainer}>
+			<div
+				className="position-fixed bottom-0 end-0 p-3"
+				style={{ zIndex: 1080 }}
+			>
 				<button
 					onClick={() => setShow(!show)}
-					className={styles.timeMachineButton}
+					className="btn btn-warning fw-semibold shadow-sm d-flex align-items-center gap-2 rounded-pill px-3 py-2 border-0"
+					style={{
+						background: "linear-gradient(135deg,#ffc107,#ff9800)",
+						boxShadow: "0 4px 10px rgba(0,0,0,0.2)",
+						letterSpacing: "0.5px"
+					}}
 				>
-					🕐 Time Machine
+					<span
+						style={{
+							filter: "drop-shadow(0 2px 2px rgba(0,0,0,.25))"
+						}}
+					>
+						🕐
+					</span>
+					Time Machine
 				</button>
 			</div>
 
 			{show && (
-				<div className={styles.modalBackground}>
-					<div className={styles.timeMachineModal}>
+				<div
+					className="position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-start align-items-sm-center p-3"
+					style={{
+						background: "rgba(0,0,0,0.5)",
+						backdropFilter: "blur(10px)",
+						zIndex: 2000,
+						overflowY: "auto"
+					}}
+				>
+					<div
+						className="bg-white rounded-4 shadow-lg position-relative p-4 w-100"
+						style={{ maxWidth: 560 }}
+					>
 						<button
 							onClick={() => setShow(false)}
-							className={styles.closeButton}
+							className="btn btn-sm btn-outline-secondary position-absolute top-0 end-0 mt-2 me-2 rounded-circle"
+							aria-label="Close"
+							style={{ width: 34, height: 34, lineHeight: 1 }}
 						>
 							&times;
 						</button>
-
-						<h2 className={styles.modalTitle}>Time Machine</h2>
+						<h2 className="h4 fw-bold mb-4 text-dark text-shadow-sm">
+							Time Machine
+						</h2>
 
 						{/* VIRTUAL DATE STATUS */}
-						<div className={styles.statusContainer}>
+						<div className="mb-4">
 							{active && now ? (
-								<div className={styles.statusActive}>
-									<p className={styles.statusText}>
-										Virtual date active:{" "}
+								<div className="alert alert-info d-flex align-items-center gap-2 mb-0 py-2 px-3">
+									<span className="fw-semibold">
+										Virtual date active:
+									</span>
+									<span className="small">
 										{now.toLocaleString()}
-									</p>
+									</span>
 								</div>
 							) : (
-								<div className={styles.statusInactive}>
-									<p className={styles.statusText}>
+								<div className="alert alert-secondary mb-0 py-2 px-3">
+									<span className="small">
 										No virtual date set - using real time
-									</p>
+									</span>
 								</div>
 							)}
 						</div>
 
 						{/* SET VIRTUAL DATE */}
-						<div className={styles.inputGroup}>
+						<div className="mb-4">
 							<label
 								htmlFor="virtual-date"
-								className={styles.label}
+								className="form-label fw-semibold"
 							>
 								Set virtual date:
 							</label>
-							<div className={styles.inputContainer}>
+							<div className="d-flex flex-column flex-sm-row gap-2">
 								<input
 									ref={dateInputRef}
 									type="datetime-local"
 									id="virtual-date"
-									className={styles.dateInput}
+									className="form-control"
 								/>
 								<button
 									onClick={handleSetVirtualDate}
-									className={styles.actionButton}
+									className="btn btn-primary fw-semibold shadow-sm"
+									style={{ minWidth: 140 }}
 								>
 									Set Date
 								</button>
@@ -119,13 +151,14 @@ export default function TimeMachineButton() {
 
 						{/* RESET VIRTUAL DATE */}
 						{active && (
-							<div className={styles.inputGroup}>
-								<label className={styles.label}>
+							<div className="mb-2">
+								<label className="form-label fw-semibold">
 									Reset to real time:
 								</label>
 								<button
 									onClick={handleResetVirtualDate}
-									className={`${styles.actionButton} ${styles.resetButton}`}
+									className="btn btn-outline-danger fw-semibold"
+									style={{ minWidth: 180 }}
 								>
 									Reset to Real Time
 								</button>

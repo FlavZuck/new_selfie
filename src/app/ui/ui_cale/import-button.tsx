@@ -30,7 +30,8 @@ export function ImportButton({ refetch }: { refetch: () => void }) {
 				style={{ display: "none" }}
 			/>
 			<button
-				className="fc-custom-button"
+				type="button"
+				className="btn btn-outline-secondary btn-sm"
 				onClick={() => fileInputRef.current?.click()}
 			>
 				Importa Calendario

@@ -1,8 +1,7 @@
 "use client";
 
 import { create_activity } from "@/app/actions/cale_logic/activity_logic";
-import styles from "@/app/page.module.css";
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 
 type ActivityFormProps = {
 	show: boolean;
@@ -15,35 +14,57 @@ export default function ActivityForm({
 	setShow,
 	refetch
 }: ActivityFormProps) {
-	// Action state for the create_activity action
+	// Action state (Zod validation returned via server action)
 	const [state, action, pending] = useActionState(create_activity, undefined);
 
-	// State to manage the visibility of the notification fields
-	const [notif, setNotif] = useState(false);
-	// State to manage the visibility of the specific day input
-	const [spec_day, setSpec_day] = useState(false);
+	// Ref to allow programmatic reset & focus handling
+	const formRef = useRef<HTMLFormElement | null>(null);
+
+	// Local UI state
+	const [notif, setNotif] = useState(false); // show/hide notification block
+	const [spec_day, setSpec_day] = useState(false); // show/hide specific day input
+	const [errorVisible, setErrorVisible] = useState(false); // control error summary visibility
+
+	// When notifications are disabled ensure specific day section is also hidden
+	useEffect(() => {
+		if (!notif && spec_day) {
+			setSpec_day(false);
+		}
+	}, [notif, spec_day]);
 
 	function resetStates() {
-		// Reset the state of the form
 		setNotif(false);
 		setSpec_day(false);
-		setShow(false);
 	}
 
 	// This function will be called when the event is created and calls the refetch function
 	// to update the events
-	function handleEventCreation() {
+	function handleSuccess() {
 		if (state?.message && !state?.errors && !pending) {
+			// Successful creation -> refetch, reset form + local state, hide errors & close
 			refetch();
 			resetStates();
+			formRef.current?.reset();
+			setErrorVisible(false);
+			setShow(false);
 		}
 	}
 	// This useEffect will refetch the events only when the state changes or the pending state changes
 	useEffect(() => {
-		handleEventCreation();
-		// This comment is to avoid the exhaustive-deps warning from eslint
+		handleSuccess();
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [state, pending]);
+
+	// Focus first invalid field when errors are present & show summary
+	useEffect(() => {
+		if (state?.errors && Object.keys(state.errors).length > 0) {
+			const firstField = Object.keys(state.errors)[0];
+			const el: HTMLElement | null =
+				formRef.current?.querySelector(`[name="${firstField}"]`) ??
+				null;
+			el?.focus();
+		}
+	}, [state?.errors]);
 
 	// Very inelegant way to keep the form closed (lol)
 	if (!show) {
@@ -51,26 +72,64 @@ export default function ActivityForm({
 	}
 
 	return (
-		<div className={styles.modalBackground}>
-			<div className={styles.modalContent}>
+		<div
+			className="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-flex align-items-start justify-content-center py-4 overflow-auto"
+			style={{ zIndex: 1050 }}
+		>
+			<div
+				className="bg-white rounded-4 shadow-lg p-4 w-100 position-relative"
+				style={{ maxWidth: 560 }}
+			>
 				<button
 					type="button"
-					onClick={() => resetStates()}
-					className={styles.closeButton}
-				>
-					&times;
-				</button>
+					className="btn-close position-absolute end-0 top-0 m-3"
+					aria-label="Close"
+					onClick={() => {
+						resetStates();
+						formRef.current?.reset();
+						setErrorVisible(false);
+						setShow(false);
+					}}
+				/>
+				<h5 className="mb-4 fw-semibold text-primary">
+					Crea nuova attività
+				</h5>
 				<div
 					style={{
 						overflowY: "auto",
-						maxHeight: "calc(90vh - 3rem)",
-						paddingRight: "1rem"
+						maxHeight: "calc(90vh - 7rem)"
 					}}
 				>
-					<form action={action}>
-						{/*TITLE*/}
-						<div className={styles.formGroup}>
-							<label htmlFor="title" className={styles.formLabel}>
+					<form
+						action={action}
+						ref={formRef}
+						className="needs-validation"
+						noValidate
+						onSubmit={() => setErrorVisible(true)}
+					>
+						{/* ERROR SUMMARY */}
+						{errorVisible && state?.errors && (
+							<div className="alert alert-danger" role="alert">
+								<p className="fw-semibold mb-2">
+									Correggi i seguenti errori:
+								</p>
+								<ul className="mb-0 small">
+									{Object.entries(state.errors).map(
+										([field, msg]) => (
+											<li key={field}>
+												<strong>{field}</strong>: {msg}
+											</li>
+										)
+									)}
+								</ul>
+							</div>
+						)}
+						{/* TITLE */}
+						<div className="mb-3">
+							<label
+								htmlFor="title"
+								className="form-label fw-medium"
+							>
 								Titolo
 							</label>
 							<input
@@ -78,16 +137,20 @@ export default function ActivityForm({
 								name="title"
 								placeholder="Titolo"
 								required
-								className={styles.formInput}
+								className="form-control"
 							/>
+							{errorVisible && state?.errors?.title && (
+								<p className="text-danger small mt-1 mb-0">
+									{state.errors.title}
+								</p>
+							)}
 						</div>
-						{state?.errors?.title && <p>{state.errors.title}</p>}
 
-						{/*DESCRIPTION*/}
-						<div className={styles.formGroup}>
+						{/* DESCRIPTION */}
+						<div className="mb-3">
 							<label
 								htmlFor="description"
-								className={styles.formLabel}
+								className="form-label fw-medium"
 							>
 								Descrizione
 							</label>
@@ -95,32 +158,41 @@ export default function ActivityForm({
 								id="description"
 								name="description"
 								placeholder="Descrizione"
-								className={styles.formInput}
+								className="form-control"
 							/>
+							{errorVisible && state?.errors?.description && (
+								<p className="text-danger small mt-1 mb-0">
+									{state.errors.description}
+								</p>
+							)}
 						</div>
-						{state?.errors?.description && (
-							<p>{state.errors.description}</p>
-						)}
 
-						{/*PLACE*/}
-						<div className={styles.formGroup}>
-							<label htmlFor="place" className={styles.formLabel}>
+						{/* PLACE */}
+						<div className="mb-3">
+							<label
+								htmlFor="place"
+								className="form-label fw-medium"
+							>
 								Luogo
 							</label>
 							<input
 								id="place"
 								name="place"
 								placeholder="Luogo"
-								className={styles.formInput}
+								className="form-control"
 							/>
+							{errorVisible && state?.errors?.place && (
+								<p className="text-danger small mt-1 mb-0">
+									{state.errors.place}
+								</p>
+							)}
 						</div>
-						{state?.errors?.place && <p>{state.errors.place}</p>}
 
-						{/*EXPIRATION*/}
-						<div className={styles.formGroup}>
+						{/* EXPIRATION */}
+						<div className="mb-3">
 							<label
 								htmlFor="expiration"
-								className={styles.formLabel}
+								className="form-label fw-medium"
 							>
 								Scadenza
 							</label>
@@ -129,56 +201,62 @@ export default function ActivityForm({
 								id="expiration"
 								name="expiration"
 								required
-								className={styles.formInput}
+								className="form-control"
 							/>
+							{errorVisible && state?.errors?.expiration && (
+								<p className="text-danger small mt-1 mb-0">
+									{state.errors.expiration}
+								</p>
+							)}
 						</div>
-						{state?.errors?.expiration && (
-							<p>{state.errors.expiration}</p>
-						)}
 
-						{/*NOTIFICATION*/}
-						<div className={styles.formGroup}>
-							<label
-								htmlFor="notification"
-								className={styles.formLabel}
-							>
-								Notifiche
-							</label>
+						{/* NOTIFICATION TOGGLE */}
+						<div className="form-check form-switch mb-3">
 							<input
 								type="checkbox"
 								id="notification"
 								name="notification"
-								defaultChecked={false}
-								onChange={(e) => {
-									setNotif(e.target.checked);
-								}}
+								checked={notif}
+								className="form-check-input"
+								onChange={(e) => setNotif(e.target.checked)}
 							/>
+							<label
+								className="form-check-label"
+								htmlFor="notification"
+							>
+								Notifiche
+							</label>
+							{errorVisible && state?.errors?.notification && (
+								<p className="text-danger small mt-1 mb-0">
+									{state.errors.notification}
+								</p>
+							)}
 						</div>
-						{state?.errors?.notification && (
-							<p>{state.errors.notification}</p>
-						)}
-						<div hidden={!notif}>
-							{/*REMINDER*/}
-							<div className={styles.formGroup}>
-								<label
-									htmlFor="reminder"
-									className={styles.formLabel}
-								>
-									Promemoria dopo la scadenza
-								</label>
+
+						{/* NOTIFICATION BLOCK */}
+						<div
+							hidden={!notif}
+							className="border rounded-3 p-3 mb-3 bg-light-subtle"
+						>
+							<div className="form-check mb-3">
 								<input
 									type="checkbox"
 									id="reminder"
 									name="reminder"
 									defaultChecked={false}
+									className="form-check-input"
 								/>
+								<label
+									htmlFor="reminder"
+									className="form-check-label"
+								>
+									Promemoria dopo la scadenza
+								</label>
 							</div>
-
-							{/*NOTIFICATION TIME*/}
-							<div className={styles.formGroup}>
+							<div className="mb-3">
 								<label
 									htmlFor="notificationtime"
-									className={styles.formLabel}
+									className="form-label fw-medium"
 								>
 									Ora notifica
 								</label>
@@ -189,25 +267,26 @@ export default function ActivityForm({
 									placeholder="Ora notifica"
 									defaultValue="08:00"
 									required
-									className={styles.formInput}
+									className="form-control"
 								/>
-								{state?.errors?.notificationtime && (
-									<p>{state.errors.notificationtime}</p>
-								)}
+								{errorVisible &&
+									state?.errors?.notificationtime && (
+										<p className="text-danger small mt-1 mb-0">
+											{state.errors.notificationtime}
+										</p>
+									)}
 							</div>
-
-							{/*NOTIFICATION TYPE*/}
-							<div className={styles.formGroup}>
+							<div className="mb-3">
 								<label
 									htmlFor="notificationtype"
-									className={styles.formLabel}
+									className="form-label fw-medium"
 								>
 									Tipo notifica
 								</label>
 								<select
 									id="notificationtype"
 									name="notificationtype"
-									className={styles.formInput}
+									className="form-select"
 									onChange={(e) => {
 										if (e.target.value == "specifico") {
 											setSpec_day(true);
@@ -224,18 +303,17 @@ export default function ActivityForm({
 										Giorno specifico
 									</option>
 								</select>
+								{errorVisible &&
+									state?.errors?.notificationtype && (
+										<p className="text-danger small mt-1 mb-0">
+											{state.errors.notificationtype}
+										</p>
+									)}
 							</div>
-							{state?.errors?.notificationtype && (
-								<p>{state.errors.notificationtype}</p>
-							)}
-							{/*SPECIFIC DAY*/}
-							<div
-								hidden={!spec_day}
-								className={styles.formGroup}
-							>
+							<div className="mb-3" hidden={!spec_day}>
 								<label
 									htmlFor="specificday"
-									className={styles.formLabel}
+									className="form-label fw-medium"
 								>
 									Giorno specifico
 								</label>
@@ -244,17 +322,19 @@ export default function ActivityForm({
 									id="specificday"
 									name="specificday"
 									placeholder="Giorno specifico"
-									className={styles.formInput}
+									className="form-control"
 								/>
-								{state?.errors?.specificday && (
-									<p>{state.errors.specificday}</p>
+								{errorVisible && state?.errors?.specificday && (
+									<p className="text-danger small mt-1 mb-0">
+										{state.errors.specificday}
+									</p>
 								)}
 							</div>
 						</div>
 
-						{/*SUBMIT BUTTON*/}
+						{/* SUBMIT */}
 						<button
-							className={styles.submitButton}
+							className="btn btn-primary btn-lg w-100"
 							disabled={pending}
 							type="submit"
 						>

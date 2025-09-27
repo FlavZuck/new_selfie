@@ -29,43 +29,43 @@ const baseEventSchema = z.object({
 	// The title of the event
 	title: z
 		.string()
-		.min(1, { message: "The title must have at least one character." })
+		.min(1, { message: "Il titolo deve avere almeno un carattere." })
 		.max(25, {
-			message: "Title must have not more than 25 characters."
+			message: "Il titolo deve avere al massimo 25 caratteri."
 		}),
 	// Place where the event will be held (optional)
 	place: z
 		.string()
-		.min(1, { message: "The place must have at least one character." })
+		.min(1, { message: "Il luogo deve avere almeno un carattere." })
 		.max(50, {
-			message: "Place must have not more than 50 characters."
+			message: "Il luogo deve avere al massimo 50 caratteri."
 		})
 		.or(z.literal("")),
 	// The start date of the event
 	datestart: z.coerce.date().refine(dynamicMinDate, {
-		message: "Please enter a date from today onward."
+		message: "Scegliete una data da oggi in poi."
 	}),
 	description: z
 		.string()
 		.min(1, {
-			message: "The description must have at least one character."
+			message: "La descrizione deve avere almeno un carattere."
 		})
 		.max(200, {
-			message: "Description must have not more than 200 characters."
+			message: "La descrizione deve avere al massimo 200 caratteri."
 		}),
 	// Notification settings
 	notification: z.literal("on").or(z.literal(null)),
 	notificationtime: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/, {
-		message: "Please enter a valid time in HH:mm format."
+		message: "Inserisci un orario valido nel formato HH:mm."
 	}),
 	notificationtype: z.enum(["stesso", "prima", "specifico"]),
 	specificdelay: z.coerce
 		.number()
 		.min(0, {
-			message: "Please enter a positive number of hours."
+			message: "Inserisci un numero positivo di ore."
 		})
 		.max(168, {
-			message: "Please enter a number of hours lower than a week."
+			message: "Inserisci un numero di ore inferiore a una settimana."
 		})
 		.or(z.literal(0))
 });
@@ -76,7 +76,7 @@ const EventAllDaySchema = z.object({
 	// The end date of an all-day event
 	dateend: z.union([
 		z.coerce.date().refine(dynamicMinDate, {
-			message: "Please enter a date from today onward."
+			message: "Scegliete una data da oggi in poi."
 		}),
 		z.literal("")
 	]),
@@ -91,14 +91,14 @@ const EventTimedSchema = z.object({
 	dateend: z.literal(""),
 	// The start time of the event, which is needed for timed events
 	time: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/, {
-		message: "Please enter a valid time in HH:mm format."
+		message: "Inserisci un orario valido nel formato HH:mm."
 	}),
 	// The duration of the event in hours and minutes
 	duration: z.coerce
 		.number()
-		.min(1, { message: "Please enter a positive number." })
+		.min(1, { message: "Inserisci un numero positivo." })
 		.max(24, {
-			message: "Please enter a number less than 24."
+			message: "Inserisci un numero inferiore a 24."
 		})
 		.or(z.literal(0))
 });
@@ -127,30 +127,30 @@ const EventRecurrenceSchema = z.object({
 		.or(z.literal("")),
 	mh_day: z.coerce
 		.number()
-		.min(1, { message: "Please enter a valid day of the month." })
+		.min(1, { message: "Inserisci un giorno valido del mese." })
 		.max(31, {
-			message: "Please enter a valid day of the month."
+			message: "Inserisci un giorno valido del mese."
 		})
 		.or(z.literal("")),
 	yh_month: z.coerce
 		.number()
-		.min(1, { message: "Please enter a valid month." })
+		.min(1, { message: "Inserisci un mese valido." })
 		.max(12, {
-			message: "Please enter a valid month."
+			message: "Inserisci un mese valido."
 		})
 		.or(z.literal("")),
 	yh_day: z.coerce
 		.number()
-		.min(1, { message: "Please enter a valid day of the month." })
+		.min(1, { message: "Inserisci un giorno valido del mese." })
 		.max(31, {
-			message: "Please enter a valid day of the month."
+			message: "Inserisci un giorno valido del mese."
 		})
 		.or(z.literal("")),
 	count: z.coerce
 		.number()
-		.min(0, { message: "Please enter a positive number." })
+		.min(0, { message: "Inserisci un numero positivo." })
 		.max(100, {
-			message: "Please enter a number less than 100."
+			message: "Inserisci un numero inferiore a 100."
 		}),
 	until: z.coerce.date().or(z.literal(""))
 });
@@ -197,7 +197,7 @@ export const EventFormSchema = z
 			if (dateend <= datestart && dateend != "" && allDay == "on") {
 				ctx.addIssue({
 					code: "custom",
-					message: "The end date must be after the start date",
+					message: "La data di fine deve essere successiva alla data di inizio",
 					path: ["dateend"]
 				});
 			}
@@ -206,7 +206,7 @@ export const EventFormSchema = z
 			if (recurrence != null && frequency == "WEEKLY" && dayarray == "") {
 				ctx.addIssue({
 					code: "custom",
-					message: "Please select at least one day.",
+					message: "Seleziona almeno un giorno.",
 					path: ["dayarray"]
 				});
 			}
@@ -215,7 +215,7 @@ export const EventFormSchema = z
 			if (recurrence != null && frequency == "MONTHLY" && mh_day == "") {
 				ctx.addIssue({
 					code: "custom",
-					message: "Please select a day of the month.",
+					message: "Seleziona un giorno del mese.",
 					path: ["mh_day"]
 				});
 			}
@@ -228,7 +228,7 @@ export const EventFormSchema = z
 			) {
 				ctx.addIssue({
 					code: "custom",
-					message: "Please select a month and a day of the month.",
+					message: "Seleziona un mese e un giorno del mese.",
 					path: ["yh_month", "yh_day"]
 				});
 			}
@@ -243,7 +243,7 @@ export const EventFormSchema = z
 			) {
 				ctx.addIssue({
 					code: "custom",
-					message: "Please select a valid day of the month.",
+					message: "Seleziona un giorno valido del mese.",
 					path: ["yh_day"]
 				});
 			}
@@ -251,7 +251,7 @@ export const EventFormSchema = z
 			if (recurrence != null && until <= datestart && until != "") {
 				ctx.addIssue({
 					code: "custom",
-					message: "The end date must be after the start date",
+					message: "La data di fine deve essere successiva alla data di inizio",
 					path: ["until"]
 				});
 			}
@@ -261,7 +261,7 @@ export const EventFormSchema = z
 				ctx.addIssue({
 					code: "custom",
 					message:
-						"Please select a number of occurrences or an end date.",
+						"Seleziona un numero di occorrenze o una data di fine.",
 					path: ["undef"]
 				});
 			}
@@ -274,7 +274,7 @@ export const EventFormSchema = z
 			) {
 				ctx.addIssue({
 					code: "custom",
-					message: "Please select a delay greater than 0.",
+					message: "Seleziona un ritardo maggiore di 0.",
 					path: ["specificdelay"]
 				});
 			}

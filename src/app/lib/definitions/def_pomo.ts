@@ -5,7 +5,7 @@ export const PomodoroSchema = z.object({
 	studyMin: z.string().time(),
 	pauseMin: z.string().time(),
 	savedCycles: z.number().min(0, {
-		message: "Please enter a number greater than 0."
+		message: "Deve essere un numero maggiore di 0."
 	})
 });
 

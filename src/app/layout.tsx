@@ -1,7 +1,7 @@
 import "bootstrap/dist/css/bootstrap.min.css";
 import Link from "next/link";
 import "./globals.css";
-import styles from "./page.module.css";
+// Removed CSS module in favor of Bootstrap utility classes
 import Navbar from "./ui/navbar";
 
 export const metadata = {
@@ -17,17 +17,25 @@ export default function RootLayout({
 	return (
 		<html lang="en">
 			<head>{/* Global styles */}</head>
-			<body>
-				<header className={styles.header}>
-					<Link
-						href="/"
-						style={{ textDecoration: "none", color: "inherit" }}
-					>
-						<h1>{metadata.title}</h1>
-					</Link>
-					<Navbar />
+			<body className="min-vh-100 d-flex flex-column">
+				<header className="border-bottom bg-light position-sticky top-0 z-3 shadow-sm">
+					<div className="container-fluid d-flex flex-wrap align-items-center justify-content-between py-3 gap-3">
+						<Link
+							href="/"
+							className="text-decoration-none text-dark"
+						>
+							<h1 className="h3 mb-0 fw-bold">
+								{metadata.title}
+							</h1>
+						</Link>
+						<nav className="d-flex align-items-center ms-auto">
+							<Navbar />
+						</nav>
+					</div>
 				</header>
-				<main>{children}</main>
+				<main className="flex-grow-1 container-fluid py-4">
+					{children}
+				</main>
 			</body>
 		</html>
 	);
