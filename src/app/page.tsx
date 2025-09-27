@@ -187,20 +187,6 @@ export default function Home() {
 					</div>
 				</div>
 			</div>
-
-			{/* === FOOTER SECTION === */}
-			<footer className="bg-dark text-white py-4 mt-5">
-				<div className="container">
-					<div className="row">
-						<div className="col-md-6">
-							<h5>Selfie</h5>
-							<p>
-								Il tuo assistente personale per la produttività
-							</p>
-						</div>
-					</div>
-				</div>
-			</footer>
 		</div>
 	);
 }

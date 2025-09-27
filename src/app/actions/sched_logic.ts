@@ -81,7 +81,7 @@ export async function event_payload_creator(
 		case "prima":
 			return {
 				title: event.title,
-				body: `L'evento "${event.title}" inizia tra 24 ore!`,
+				body: `L'evento "${event.title}" inizia tra domani!`,
 				data: { url: "/" }
 			} as payload_type;
 		case "specifico":

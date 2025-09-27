@@ -6,7 +6,6 @@ import {
 	get_ActivityById
 } from "@/app/actions/cale_logic/activity_logic";
 import { Activity_FullCalendar } from "@/app/lib/definitions/def_actv";
-import styles from "@/app/page.module.css";
 
 type ActivityCalendarClickProps = {
 	show: boolean;
@@ -64,87 +63,69 @@ export function ActivityCalendarCard({
 	};
 
 	return (
-		<div className={styles.modalBackground}>
-			<div className={styles.modalContent}>
+		<div
+			className="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-flex align-items-start justify-content-center py-4 overflow-auto"
+			style={{ zIndex: 1050 }}
+		>
+			<div
+				className="bg-white rounded-4 shadow-lg p-4 w-100 position-relative"
+				style={{ maxWidth: 560 }}
+			>
 				<button
 					type="button"
-					// Close the modal when clicking outside of it
-					onClick={() => setShow(false)}
-					className={styles.closeButton}
+					className="btn-close position-absolute end-0 top-0 m-3"
 					aria-label="Close"
-				>
-					&times;
-				</button>
-
-				{/*TITLE*/}
-				<div className={styles.modalHeader}>
-					<h1 className={styles.modalTitle}>{activity.title}</h1>
-				</div>
-
-				<div className={styles.modalBody}>
-					{/* EXPIRATION DATE */}
-					<div className={styles.modalSection}>
-						<h3>Giorno di scadenza :</h3>
-						<p>{activity.start.toDateString()}</p>
+					onClick={() => setShow(false)}
+				/>
+				<h4 className="mb-4 fw-semibold text-primary">
+					{activity.title}
+				</h4>
+				<div className="vstack gap-3">
+					<div>
+						<h6 className="text-uppercase text-secondary mb-1 small">
+							Giorno di scadenza
+						</h6>
+						<p className="mb-0">{activity.start.toDateString()}</p>
 					</div>
-
-					{/* PLACE */}
-					<div hidden={showplace} className={styles.modalSection}>
-						<h3>Luogo :</h3>
-						<p>{activity.extendedProps.place}</p>
+					<div hidden={showplace}>
+						<h6 className="text-uppercase text-secondary mb-1 small">
+							Luogo
+						</h6>
+						<p className="mb-0">{activity.extendedProps.place}</p>
 					</div>
-
-					{/* DESCRIPTION */}
-					<div
-						hidden={showdescription}
-						className={styles.modalSection}
-					>
-						<h3>Descrizione :</h3>
-						<p>{activity.extendedProps.description}</p>
+					<div hidden={showdescription}>
+						<h6 className="text-uppercase text-secondary mb-1 small">
+							Descrizione
+						</h6>
+						<p className="mb-0">
+							{activity.extendedProps.description}
+						</p>
 					</div>
-
-					{/* NOTIFICATION TIME*/}
-					<div
-						className={styles.modalSection}
-						hidden={!shownotification}
-					>
-						<h3>Notification Time :</h3>
-						<p>{activity.extendedProps.notificationtime}</p>
+					<div hidden={!shownotification}>
+						<h6 className="text-uppercase text-secondary mb-1 small">
+							Notification Time
+						</h6>
+						<p className="mb-0">
+							{activity.extendedProps.notificationtime}
+						</p>
 					</div>
-
-					{/* DELETE BUTTON */}
-					<div className={styles.modalSection}>
+					<div className="d-flex flex-wrap gap-2 pt-2 border-top">
 						<button
-							className={styles.deleteButton}
-							onClick={() => {
-								// Call the delete function
-								handleDelete();
-							}}
+							className="btn btn-outline-danger"
+							onClick={handleDelete}
 						>
 							Elimina attività
 						</button>
-					</div>
-					{/* UPDATE BUTTON */}
-					<div className={styles.modalSection}>
 						<button
-							className={styles.submitButton}
-							onClick={() => {
-								handleUpdate();
-							}}
+							className="btn btn-primary"
+							onClick={handleUpdate}
 						>
 							Modifica evento
 						</button>
-					</div>
-					{/* COMPLETE BUTTON */}
-					<div
-						className={styles.modalSection}
-						hidden={showcompletion}
-					>
 						<button
-							className={styles.updateButton}
-							onClick={() => {
-								handleComplete();
-							}}
+							className="btn btn-success"
+							hidden={showcompletion}
+							onClick={handleComplete}
 						>
 							Attività Completata
 						</button>
@@ -201,70 +182,57 @@ export function ActivityListCard({
 	const showcompletion = activity.extendedProps.completed;
 
 	return (
-		<div className={styles.modalBackground}>
-			<div className={styles.modalContent}>
+		<div
+			className="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-flex align-items-start justify-content-center py-4 overflow-auto"
+			style={{ zIndex: 1050 }}
+		>
+			<div
+				className="bg-white rounded-4 shadow-lg p-4 w-100 position-relative"
+				style={{ maxWidth: 560 }}
+			>
 				<button
 					type="button"
-					// Close the modal when clicking outside of it
-					onClick={() => setShow(false)}
-					className={styles.closeButton}
+					className="btn-close position-absolute end-0 top-0 m-3"
 					aria-label="Close"
-				>
-					&times;
-				</button>
-
-				{/*TITLE*/}
-				<div className={styles.modalHeader}>
-					<h1 className={styles.modalTitle}>{activity.title}</h1>
-				</div>
-
-				{/* BODY */}
-				<div className={styles.modalBody}>
-					{/* EXPIRATION DATE */}
-					<div className={styles.modalSection}>
-						<h3>Giorno di scadenza :</h3>
-						<p>{activity.start.toDateString()}</p>
+					onClick={() => setShow(false)}
+				/>
+				<h4 className="mb-4 fw-semibold text-primary">
+					{activity.title}
+				</h4>
+				<div className="vstack gap-3">
+					<div>
+						<h6 className="text-uppercase text-secondary mb-1 small">
+							Giorno di scadenza
+						</h6>
+						<p className="mb-0">{activity.start.toDateString()}</p>
 					</div>
-
-					{/* DESCRIPTION */}
-					<div
-						hidden={showdescription}
-						className={styles.modalSection}
-					>
-						<h3>Descrizione :</h3>
-						<p>{activity.extendedProps.description}</p>
+					<div hidden={showdescription}>
+						<h6 className="text-uppercase text-secondary mb-1 small">
+							Descrizione
+						</h6>
+						<p className="mb-0">
+							{activity.extendedProps.description}
+						</p>
 					</div>
-
-					{/* NOTIFICATION TIME*/}
-					<div
-						className={styles.modalSection}
-						hidden={!shownotification}
-					>
-						<h3>Notification Time :</h3>
-						<p>{activity.extendedProps.notificationtime}</p>
+					<div hidden={!shownotification}>
+						<h6 className="text-uppercase text-secondary mb-1 small">
+							Notification Time
+						</h6>
+						<p className="mb-0">
+							{activity.extendedProps.notificationtime}
+						</p>
 					</div>
-
-					{/* DELETE BUTTON */}
-					<div className={styles.modalSection}>
+					<div className="d-flex flex-wrap gap-2 pt-2 border-top">
 						<button
-							className={styles.deleteButton}
-							onClick={() => {
-								handleDelete();
-							}}
+							className="btn btn-outline-danger"
+							onClick={handleDelete}
 						>
 							Elimina attività
 						</button>
-					</div>
-					{/* COMPLETE BUTTON */}
-					<div
-						className={styles.modalSection}
-						hidden={showcompletion}
-					>
 						<button
-							className={styles.submitButton}
-							onClick={() => {
-								handleComplete();
-							}}
+							className="btn btn-success"
+							hidden={showcompletion}
+							onClick={handleComplete}
 						>
 							Attività Completata
 						</button>

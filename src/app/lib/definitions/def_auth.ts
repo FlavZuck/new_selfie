@@ -7,38 +7,36 @@ import { getVirtualDate } from "../../actions/timemach_logic";
 export const SignupFormSchema = z.object({
 	name: z
 		.string()
-		.min(2, { message: "Name must be at least 2 characters long." })
+		.min(2, { message: "Il nome deve avere almeno 2 caratteri." })
 		.trim(),
 	surname: z
 		.string()
-		.min(2, { message: "Surname must be at least 2 characters long." })
+		.min(2, { message: "Il cognome deve avere almeno 2 caratteri." })
 		.trim(),
-	birthdate: z.coerce
-		.date()
-		.max((await getVirtualDate()) ?? new Date(), {
-			message: "Please enter a valid date."
-		}),
-	email: z.string().email({ message: "Please enter a valid email." }).trim(),
+	birthdate: z.coerce.date().max((await getVirtualDate()) ?? new Date(), {
+		message: "Inserisci una data valida."
+	}),
+	email: z.string().email({ message: "Inserisci un'email valida." }).trim(),
 	password: z
 		.string()
-		.min(8, { message: "Be at least 8 characters long" })
-		.regex(/[a-zA-Z]/, { message: "Contain at least one letter." })
-		.regex(/[0-9]/, { message: "Contain at least one number." })
+		.min(8, { message: "Deve avere almeno 8 caratteri." })
+		.regex(/[a-zA-Z]/, { message: "Deve contenere almeno una lettera." })
+		.regex(/[0-9]/, { message: "Deve contenere almeno un numero." })
 		.regex(/[^a-zA-Z0-9]/, {
-			message: "Contain at least one special character."
+			message: "Deve contenere almeno un carattere speciale."
 		})
 		.trim()
 });
 
 export const SigninFormSchema = z.object({
-	email: z.string().email({ message: "Please enter a valid email." }).trim(),
+	email: z.string().email({ message: "Inserisci un'email valida." }).trim(),
 	password: z
 		.string()
-		.min(8, { message: "Be at least 8 characters long" })
-		.regex(/[a-zA-Z]/, { message: "Contain at least one letter." })
-		.regex(/[0-9]/, { message: "Contain at least one number." })
+		.min(8, { message: "Deve avere almeno 8 caratteri." })
+		.regex(/[a-zA-Z]/, { message: "Deve contenere almeno una lettera." })
+		.regex(/[0-9]/, { message: "Deve contenere almeno un numero." })
 		.regex(/[^a-zA-Z0-9]/, {
-			message: "Contain at least one special character."
+			message: "Deve contenere almeno un carattere speciale."
 		})
 		.trim()
 });

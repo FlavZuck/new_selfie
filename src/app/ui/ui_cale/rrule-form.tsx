@@ -1,6 +1,5 @@
 "use client";
 
-import styles from "@/app/page.module.css";
 import {
 	MonthlyHandler,
 	WeeklyHandler,
@@ -30,27 +29,23 @@ export default function RRuleForm({
 	WeeklyHandlerProps
 }: RRuleFormProps) {
 	return (
-		<div>
-			{/* FREQUENCY */}
-			<div className={styles.formGroup}>
-				<label htmlFor="frequency" className={styles.formLabel}>
+		<div className="border rounded-3 p-3 bg-body-tertiary">
+			<div className="mb-3">
+				<label htmlFor="frequency" className="form-label fw-medium">
 					Frequenza
 				</label>
 				<select
 					id="frequency"
 					name="frequency"
-					className={styles.formInput}
+					className="form-select"
 					onChange={(e) => {
-						if (e.target.value === "DAILY") {
-							setFreqform("DAILY");
-						} else if (e.target.value === "WEEKLY") {
+						if (e.target.value === "DAILY") setFreqform("DAILY");
+						else if (e.target.value === "WEEKLY")
 							setFreqform("WEEKLY");
-						}
-						if (e.target.value === "MONTHLY") {
+						else if (e.target.value === "MONTHLY")
 							setFreqform("MONTHLY");
-						} else if (e.target.value === "YEARLY") {
+						else if (e.target.value === "YEARLY")
 							setFreqform("YEARLY");
-						}
 					}}
 				>
 					<option value="DAILY">Ogni giorno</option>
@@ -59,38 +54,27 @@ export default function RRuleForm({
 					<option value="YEARLY">Ogni anno</option>
 				</select>
 			</div>
-
-			{/* WEEKLY */}
 			<div hidden={Freqform !== "WEEKLY"}>
 				<WeeklyHandler
 					selectedDays={WeeklyHandlerProps.selectedDays}
 					setSelectedDays={WeeklyHandlerProps.setSelectedDays}
 				/>
 			</div>
-
-			{/* MONTHLY */}
 			<div hidden={Freqform !== "MONTHLY"}>
 				<MonthlyHandler />
 			</div>
-
-			{/* YEARLY */}
 			<div hidden={Freqform !== "YEARLY"}>
 				<YearlyHandler />
 			</div>
-
-			{/* UNDEF */}
-			<div className={styles.formGroup}>
-				<label htmlFor="undef" className={styles.formLabel}>
-					Ricorrenza indefinita
-				</label>
+			<div className="form-check form-switch mb-3">
 				<input
+					className="form-check-input"
 					type="checkbox"
 					id="undef"
 					name="undef"
-					defaultChecked={true}
+					checked={undef}
 					onChange={(e) => {
 						setUndef(e.target.checked);
-						// If the checkbox is unchecked, set the count and until fields to empty
 						if (!e.target.checked) {
 							const countField = document.getElementById(
 								"count"
@@ -98,21 +82,18 @@ export default function RRuleForm({
 							const untilField = document.getElementById(
 								"until"
 							) as HTMLInputElement;
-							if (countField) {
-								countField.value = "0";
-							}
-							if (untilField) {
-								untilField.value = "";
-							}
+							if (countField) countField.value = "0";
+							if (untilField) untilField.value = "";
 						}
 					}}
 				/>
+				<label className="form-check-label" htmlFor="undef">
+					Ricorrenza indefinita
+				</label>
 			</div>
-
-			<div hidden={undef}>
-				{/* COUNT */}
-				<div className={styles.formGroup}>
-					<label htmlFor="count" className={styles.formLabel}>
+			<div hidden={undef} className="row g-3">
+				<div className="col-sm-6">
+					<label htmlFor="count" className="form-label fw-medium">
 						Numero di occorrenze
 					</label>
 					<input
@@ -123,13 +104,11 @@ export default function RRuleForm({
 						max={100}
 						defaultValue={0}
 						placeholder="Numero di occorrenze"
-						className={styles.formInput}
+						className="form-control"
 					/>
 				</div>
-
-				{/* UNTIL */}
-				<div className={styles.formGroup}>
-					<label htmlFor="until" className={styles.formLabel}>
+				<div className="col-sm-6">
+					<label htmlFor="until" className="form-label fw-medium">
 						Fino al
 					</label>
 					<input
@@ -137,7 +116,7 @@ export default function RRuleForm({
 						id="until"
 						name="until"
 						placeholder="Data di scadenza"
-						className={styles.formInput}
+						className="form-control"
 					/>
 				</div>
 			</div>

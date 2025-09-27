@@ -1,5 +1,3 @@
-import styles from "@/app/page.module.css";
-
 // Function that takes selectedDays and srts them in the order of the week
 
 type WeeklyHandlerProps = {
@@ -42,31 +40,32 @@ export function WeeklyHandler({
 	}
 
 	return (
-		<div className={styles.formGroup}>
-			{/* Use the hidden input to store the array of selected days as a string */}
+		<div className="mb-3">
 			<input
 				type="hidden"
 				id="dayarray"
 				name="dayarray"
 				value={selectedDays}
 			/>
-			<label className={styles.formLabel}>Seleziona i giorni</label>
-			{days.map((day) => (
-				<div key={day} style={{ margin: "0.5rem 0" }}>
-					<input
-						type="checkbox"
-						id={day}
-						onChange={() => {
-							handleCheckboxChange(day);
-						}}
-						checked={selectedDays.includes(day)}
-						style={{ marginRight: "0.5rem" }}
-					/>
-					<label htmlFor={day} style={{ fontWeight: "normal" }}>
-						{day}
-					</label>
-				</div>
-			))}
+			<label className="form-label fw-medium d-block mb-2">
+				Seleziona i giorni
+			</label>
+			<div className="d-flex flex-wrap gap-3">
+				{days.map((day) => (
+					<div className="form-check" key={day}>
+						<input
+							className="form-check-input"
+							type="checkbox"
+							id={day}
+							onChange={() => handleCheckboxChange(day)}
+							checked={selectedDays.includes(day)}
+						/>
+						<label className="form-check-label" htmlFor={day}>
+							{day}
+						</label>
+					</div>
+				))}
+			</div>
 		</div>
 	);
 }
@@ -75,8 +74,8 @@ export function MonthlyHandler({
 	mh_day = new Date().getDate()
 }: MonthlyHandlerProps) {
 	return (
-		<div className={styles.formGroup}>
-			<label htmlFor="mh_day" className={styles.formLabel}>
+		<div className="mb-3">
+			<label htmlFor="mh_day" className="form-label fw-medium">
 				Giorno del mese
 			</label>
 			<input
@@ -86,7 +85,7 @@ export function MonthlyHandler({
 				defaultValue={mh_day}
 				min="1"
 				max="31"
-				className={styles.formInput}
+				className="form-control"
 			/>
 		</div>
 	);
@@ -97,9 +96,9 @@ export function YearlyHandler({
 	yh_month = new Date().getMonth()
 }: YearlyHandlerProps) {
 	return (
-		<div>
-			<div className={styles.formGroup}>
-				<label htmlFor="yh_day" className={styles.formLabel}>
+		<div className="row g-3">
+			<div className="col-sm-6">
+				<label htmlFor="yh_day" className="form-label fw-medium">
 					Giorno
 				</label>
 				<input
@@ -109,11 +108,11 @@ export function YearlyHandler({
 					defaultValue={yh_day}
 					min="1"
 					max="31"
-					className={styles.formInput}
+					className="form-control"
 				/>
 			</div>
-			<div className={styles.formGroup}>
-				<label htmlFor="yh_month" className={styles.formLabel}>
+			<div className="col-sm-6">
+				<label htmlFor="yh_month" className="form-label fw-medium">
 					Mese
 				</label>
 				<input
@@ -123,7 +122,7 @@ export function YearlyHandler({
 					defaultValue={yh_month}
 					min="1"
 					max="12"
-					className={styles.formInput}
+					className="form-control"
 				/>
 			</div>
 		</div>

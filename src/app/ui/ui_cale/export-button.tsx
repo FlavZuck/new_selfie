@@ -22,7 +22,11 @@ export function ExportButton() {
 
 	return (
 		<div>
-			<button className="fc-custom-button" onClick={handleExport}>
+			<button
+				type="button"
+				className="btn btn-outline-primary btn-sm"
+				onClick={handleExport}
+			>
 				Esporta Calendario
 			</button>
 		</div>

@@ -1,18 +1,12 @@
-/* === BASE VARIABLES & GLOBAL STYLES === */
+/* === MINIMAL HOMEPAGE STYLES (pruned) === */
+/* Variables & layout wrapper */
 .page {
-	--gray-rgb: 0, 0, 0;
-	--gray-alpha-200: rgba(var(--gray-rgb), 0.08);
-	--gray-alpha-100: rgba(var(--gray-rgb), 0.05);
-	--button-primary-hover: #383838;
-	--button-secondary-hover: #f2f2f2;
-	--calendar-color: #2196f3; /* Blue */
-	--notes-color: #4caf50; /* Green */
-	--pomodoro-color: #f44336; /* Red */
-	font-family: var(--font-geist-sans);
+	--calendar-color: #2196f3;
+	--notes-color: #4caf50;
+	--pomodoro-color: #f44336;
 	min-height: 100vh;
 	display: flex;
 	flex-direction: column;
-	justify-content: space-between;
 }
 
 /* Dark Mode Overrides */
@@ -26,429 +20,33 @@
 	}
 }
 
-/* Global resets */
-.html,
-.body {
-	margin: 0;
-	padding: 0;
-	height: 100%;
-}
-
-/* === LAYOUT CONTAINERS & TYPOGRAPHY === */
-.header {
-	position: sticky;
-	top: 0;
-	z-index: 1000;
-	background-color: rgb(255, 255, 255);
-	background: #fff;
-	padding: 1rem 2rem;
-	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-	display: flex;
-	align-items: center;
-}
-.main {
-	width: auto;
-	margin: 0;
-	padding: 2rem;
-	flex: 1;
-	display: flex;
-	flex-direction: column;
-	justify-content: center;
-	align-items: center;
-	background: #fff;
-	box-shadow: 0 10px 10px rgba(145, 16, 16, 0.1);
-}
-.container {
-	width: auto;
-	margin: 1rem;
-	display: flex;
-	justify-content: center;
-	align-items: center;
-}
-
-/* === CARDS & FEATURE STYLES === */
-.container .card {
-	width: 18rem;
-	margin: 1rem;
-	border-radius: 12px;
-	padding: 1.5rem 1rem;
-	background: white;
-	border: none;
-	transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-	box-shadow:
-		0 1px 3px rgba(0, 0, 0, 0.12),
-		0 1px 2px rgba(0, 0, 0, 0.24);
-}
+/* Feature cards accent borders */
 .cardCalendar {
-	border-color: var(--calendar-color);
+	border: 2px solid var(--calendar-color) !important;
 }
 .cardNotes {
-	border-color: var(--notes-color);
+	border: 2px solid var(--notes-color) !important;
 }
 .cardPomodoro {
-	border-color: var(--pomodoro-color);
+	border: 2px solid var(--pomodoro-color) !important;
 }
 
-.hover-card {
-	transition: transform 0.3s ease;
-}
-.hover-card:hover {
-	transform: translateY(-12px) scale(1.02);
-	box-shadow:
-		0 14px 28px rgba(0, 0, 0, 0.25),
-		0 10px 10px rgba(0, 0, 0, 0.22);
-}
-.hover-card:hover .iconWrapper {
-	transform: scale(1.15) translateY(-5px);
-	box-shadow:
-		0 8px 16px rgba(0, 0, 0, 0.3),
-		0 6px 8px rgba(0, 0, 0, 0.2);
-}
-
-/* === CIRCLE NUMBER (GETTING STARTED) === */
-.circle-number {
-	width: 40px;
-	height: 40px;
-	background-color: var(--bs-primary);
-	color: white;
-	border-radius: 50%;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	font-size: 1.2rem;
-	margin: 0 auto;
-}
-
-/* === MODAL & BUTTONS === */
-.modalBackground {
-	position: fixed;
-	top: 0;
-	left: 0;
-	width: 100%;
-	height: 100%;
-	background: rgba(0, 0, 0, 0.5);
-	backdrop-filter: blur(10px);
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	overflow-y: auto;
-	padding: 1rem;
-	z-index: 1000;
-}
-/* Wrapper for modal content, ensures height and width limits */
-.modalContent,
-.modal {
-	position: relative;
-	width: 100%;
-	max-width: 500px;
-	max-height: 90vh;
-	background: white;
-	padding: 2rem;
-	border-radius: 8px;
-	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-	overflow: hidden;
-	text-align: left;
-	box-sizing: border-box;
-}
-/* Modal header section with title */
-.modalHeader {
-	margin-bottom: 1.5rem;
-	padding-bottom: 0.75rem;
-	border-bottom: 1px solid #eee;
-}
-/* Modal title styling */
-.modalTitle {
-	font-size: 1.75rem !important;
-	font-weight: 700 !important;
-	color: #1a1a1a !important;
-	margin: 0;
-	text-shadow: 0px 1px 0px rgba(255, 255, 255, 0.8);
-}
-/* Ensure all titles in modals are visible */
-.modalContent h1,
-.modal h1,
-.modalHeader h1 {
-	color: #1a1a1a !important;
-	font-weight: 700 !important;
-}
-/* Scrollable body for modal content */
-.modalBody {
-	max-height: calc(90vh - 10rem);
-	overflow-y: auto;
-	padding-right: 0.5rem;
-}
-/* Section within modal for grouping related content */
-.modalSection {
-	margin-bottom: 1.25rem;
-}
-.button {
-	margin: 0 10px;
-	padding: 10px 20px;
-	background-color: #0070f3;
-	color: white;
-	text-decoration: none;
-	border-radius: 5px;
-}
-.button:hover {
-	background-color: #005bb5;
-}
-.closeButton {
-	position: absolute;
-	top: 10px;
-	right: 10px;
-	background: none;
-	border: none;
-	font-size: 24px;
-	color: #666;
-	cursor: pointer;
-}
-.closeButton:hover {
-	color: #333;
-}
-/* === MODERN FORM STYLES === */
-.formGroup {
-	display: flex;
-	flex-direction: column;
-	margin-bottom: 1rem;
-}
-.formLabel {
-	margin-bottom: 0.5rem;
-	font-weight: 600;
-	font-size: 0.95rem;
-	color: #333;
-}
-.formInput {
-	padding: 0.5rem 0.75rem;
-	border: 1px solid #ccc;
-	border-radius: 4px;
-	font-size: 1rem;
-	transition:
-		border-color 0.2s ease,
-		box-shadow 0.2s ease;
-}
-.formInput:focus {
-	outline: none;
-	border-color: #3788d8;
-	box-shadow: 0 0 0 3px rgba(55, 136, 216, 0.3);
-}
-.submitButton {
-	margin-top: 1rem;
-	padding: 0.75rem 1.5rem;
-	background-color: #3788d8;
-	color: #fff;
-	border: none;
-	border-radius: 4px;
-	font-size: 1rem;
-	font-weight: 600;
-	cursor: pointer;
-	transition: background-color 0.2s ease;
-}
-.submitButton:hover:enabled {
-	background-color: #2a6fb8;
-}
-.submitButton:disabled {
-	background-color: #a0c4f6;
-	cursor: not-allowed;
-	opacity: 0.8;
-}
-.deleteButton {
-	margin-top: 1rem;
-	padding: 0.75rem 1.5rem;
-	background-color: #e74c3c;
-	color: #fff;
-	border: none;
-	border-radius: 4px;
-	font-size: 1rem;
-	font-weight: 600;
-	cursor: pointer;
-	transition: background-color 0.2s ease;
-}
-.deleteButton:hover {
-	background-color: #c0392b;
-}
-.updateButton {
-	margin-top: 1rem;
-	padding: 0.75rem 1.5rem;
-	background-color: #2ecc71;
-	color: #fff;
-	border: none;
-	border-radius: 4px;
-	font-size: 1rem;
-	font-weight: 600;
-	cursor: pointer;
-	transition: background-color 0.2s ease;
-}
-.updateButton:hover {
-	background-color: #27ae60;
-}
-
-/* === MAIN CONTENT TYPOGRAPHY === */
-.main ol {
-	font-family: var(--font-geist-mono);
-	padding-left: 0;
-	margin: 0;
-	font-size: 14px;
-	line-height: 24px;
-	letter-spacing: -0.01em;
-	list-style-position: inside;
-}
-.main li:not(:last-of-type) {
-	margin-bottom: 8px;
-}
-.main code {
-	font-family: inherit;
-	background: var(--gray-alpha-100);
-	padding: 2px 4px;
-	border-radius: 4px;
-	font-weight: 600;
-}
-
-/* === CTA & LINK STYLES === */
-.ctas {
-	display: flex;
-	gap: 16px;
-}
-.ctas a {
-	appearance: none;
-	border-radius: 128px;
-	height: 48px;
-	padding: 0 20px;
-	border: none;
-	border: 1px solid transparent;
-	transition:
-		background 0.2s,
-		color 0.2s,
-		border-color 0.2s;
-	cursor: pointer;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	font-size: 16px;
-	line-height: 20px;
-	font-weight: 500;
-}
-a.primary {
-	background: var(--foreground);
-	color: var(--background);
-	gap: 8px;
-}
-a.secondary {
-	border-color: var(--gray-alpha-200);
-	min-width: 180px;
-}
-
-/* === FOOTER === */
-.footer {
-	display: flex;
-	text-align: center;
-	padding: 1rem;
-	font-size: 0.9rem;
-	color: #777;
-	background-color: #1ea556;
-}
-.footer a {
-	display: flex;
-	align-items: center;
-	gap: 8px;
-}
-.footer img {
-	flex-shrink: 0;
-}
-
-@media (hover: hover) and (pointer: fine) {
-	a.primary:hover {
-		background: var(--button-primary-hover);
-		border-color: transparent;
-	}
-	a.secondary:hover {
-		background: var(--button-secondary-hover);
-		border-color: transparent;
-	}
-	.footer a:hover {
-		text-decoration: underline;
-		text-underline-offset: 4px;
-	}
-}
-
-/* === RESPONSIVE ADJUSTMENTS === */
-@media (max-width: 600px) {
-	.page {
-		padding: 32px;
-		padding-bottom: 80px;
-	}
-	.main {
-		align-items: center;
-	}
-	.main ol {
-		text-align: center;
-	}
-	.ctas {
-		flex-direction: column;
-	}
-	.ctas a {
-		font-size: 14px;
-		height: 40px;
-		padding: 0 16px;
-	}
-	a.secondary {
-		min-width: auto;
-	}
-	.footer {
-		flex-wrap: wrap;
-		align-items: center;
-		justify-content: center;
-	}
-}
-@media (max-width: 768px) {
-	.container {
-		padding: 0 1rem;
-	}
-	.container .card {
-		width: 100%;
-		margin: 0.5rem;
-	}
-	.iconWrapper {
-		width: 80px;
-		height: 80px;
-		padding: 15px;
-	}
-}
-@media (prefers-color-scheme: dark) {
-	.logo {
-		filter: invert();
-	}
-}
-
-/* === IMAGE & ICON STYLES === */
-.iconWrapper {
-	width: 100px;
-	height: 100px;
-	margin: 0 auto 1.5rem;
-	border-radius: 50%;
-	padding: 20px;
-	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-	position: relative;
-	transition: all 0.3s ease;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-}
+/* Icon circular wrappers */
 .iconWrapperCalendar,
 .iconWrapperNotes,
 .iconWrapperPomodoro {
 	width: 100px;
 	height: 100px;
-	margin: 0 auto 1.5rem;
+	margin: 0 auto 1.25rem;
 	border-radius: 50%;
 	padding: 20px;
-	position: relative;
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-	box-shadow:
-		0 4px 8px rgba(0, 0, 0, 0.15),
-		0 2px 4px rgba(0, 0, 0, 0.12);
+	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+	transition:
+		transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275),
+		box-shadow 0.35s;
 }
 .iconWrapperCalendar {
 	background: var(--calendar-color);
@@ -460,282 +58,92 @@ a.secondary {
 	background: var(--pomodoro-color);
 }
 
+/* Icon inside wrapper */
 .icon {
 	width: 60% !important;
 	height: 60% !important;
 	object-fit: contain;
 	filter: brightness(0) invert(1);
-	transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+	transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* Card hover effects (NOTE: to apply must use styles["hover-card"] or convert to global) */
+.hover-card {
+	transition:
+		transform 0.3s ease,
+		box-shadow 0.3s ease;
+}
+.hover-card:hover {
+	transform: translateY(-10px) scale(1.015);
+	box-shadow:
+		0 14px 28px rgba(0, 0, 0, 0.2),
+		0 8px 10px rgba(0, 0, 0, 0.15);
+}
+.hover-card:hover .iconWrapperCalendar,
+.hover-card:hover .iconWrapperNotes,
+.hover-card:hover .iconWrapperPomodoro {
+	transform: scale(1.12) translateY(-4px);
 }
 .hover-card:hover .icon {
-	transform: scale(1.1) rotate(5deg);
+	transform: scale(1.08) rotate(4deg);
+}
+
+/* Feature buttons */
+.btnCalendar,
+.btnNotes,
+.btnPomodoro {
+	transition:
+		transform 0.25s ease,
+		box-shadow 0.25s ease,
+		filter 0.25s ease;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.12);
+	color: #fff !important;
 }
 .btnCalendar {
-	background-color: var(--calendar-color) !important;
+	background: var(--calendar-color) !important;
 	border-color: var(--calendar-color) !important;
-	transition: all 0.3s ease;
-	transform: translateY(0);
-	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 .btnNotes {
-	background-color: var(--notes-color) !important;
+	background: var(--notes-color) !important;
 	border-color: var(--notes-color) !important;
-	transition: all 0.3s ease;
-	transform: translateY(0);
-	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 .btnPomodoro {
-	background-color: var(--pomodoro-color) !important;
+	background: var(--pomodoro-color) !important;
 	border-color: var(--pomodoro-color) !important;
-	transition: all 0.3s ease;
-	transform: translateY(0);
-	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 .btnCalendar:hover,
 .btnNotes:hover,
 .btnPomodoro:hover {
 	transform: translateY(-2px);
-	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+	box-shadow: 0 6px 14px rgba(0, 0, 0, 0.25);
+	filter: brightness(1.05);
 }
 
-/* === IMAGE RESPONSIVENESS === */
-@media (max-width: 576px) {
-	.iconWrapper {
-		width: 70px;
-		height: 70px;
-		padding: 12px;
-	}
-}
+/* Responsive downsizing for icons */
 @media (max-width: 768px) {
 	.iconWrapperCalendar,
 	.iconWrapperNotes,
 	.iconWrapperPomodoro {
 		width: 80px;
 		height: 80px;
-		padding: 15px;
+		padding: 16px;
 	}
 }
 @media (max-width: 576px) {
 	.iconWrapperCalendar,
 	.iconWrapperNotes,
 	.iconWrapperPomodoro {
-		width: 70px;
-		height: 70px;
+		width: 68px;
+		height: 68px;
 		padding: 12px;
 	}
 }
 
-/* Rimuovere gli stili non più necessari */
-.imageWrapper,
-.cardImage {
-	display: none;
-}
-
-/* === TIME MACHINE STYLES === */
-.timeMachineContainer {
-	position: fixed;
-	bottom: 20px;
-	right: 20px;
-	z-index: 999;
-}
-
-.timeMachineButton {
-	background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-	color: white;
-	border: none;
-	border-radius: 50px;
-	padding: 12px 20px;
-	font-size: 14px;
-	font-weight: 600;
-	box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-	cursor: pointer;
-	transition: all 0.3s ease;
-	display: flex;
-	align-items: center;
-	gap: 8px;
-}
-
-.timeMachineButton:hover {
-	transform: translateY(-2px);
-	box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
-	background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
-}
-
-.timeMachineModal {
-	background: white;
-	padding: 2rem;
-	border-radius: 16px;
-	box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
-	max-width: 500px;
-	width: 90%;
-	position: relative;
-	animation: modalSlideIn 0.3s ease-out;
-}
-
-@keyframes modalSlideIn {
-	from {
-		opacity: 0;
-		transform: translateY(-30px) scale(0.95);
-	}
-	to {
-		opacity: 1;
-		transform: translateY(0) scale(1);
-	}
-}
-
-.modalTitle {
-	text-align: center;
-	color: #333;
-	margin: 0 0 1.5rem 0;
-	font-size: 1.5rem;
-	font-weight: 600;
-}
-
-.statusContainer {
-	margin-bottom: 1.5rem;
-}
-
-.statusActive {
-	background: linear-gradient(135deg, #4caf50, #45a049);
-	color: white;
-	padding: 1rem;
-	border-radius: 12px;
-	text-align: center;
-	box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
-}
-
-.statusInactive {
-	background: linear-gradient(135deg, #f0f0f0, #e0e0e0);
-	color: #666;
-	padding: 1rem;
-	border-radius: 12px;
-	text-align: center;
-	border: 2px dashed #ccc;
-}
-
-.statusText {
-	margin: 0;
-	font-size: 1rem;
-	font-weight: 500;
-}
-
-.inputGroup {
-	margin-bottom: 1.5rem;
-}
-
-.label {
-	display: block;
-	margin-bottom: 0.5rem;
-	color: #333;
-	font-weight: 600;
-	font-size: 0.9rem;
-}
-
-.inputContainer {
-	display: flex;
-	gap: 10px;
-	align-items: center;
-	flex-wrap: wrap;
-}
-
-.dateInput {
-	flex: 1;
-	min-width: 200px;
-	padding: 10px 12px;
-	border: 2px solid #e0e0e0;
-	border-radius: 8px;
-	font-size: 0.9rem;
-	transition: all 0.2s ease;
-}
-
-.dateInput:focus {
-	outline: none;
-	border-color: #667eea;
-	box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-}
-
-.actionButton {
-	background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-	color: white;
-	border: none;
-	border-radius: 8px;
-	padding: 10px 16px;
-	font-size: 0.9rem;
-	font-weight: 600;
-	cursor: pointer;
-	transition: all 0.2s ease;
-	white-space: nowrap;
-}
-
-.actionButton:hover {
-	transform: translateY(-1px);
-	box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-}
-
-.resetButton {
-	background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
-	width: 100%;
-}
-
-.resetButton:hover {
-	box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
-}
-
-/* Dark mode support for Time Machine */
-@media (prefers-color-scheme: dark) {
-	.timeMachineModal {
-		background: #2a2a2a;
-		color: white;
-	}
-
-	.modalTitle {
-		color: white;
-	}
-
-	.statusInactive {
-		background: linear-gradient(135deg, #3a3a3a, #2a2a2a);
-		color: #ccc;
-		border-color: #555;
-	}
-
-	.label {
-		color: white;
-	}
-
-	.dateInput {
-		background: #3a3a3a;
-		border-color: #555;
-		color: white;
-	}
-
-	.dateInput:focus {
-		border-color: #667eea;
-	}
-}
-
-/* Responsive adjustments for Time Machine */
-@media (max-width: 600px) {
-	.timeMachineContainer {
-		bottom: 10px;
-		right: 10px;
-	}
-
-	.timeMachineButton {
-		padding: 10px 16px;
-		font-size: 12px;
-	}
-
-	.timeMachineModal {
-		padding: 1.5rem;
-		margin: 10px;
-	}
-
-	.inputContainer {
-		flex-direction: column;
-		align-items: stretch;
-	}
-
-	.dateInput {
-		min-width: auto;
+/* Optional dark mode tweaks (keep accent colors) */
+@media (prefers-color-scheme: light) {
+	.cardCalendar,
+	.cardNotes,
+	.cardPomodoro {
+		background: white;
 	}
 }

@@ -2,7 +2,6 @@
 
 import { update_event } from "@/app/actions/cale_logic/event_logic";
 import { Event_FullCalendar } from "@/app/lib/definitions/def_event";
-import styles from "@/app/page.module.css";
 import { useActionState, useEffect } from "react";
 
 type EventFormProps = {
@@ -50,61 +49,83 @@ export default function UpdateEventForm({
 		return <div></div>;
 	}
 
-
 	return (
-		<div className={styles.modalBackground}>
-			<div className={styles.modalContent}>
+		<div
+			className="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-flex align-items-start justify-content-center py-4 overflow-auto"
+			style={{ zIndex: 1050 }}
+		>
+			<div
+				className="bg-white rounded-4 shadow-lg p-4 w-100 position-relative"
+				style={{ maxWidth: 560 }}
+			>
 				<button
 					type="button"
+					className="btn-close position-absolute end-0 top-0 m-3"
 					onClick={() => setShow(false)}
-					className={styles.closeButton}
-				>
-					&times;
-				</button>
-				<form action={action}>
-					{/*TITLE*/}
-					<div>
-						<label htmlFor="title">Titolo </label>
+					aria-label="Close"
+				/>
+				<h5 className="mb-4 fw-semibold text-primary">
+					Modifica Evento
+				</h5>
+				<form action={action} className="vstack gap-3">
+					<div className="mb-1">
+						<label htmlFor="title" className="form-label fw-medium">
+							Titolo
+						</label>
 						<input
 							id="title"
 							name="title"
 							placeholder="Titolo"
 							defaultValue={event.title}
 							required
+							className="form-control"
 						/>
+						{state?.errors?.title && (
+							<p className="text-danger small mb-0 mt-1">
+								{state.errors.title}
+							</p>
+						)}
 					</div>
-					{state?.errors?.title && <p>{state.errors.title}</p>}
-
-					{/*PLACE*/}
-					<div>
-						<label htmlFor="place">Luogo </label>
+					<div className="mb-1">
+						<label htmlFor="place" className="form-label fw-medium">
+							Luogo
+						</label>
 						<input
 							id="place"
 							name="place"
 							placeholder="Luogo"
 							defaultValue={event.extendedProps.place}
+							className="form-control"
 						/>
+						{state?.errors?.place && (
+							<p className="text-danger small mb-0 mt-1">
+								{state.errors.place}
+							</p>
+						)}
 					</div>
-					{state?.errors?.place && <p>{state.errors.place}</p>}
-
-					{/*DESCRIPTION*/}
-					<div>
-						<label htmlFor="description">Descrizione </label>
+					<div className="mb-1">
+						<label
+							htmlFor="description"
+							className="form-label fw-medium"
+						>
+							Descrizione
+						</label>
 						<input
 							id="description"
 							name="description"
 							placeholder="Descrizione"
 							defaultValue={event.extendedProps.description}
 							required
+							className="form-control"
 						/>
+						{state?.errors?.description && (
+							<p className="text-danger small mb-0 mt-1">
+								{state.errors.description}
+							</p>
+						)}
 					</div>
-					{state?.errors?.description && (
-						<p>{state.errors.description}</p>
-					)}
-
-					{/*SUBMIT BUTTON*/}
 					<button
-						className={styles.button}
+						className="btn btn-primary w-100"
 						disabled={pending}
 						type="submit"
 					>

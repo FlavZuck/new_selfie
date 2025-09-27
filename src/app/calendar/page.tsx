@@ -27,7 +27,6 @@ import { ExportButton } from "../ui/ui_cale/export-button";
 import { ImportButton } from "../ui/ui_cale/import-button";
 import UpdateActivityForm from "../ui/ui_cale/upd-actv";
 import UpdateEventForm from "../ui/ui_cale/upd-event";
-import "./calendar.css";
 
 export default function PageCalendar() {
 	// Stati per le fetch
@@ -119,32 +118,18 @@ export default function PageCalendar() {
 	}, [info]);
 
 	return (
-		<div>
-			{/* Header */}
-			{/*SEZIONE BOTTONI E LEGENDA */}
-			<div
-				className="calendar-controls"
-				style={{
-					marginBottom: "2rem",
-					display: "flex",
-					flexDirection: "column",
-					gap: "1.5rem"
-				}}
-			>
-				<div
-					style={{
-						display: "flex",
-						gap: "1rem"
-					}}
-				>
+		<div className="container-fluid py-4">
+			{/* Sezione controlli e legenda */}
+			<div className="mb-4 d-flex flex-column gap-3">
+				<div className="d-flex flex-wrap gap-2 align-items-center">
 					<button
-						className="fc-custom-button"
+						className="btn btn-primary"
 						onClick={() => setShow_Event_Create(true)}
 					>
 						Crea un Evento
 					</button>
 					<button
-						className="fc-custom-button"
+						className="btn btn-primary"
 						onClick={() => setShow_Activity_Create(true)}
 					>
 						Crea una Attività
@@ -152,88 +137,55 @@ export default function PageCalendar() {
 					<ExportButton />
 					<ImportButton refetch={fetchEvents} />
 				</div>
-				<div
-					style={{
-						display: "flex",
-						gap: "2rem"
-					}}
-				>
-					<label>
-						Attività ={" "}
-						<span
-							style={{
-								backgroundColor: "blue",
-								color: "white",
-								padding: "4px 8px",
-								borderRadius: "4px"
-							}}
-						>
-							blu
+				<div className="d-flex flex-wrap gap-4 align-items-center small">
+					<span className="d-flex align-items-center gap-2">
+						<span className="badge text-bg-primary">Attività</span>=
+						blu
+					</span>
+					<span className="d-flex align-items-center gap-2">
+						<span className="badge text-bg-danger">Evento</span>=
+						rosso
+					</span>
+					<span className="d-flex align-items-center gap-2">
+						<span className="badge text-bg-success">
+							Evento Ricorrente
 						</span>
-					</label>
-					<label>
-						Evento ={" "}
-						<span
-							style={{
-								backgroundColor: "red",
-								color: "white",
-								padding: "4px 8px",
-								borderRadius: "4px"
-							}}
-						>
-							rosso
-						</span>
-					</label>
-					<label>
-						EventoRicorrente ={" "}
-						<span
-							style={{
-								backgroundColor: "green",
-								color: "white",
-								padding: "4px 8px",
-								borderRadius: "4px"
-							}}
-						>
-							verde
-						</span>
-					</label>
+						= verde
+					</span>
 				</div>
 			</div>
 
-			{/*SEZIONE COMPONENTI CALENDARIO */}
-			<div
-				className="body-calendar"
-				style={{ display: "flex", gap: "2rem" }}
-			>
-				{/* FULLCALENDAR */}
-				<div style={{ flex: "3" }}>
-					<FullCalendar
-						key={now.toISOString()} // forza il rerender del calendar quando cambia la virt_date
-						plugins={[
-							dayGridPlugin,
-							interactionPlugin,
-							rrulePlugin
-						]}
-						initialView="dayGridMonth"
-						headerToolbar={{
-							left: "prev,next today",
-							center: "title",
-							right: "dayGridMonth,dayGridWeek,dayGridDay"
-						}}
-						eventClick={function (info) {
-							setInfo(info);
-						}}
-						now={now.toISOString()}
-						selectable={true}
-						events={events}
-					/>
+			<div className="row g-4">
+				<div className="col-12 col-lg-8">
+					<div className="card shadow-sm">
+						<div className="card-body">
+							<FullCalendar
+								key={now.toISOString()}
+								plugins={[
+									dayGridPlugin,
+									interactionPlugin,
+									rrulePlugin
+								]}
+								initialView="dayGridMonth"
+								headerToolbar={{
+									left: "prev,next today",
+									center: "title",
+									right: "dayGridMonth,dayGridWeek,dayGridDay"
+								}}
+								eventClick={function (info) {
+									setInfo(info);
+								}}
+								now={now.toISOString()}
+								selectable={true}
+								events={events}
+							/>
+						</div>
+					</div>
 				</div>
-
-				{/* LISTE */}
-				<div>
-					<div style={{ flex: "1" }}>
+				<div className="col-12 col-lg-4 d-flex flex-column gap-4">
+					<div>
 						<ActvList
-							key={now.toISOString()} // forza il rerender della lista quando cambia la virt_date
+							key={now.toISOString()}
 							allactv={allactv ? allactv : []}
 							listClick={show_ActvList_card}
 							setListClick={setShow_ActvList_Card}
@@ -244,7 +196,7 @@ export default function PageCalendar() {
 					</div>
 					<div>
 						<ExpActvList
-							key={now.toISOString()} // forza il rerender della lista quando cambia la virt_date
+							key={now.toISOString()}
 							allactv={allactv ? allactv : []}
 							listClick={show_ExpActvList_card}
 							setListClick={setShow_ExpActvList_Card}
@@ -253,9 +205,9 @@ export default function PageCalendar() {
 							current_date={now}
 						/>
 					</div>
-					<div style={{ flex: "1" }}>
+					<div>
 						<CompletedActvList
-							key={now.toISOString()} // forza il rerender della lista quando cambia la virt_date
+							key={now.toISOString()}
 							allactv={allactv ? allactv : []}
 							listClick={show_CompActv_card}
 							setListClick={setShowCompActv_Card}
@@ -267,7 +219,7 @@ export default function PageCalendar() {
 				</div>
 			</div>
 
-			{/* SEZIONE DEI MODALI */}
+			{/* Modali */}
 			<EventForm
 				show={show_Event_create}
 				setShow={setShow_Event_Create}
