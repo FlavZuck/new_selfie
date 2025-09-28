@@ -1,6 +1,12 @@
 "use server";
 
 import {
+	payload_finepomodoro,
+	payload_iniziopomodoro,
+	payload_pausa,
+	payload_studio
+} from "@/app/lib/definitions/def_notf";
+import {
 	FINE,
 	INIZIO,
 	PAUSA,
@@ -8,15 +14,9 @@ import {
 	Pomodoro_DB,
 	STUDIO
 } from "@/app/lib/definitions/def_pomo";
-import {
-	payload_finepomodoro,
-	payload_iniziopomodoro,
-	payload_pausa,
-	payload_studio
-} from "../lib/definitions/def_notf";
-import { POMODORO, findDB, insertDB, updateDB } from "../lib/mongodb";
-import { getCurrentID } from "./auth_logic";
-import { sendNotification_forPomodoro } from "./notif_logic/push_logic";
+import { POMODORO, findDB, insertDB, updateDB } from "@/app/lib/mongodb";
+import { getCurrentID } from "../auth_logic";
+import { sendNotification_forPomodoro } from "../notif_logic/push_logic";
 
 export async function getPomodoro(): Promise<Pomodoro_CL | null> {
 	const userId = await getCurrentID();
@@ -45,9 +45,11 @@ export async function savePomodoro(
 	studyMin: string,
 	pauseMin: string,
 	savedCycles: number
-) {
+): Promise<{ message: string }> {
 	const userId = await getCurrentID();
-	if (!userId) return;
+	if (!userId) {
+		return { message: "Utente non trovato" };
+	}
 
 	const currDate = new Date();
 	const config = {
@@ -76,16 +78,17 @@ export async function savePomodoro(
 		await insertDB(POMODORO, config);
 	}
 
-	return { message: "Pomodoro created successfully" };
+	return { message: "Pomodoro created/updated successfully" };
 }
 
+// Funzione per inviare notifiche in base al tipo di fase del pomodoro
 export async function notifyPomodoro(
-	typetime: string
+	fase: string
 ): Promise<{ message: string }> {
 	const userId = await getCurrentID();
-	if (!userId) return { message: "Utente non autenticato" };
+	if (!userId) return { message: "Utente non trovato" };
 
-	switch (typetime) {
+	switch (fase) {
 		case INIZIO:
 			await sendNotification_forPomodoro(userId, payload_iniziopomodoro);
 			break;
@@ -99,7 +102,7 @@ export async function notifyPomodoro(
 			await sendNotification_forPomodoro(userId, payload_finepomodoro);
 			break;
 		default:
-			return { message: "Tipo di notifica non valido" };
+			return { message: "Fase non valida" };
 	}
 
 	return { message: "Notifica inviata" };

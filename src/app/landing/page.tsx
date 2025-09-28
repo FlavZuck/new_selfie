@@ -1,4 +1,3 @@
-// Migrated from CSS module to Bootstrap utility classes.
 import Image from "next/image";
 import Link from "next/link";
 
@@ -17,7 +16,7 @@ export default function Landing() {
 					>
 						<Image
 							className="object-fit-contain rounded"
-							src="/bradipo.webp"
+							src="/BarryTheBradypus.jpeg"
 							alt="Bradipo Logo"
 							fill
 							priority

@@ -1,6 +1,17 @@
 "use client";
 
 import {
+	getPomodoro,
+	notifyPomodoro,
+	savePomodoro
+} from "@/app/actions/pomo_logic/pomoback_logic";
+import {
+	calculateProposals,
+	displayTime,
+	formatHHMMSS,
+	inSeconds
+} from "@/app/actions/pomo_logic/pomofront_logic";
+import {
 	FINE,
 	INIZIO,
 	PAUSA,
@@ -10,12 +21,6 @@ import {
 } from "@/app/lib/definitions/def_pomo";
 import Image from "next/image";
 import React, { useEffect, useState } from "react";
-import {
-	getPomodoro,
-	notifyPomodoro,
-	savePomodoro
-} from "../../actions/pomodoro_logic";
-import pomodoro from "../../pomodoro/pomodoro.module.css";
 
 export default function PomodoroTimer() {
 	// Default config (duh)
@@ -42,18 +47,6 @@ export default function PomodoroTimer() {
 	const [proposals, setProposals] = useState<PomodoroProposal[]>([]);
 	const [showProposals, setShowProposals] = useState(false);
 	const [timeUnit, setTimeUnit] = useState<"minutes" | "hours">("minutes");
-
-	// Funzioni di conversione del tempo
-	const inSeconds = (time: string) => {
-		const splitted = time.split(":").map(Number);
-		return splitted[0] * 3600 + splitted[1] * 60 + splitted[2];
-	};
-	const displayTime = (seconds: number) => {
-		const hour = Math.floor(seconds / 3600);
-		const min = Math.floor((seconds % 3600) / 60);
-		const sec = seconds % 60;
-		return `${String(hour).padStart(2, "0")}:${String(min).padStart(2, "0")}:${String(sec).padStart(2, "0")}`;
-	};
 
 	// Carica la config salvata nel DB
 	useEffect(() => {
@@ -85,12 +78,10 @@ export default function PomodoroTimer() {
 
 	// Funzioni di controllo del timer
 	const Start = async () => {
-		console.log("Start. isplaying:", isPlaying);
 		setIsPlaying(true);
 		setSecondsLeft(inSeconds(studyTime));
 		setIsStudyPhase(true);
 		setCurrentCycle(1);
-		console.log("about to Start timer", isPlaying);
 		studyAnimation(inSeconds(studyTime));
 		await notifyStart();
 	};
@@ -145,13 +136,11 @@ export default function PomodoroTimer() {
 	// Funzione di submit del form
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
-		console.log("form submitted:", studyTime, pauseTime, cycles);
 		const validation = await PomodoroSchema.safeParseAsync({
 			studyMin: studyTime,
 			pauseMin: pauseTime,
 			savedCycles: cycles
 		});
-		console.log("validation", validation);
 		if (!validation.success) {
 			console.error(
 				"Validation failed:",
@@ -161,7 +150,6 @@ export default function PomodoroTimer() {
 				errors: validation.error.flatten().fieldErrors
 			};
 		}
-
 		await savePomodoro(studyTime, pauseTime, cycles);
 		setShowProposals(false);
 		setAvailableTime("");
@@ -178,7 +166,7 @@ export default function PomodoroTimer() {
 		);
 	};
 
-	// Countdown del timer, decremento dei secondi
+	// Countdown del timer
 	useEffect(() => {
 		if (!isPlaying) return;
 		const timer = setInterval(() => {
@@ -197,7 +185,7 @@ export default function PomodoroTimer() {
 			setSecondsLeft(inSeconds(pauseTime));
 		} else if (currentCycle < cycles) {
 			notifyPause();
-			setCurrentCycle((c) => c + 1);
+			setCurrentCycle(currentCycle + 1);
 			setIsStudyPhase(true);
 			studyAnimation(inSeconds(studyTime));
 			setSecondsLeft(inSeconds(studyTime));
@@ -217,53 +205,16 @@ export default function PomodoroTimer() {
 		pauseTime
 	]);
 
-	// Funzione per calcolare le proposte in base al tempo disponibile
-	function calculateProposals(totalMinutes: number): PomodoroProposal[] {
-		const proposals: PomodoroProposal[] = [];
-
-		// Combinazioni di studio/pausa comuni
-		const combinations = [
-			{ study: 25, pause: 5 },
-			{ study: 35, pause: 5 },
-			{ study: 40, pause: 5 },
-			{ study: 45, pause: 5 },
-			{ study: 50, pause: 5 },
-			{ study: 30, pause: 10 },
-			{ study: 35, pause: 10 },
-			{ study: 45, pause: 10 },
-			{ study: 50, pause: 10 }
-		];
-
-		combinations.forEach(({ study, pause }) => {
-			const cycleTime = study + pause;
-			const possibleCycles = Math.floor(totalMinutes / cycleTime);
-			const totalTime = possibleCycles * cycleTime;
-
-			if (totalTime === totalMinutes) {
-				proposals.push({
-					cycles: possibleCycles,
-					studyMinutes: study,
-					pauseMinutes: pause,
-					totalTime
-				});
-			}
-		});
-
-		return proposals;
-	}
-
 	// Funzioni per gestire l'animazione del timer
 	function studyAnimation(seconds: number) {
-		console.log("studyanim");
-		setAnimationClass(pomodoro.juiceStudy);
+		setAnimationClass("studyAnim");
 		document.documentElement.style.setProperty(
 			"--animation-duration",
 			`${seconds}s`
 		);
 	}
 	function pauseAnimation(seconds: number) {
-		console.log("pauseanim");
-		setAnimationClass(pomodoro.juicePause);
+		setAnimationClass("pauseAnim");
 		document.documentElement.style.setProperty(
 			"--animation-duration",
 			`${seconds}s`
@@ -280,23 +231,29 @@ export default function PomodoroTimer() {
 
 					<div className="card shadow mb-4">
 						<div className="card-body">
+							{/* Form di input principale */}
 							<form onSubmit={handleSubmit}>
 								<div className="row g-3 mb-4">
+									{/* Input per il tempo di studio */}
 									<div className="col-md-4">
 										<div className="form-floating">
 											<input
-												type="time"
+												type="text"
 												className="form-control"
 												id="studyTime"
 												name="studyTime"
-												min="00:00:00"
-												max="23:59:59"
-												step={10}
 												value={studyTime}
 												onChange={(e) =>
-													setStudyTime(e.target.value)
+													setStudyTime(
+														formatHHMMSS(
+															e.target.value
+														)
+													)
 												}
+												maxLength={8}
 												required
+												pattern="[0-2][0-9]:[0-5][0-9]:[0-5][0-9]"
+												placeholder="HH:MM:SS"
 											/>
 											<label htmlFor="studyTime">
 												Tempo di Studio
@@ -304,21 +261,26 @@ export default function PomodoroTimer() {
 										</div>
 									</div>
 
+									{/* Input per il tempo di pausa */}
 									<div className="col-md-4">
 										<div className="form-floating">
 											<input
-												type="time"
+												type="text"
 												className="form-control"
 												id="pauseTime"
 												name="pauseTime"
-												min="00:00:00"
-												max="23:59:59"
-												step={10}
 												value={pauseTime}
 												onChange={(e) =>
-													setPauseTime(e.target.value)
+													setPauseTime(
+														formatHHMMSS(
+															e.target.value
+														)
+													)
 												}
+												maxLength={8}
 												required
+												pattern="[0-2][0-9]:[0-5][0-9]:[0-5][0-9]"
+												placeholder="HH:MM:SS"
 											/>
 											<label htmlFor="pauseTime">
 												Tempo di Pausa
@@ -326,6 +288,7 @@ export default function PomodoroTimer() {
 										</div>
 									</div>
 
+									{/* Input per il numero di cicli */}
 									<div className="col-md-4">
 										<div className="form-floating">
 											<input
@@ -348,6 +311,7 @@ export default function PomodoroTimer() {
 									</div>
 								</div>
 
+								{/* Bottoni di controllo */}
 								<div className="d-flex gap-2 flex-wrap justify-content-center">
 									<button
 										className="btn btn-success"
@@ -393,6 +357,7 @@ export default function PomodoroTimer() {
 						</div>
 					</div>
 
+					{/* Didascalia di stato */}
 					{isPlaying && (
 						<div className="alert alert-info text-center mb-4">
 							<h4 className="alert-heading mb-0">
@@ -404,6 +369,7 @@ export default function PomodoroTimer() {
 						</div>
 					)}
 
+					{/* Timer Pomodoro */}
 					<div
 						className="position-relative mx-auto"
 						style={{ width: "400px", height: "400px" }}
@@ -424,63 +390,62 @@ export default function PomodoroTimer() {
 								height: "264px",
 								borderRadius:
 									"60% 60% 50% 50% / 70% 70% 50% 50%",
-								backgroundColor: "#e34c26",
 								top: "57%",
 								left: "50%",
 								transform: "translate(-50%, -50%)",
-								zIndex: 1
+								overflow: "hidden",
+								zIndex: 1,
+								border: "2px solid #e34c26"
 							}}
-							className={animationClass}
+							className={animationClass + " progress-container"}
 						>
+							<div className="progress-fill" />
+
+							{/* Animazioni CSS */}
 							<style jsx>{`
-								@keyframes spin {
-									0% {
-										transform: translateY(0%) rotate(0deg);
-									}
-									100% {
-										transform: translateY(-75%)
-											rotate(720deg);
-									}
+								.progress-container {
+									position: relative;
+									background: #2ecc71;
 								}
-
-								@keyframes spinreverse {
-									0% {
-										transform: translateY(0%) rotate(0deg);
-									}
-									100% {
-										transform: translateY(75%)
-											rotate(720deg);
-									}
-								}
-
-								.juiceStudy::after {
-									content: "";
+								.progress-fill {
 									position: absolute;
-									height: 100%;
-									width: 100%;
 									bottom: 0;
 									left: 0;
-									z-index: -1;
-									background-color: white;
-									border-radius: 40%;
-									animation: spin var(--animation-duration)
+									width: 100%;
+									height: 100%;
+									transform-origin: bottom;
+									background: linear-gradient(
+										to top,
+										#e74c3c
+									);
+									filter: brightness(0.95);
+								}
+
+								@keyframes fillUp {
+									0% {
+										transform: scaleY(0);
+									}
+									100% {
+										transform: scaleY(1);
+									}
+								}
+								@keyframes fillDown {
+									0% {
+										transform: scaleY(1);
+									}
+									100% {
+										transform: scaleY(0);
+									}
+								}
+
+								.studyAnim .progress-fill {
+									animation: fillUp var(--animation-duration)
 										linear forwards;
 								}
-
-								.juicePause::after {
-									content: "";
-									position: absolute;
-									height: 100%;
-									width: 100%;
-									bottom: 0;
-									left: 0;
-									z-index: -1;
-									background-color: white;
-									border-radius: 40%;
-									animation: spinreverse
+								.pauseAnim .progress-fill {
+									animation: fillDown
 										var(--animation-duration) linear
 										forwards;
-									top: -75%;
 								}
 							`}</style>
 						</div>
@@ -496,6 +461,7 @@ export default function PomodoroTimer() {
 						)}
 					</div>
 
+					{/* Form per il calcolo delle proposte */}
 					<div className="card shadow mt-4">
 						<div className="card-body">
 							<h2 className="card-title h4 mb-4">
@@ -632,7 +598,3 @@ export default function PomodoroTimer() {
 		</div>
 	);
 }
-
-// • Input di ore/minuti e proposta durata ciclo
-// • Notifica per inizio ciclo, passaggio da una fase alla
-// successiva, fine ciclo.
