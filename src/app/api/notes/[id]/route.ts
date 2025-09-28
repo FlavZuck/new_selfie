@@ -1,15 +1,8 @@
 import { note } from "@/app/lib/definitions/def_note";
-import isAuthenticated from "@/middleware";
 import { ObjectId } from "mongodb";
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentID } from "../../../actions/auth_logic";
-import {
-	NOTES,
-	deleteDB,
-	findDB,
-	insertDB,
-	updateDB
-} from "../../../lib/mongodb";
+import { NOTES, deleteDB, findDB, updateDB } from "../../../lib/mongodb";
 
 //implementazione della classe presa da https://javascript.info/custom-errors
 class HTTPError extends Error {
@@ -53,9 +46,11 @@ async function updateNote(
 		}
 	);
 	if (result.modifiedCount === 0) {
-		throw new Error("id non corrispondente ad alcuna nota");
+		throw new Error(
+			"id non corrispondente ad alcuna nota, valore ottenuto: " + id
+		);
 	}
-	let updatedNote = await getNote(id);
+	const updatedNote = await getNote(id);
 	if (!updatedNote) {
 		throw new Error("questa cosa non è possibile");
 	}
@@ -63,7 +58,7 @@ async function updateNote(
 }
 
 async function deleteNote(id: string): Promise<void> {
-	let userId = await getCurrentID();
+	const userId = await getCurrentID();
 	if (!userId) {
 		throw new Error("Utente non autenticato");
 	}
@@ -77,7 +72,7 @@ async function deleteNote(id: string): Promise<void> {
 		throw new Error("Questa nota non ti appartiene");
 	}
 
-	let result = await deleteDB(NOTES, {
+	const result = await deleteDB(NOTES, {
 		_id: new ObjectId(id)
 	});
 	console.log("deleteNote result:", result);
@@ -87,9 +82,10 @@ export async function GET(
 	request: NextRequest,
 	{ params }: { params: { id: string } }
 ) {
+	const { id } = await params;
 	let note: note | null;
 	try {
-		note = await getNote(params.id);
+		note = await getNote(id);
 	} catch (error) {
 		if (error instanceof HTTPError) {
 			return NextResponse.json(
@@ -112,9 +108,10 @@ export async function PUT(
 	request: NextRequest,
 	{ params }: { params: { id: string } }
 ) {
-	let { id } = await params;
-	let reqData = await request.json();
-	let updatedNote = await updateNote(id, reqData as Partial<note>);
+	const { id } = await params;
+	const reqData = await request.json();
+	const updatedNote = await updateNote(id, reqData as Partial<note>);
+	updatedNote.modified = new Date();
 	return NextResponse.json(updatedNote, { status: 200 });
 }
 
@@ -122,7 +119,7 @@ export async function DELETE(
 	request: NextRequest,
 	{ params }: { params: { id: string } }
 ) {
-	let { id } = await params;
+	const { id } = await params;
 	deleteNote(id);
 	return NextResponse.json({ message: `note deleted` }, { status: 200 });
 }

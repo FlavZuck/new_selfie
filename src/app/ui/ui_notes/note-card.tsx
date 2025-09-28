@@ -5,11 +5,11 @@ import type { note } from "../../lib/definitions/def_note";
 
 export default function NoteCard({
 	passedNote,
-	onClick,
+	onEdit,
 	onDelete
 }: {
 	passedNote: note;
-	onClick: () => void | null;
+	onEdit: (id: string) => void;
 	onDelete: (id: string) => void;
 }) {
 	async function deleteNote() {
@@ -18,15 +18,21 @@ export default function NoteCard({
 		});
 		onDelete(String(passedNote._id));
 	}
+
 	return (
 		<div className={"card"} style={{ display: "block" }}>
 			<div className={"card-header"}>
-				<button className={"btn-primary"} onClick={deleteNote}>
+				<button className={"btn"} onClick={deleteNote}>
 					ELIMINA
 				</button>
 			</div>
 
-			<button className={"card-body"}>
+			<button
+				className={"btn"}
+				onClick={() => {
+					onEdit(String(passedNote._id));
+				}}
+			>
 				{passedNote.title}
 				<br />
 				{passedNote.content}

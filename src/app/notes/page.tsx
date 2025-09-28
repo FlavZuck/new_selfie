@@ -1,9 +1,6 @@
 "use client";
 
-import { ObjectId } from "mongodb";
-import { cookies } from "next/headers";
 import { useEffect, useState } from "react";
-import { set } from "zod";
 import type { note } from "../lib/definitions/def_note";
 import NoteCard from "../ui/ui_notes/note-card";
 
@@ -80,7 +77,7 @@ export default function Notes() {
 	//const [sortingMode, setSortingMode] = useState();
 	//const [openedId, setOpenedId] = useState(new ObjectId(""));
 
-	let openedId: ObjectId | null = null;
+	let openedId: string | null = null;
 
 	async function fetchNotes() {
 		const data = await fetch("/api/notes", { method: "GET" });
@@ -122,10 +119,28 @@ export default function Notes() {
 	}*/
 
 	// TODO analizzare tutte queste funzioni nell'ottica di separation of concerns
-	async function newNote() {
+	function initNoteDialog(note: note) {
 		const dialog = document.querySelector(
 			"#noteDialog"
 		) as HTMLDialogElement;
+		const inputTitolo = dialog.querySelector(
+			"input[name='titoloNota']"
+		) as HTMLInputElement;
+		const inputTesto = dialog.querySelector(
+			"textarea[name='testoNota']"
+		) as HTMLInputElement;
+		inputTitolo.value = note ? `${note.title}` : ""; //accenti necessari per portare String a string
+		inputTesto.value = note ? `${note.content}` : "";
+		//const inputTags = dialog.querySelector("input[name='tagsNota']") as HTMLInputElement;
+	}
+	function showNoteDialog() {
+		const dialog = document.querySelector(
+			"#noteDialog"
+		) as HTMLDialogElement;
+		dialog.showModal();
+	}
+
+	async function newNote() {
 		const response = await fetch("/api/notes", {
 			method: "POST",
 			body: JSON.stringify({
@@ -140,12 +155,16 @@ export default function Notes() {
 			return;
 		}
 		openedId = responseData.insertedId;
-		dialog.showModal();
+		showNoteDialog();
 	}
 
-	async function openNote(id: ObjectId) {}
-
-	function showNoteDialog() {}
+	async function editNote(noteId: string) {
+		openedId = noteId;
+		const response = await fetch(`/api/notes/${noteId}`, { method: "GET" });
+		const noteData = await response.json();
+		initNoteDialog(noteData);
+		showNoteDialog();
+	}
 
 	async function sendNote() {
 		const titleInput = document.querySelector(
@@ -165,13 +184,18 @@ export default function Notes() {
 			})
 		});
 		const sentNote = await PUTresponse.json();
+		sentNote.created = new Date(sentNote.created);
+		sentNote.modified = new Date(sentNote.modified);
 		setNotes(
-			notes.concat(sentNote).sort((a: note, b: note) => {
-				return (
-					new Date(b.modified).getTime() -
-					new Date(a.modified).getTime()
-				);
-			})
+			notes
+				.filter((note) => String(note._id) !== openedId)
+				.concat(sentNote)
+				.sort((a: note, b: note) => {
+					return (
+						new Date(b.modified).getTime() -
+						new Date(a.modified).getTime()
+					);
+				})
 		);
 		(document.querySelector("#noteForm") as HTMLFormElement).reset();
 		openedId = null;
@@ -209,9 +233,7 @@ export default function Notes() {
 					<li key={index}>
 						<NoteCard
 							passedNote={note}
-							onClick={() => {
-								console.log("cliccato");
-							}}
+							onEdit={editNote}
 							onDelete={(id: string) => {
 								setNotes(
 									notes.filter(
