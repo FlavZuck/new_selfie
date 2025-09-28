@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+//import { useEffect, useState } from "react";
 import type { note } from "../../lib/definitions/def_note";
 
 export default function NoteCard({
@@ -19,14 +19,20 @@ export default function NoteCard({
 		onDelete(String(passedNote._id));
 	}
 	return (
-		<div className={"note-card"} style={{ display: "block" }}>
-			<button onClick={deleteNote}>ELIMINA</button>
-			<br />
-			{passedNote.title}
-			<br />
-			{passedNote.content}
-			<br />
-			{passedNote.modified.toString()}
+		<div className={"card"} style={{ display: "block" }}>
+			<div className={"card-header"}>
+				<button className={"btn-primary"} onClick={deleteNote}>
+					ELIMINA
+				</button>
+			</div>
+
+			<button className={"card-body"}>
+				{passedNote.title}
+				<br />
+				{passedNote.content}
+				<br />
+				{passedNote.modified.toString()}
+			</button>
 		</div>
 	);
 }

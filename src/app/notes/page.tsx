@@ -126,7 +126,7 @@ export default function Notes() {
 		const dialog = document.querySelector(
 			"#noteDialog"
 		) as HTMLDialogElement;
-		let response = await fetch("/api/notes", {
+		const response = await fetch("/api/notes", {
 			method: "POST",
 			body: JSON.stringify({
 				title: "",
@@ -134,7 +134,7 @@ export default function Notes() {
 				tags: []
 			})
 		});
-		let responseData = await response.json();
+		const responseData = await response.json();
 		if (response.status !== 200) {
 			console.error("ERRORE IN NEWNOTE");
 			return;
@@ -148,14 +148,14 @@ export default function Notes() {
 	function showNoteDialog() {}
 
 	async function sendNote() {
-		let titleInput = document.querySelector(
+		const titleInput = document.querySelector(
 			"#noteDialog input[name='titoloNota']"
 		) as HTMLInputElement;
-		let contentInput = document.querySelector(
+		const contentInput = document.querySelector(
 			"#noteDialog textarea[name='testoNota']"
 		) as HTMLInputElement;
 		console.log("title, content components: ", titleInput, contentInput);
-		let PUTresponse = await fetch(`/api/notes/${openedId}`, {
+		const PUTresponse = await fetch(`/api/notes/${openedId}`, {
 			method: "PUT",
 			//TODO: aggiungere tag
 			body: JSON.stringify({
@@ -164,7 +164,7 @@ export default function Notes() {
 				tags: []
 			})
 		});
-		let sentNote = await PUTresponse.json();
+		const sentNote = await PUTresponse.json();
 		setNotes(
 			notes.concat(sentNote).sort((a: note, b: note) => {
 				return (
@@ -209,7 +209,9 @@ export default function Notes() {
 					<li key={index}>
 						<NoteCard
 							passedNote={note}
-							onClick={() => {}}
+							onClick={() => {
+								console.log("cliccato");
+							}}
 							onDelete={(id: string) => {
 								setNotes(
 									notes.filter(
