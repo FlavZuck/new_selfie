@@ -9,6 +9,11 @@ export const PomodoroSchema = z.object({
 	})
 });
 
+export const INIZIO = "inizio";
+export const STUDIO = "studio";
+export const PAUSA = "pausa";
+export const FINE = "fine";
+
 export type PomodoroState =
 	| {
 			errors?: {

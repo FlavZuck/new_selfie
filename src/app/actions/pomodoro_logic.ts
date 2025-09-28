@@ -1,8 +1,22 @@
 "use server";
 
-import { Pomodoro_CL, Pomodoro_DB } from "@/app/lib/definitions/def_pomo";
+import {
+	FINE,
+	INIZIO,
+	PAUSA,
+	Pomodoro_CL,
+	Pomodoro_DB,
+	STUDIO
+} from "@/app/lib/definitions/def_pomo";
+import {
+	payload_finepomodoro,
+	payload_iniziopomodoro,
+	payload_pausa,
+	payload_studio
+} from "../lib/definitions/def_notf";
 import { POMODORO, findDB, insertDB, updateDB } from "../lib/mongodb";
 import { getCurrentID } from "./auth_logic";
+import { sendNotification_forPomodoro } from "./notif_logic/push_logic";
 
 export async function getPomodoro(): Promise<Pomodoro_CL | null> {
 	const userId = await getCurrentID();
@@ -63,4 +77,30 @@ export async function savePomodoro(
 	}
 
 	return { message: "Pomodoro created successfully" };
+}
+
+export async function notifyPomodoro(
+	typetime: string
+): Promise<{ message: string }> {
+	const userId = await getCurrentID();
+	if (!userId) return { message: "Utente non autenticato" };
+
+	switch (typetime) {
+		case INIZIO:
+			await sendNotification_forPomodoro(userId, payload_iniziopomodoro);
+			break;
+		case STUDIO:
+			await sendNotification_forPomodoro(userId, payload_studio);
+			break;
+		case PAUSA:
+			await sendNotification_forPomodoro(userId, payload_pausa);
+			break;
+		case FINE:
+			await sendNotification_forPomodoro(userId, payload_finepomodoro);
+			break;
+		default:
+			return { message: "Tipo di notifica non valido" };
+	}
+
+	return { message: "Notifica inviata" };
 }

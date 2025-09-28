@@ -1,12 +1,20 @@
 "use client";
 
 import {
+	FINE,
+	INIZIO,
+	PAUSA,
 	PomodoroProposal,
-	PomodoroSchema
+	PomodoroSchema,
+	STUDIO
 } from "@/app/lib/definitions/def_pomo";
 import Image from "next/image";
 import React, { useEffect, useState } from "react";
-import { getPomodoro, savePomodoro } from "../../actions/pomodoro_logic";
+import {
+	getPomodoro,
+	notifyPomodoro,
+	savePomodoro
+} from "../../actions/pomodoro_logic";
 import pomodoro from "../../pomodoro/pomodoro.module.css";
 
 export default function PomodoroTimer() {
@@ -61,8 +69,22 @@ export default function PomodoroTimer() {
 		loadConfig();
 	}, []);
 
+	// Funzioni di notifica
+	const notifyStart = async () => {
+		await notifyPomodoro(INIZIO);
+	};
+	const notifyStudy = async () => {
+		await notifyPomodoro(STUDIO);
+	};
+	const notifyPause = async () => {
+		await notifyPomodoro(PAUSA);
+	};
+	const notifyEnd = async () => {
+		await notifyPomodoro(FINE);
+	};
+
 	// Funzioni di controllo del timer
-	const Start = () => {
+	const Start = async () => {
 		console.log("Start. isplaying:", isPlaying);
 		setIsPlaying(true);
 		setSecondsLeft(inSeconds(studyTime));
@@ -70,6 +92,7 @@ export default function PomodoroTimer() {
 		setCurrentCycle(1);
 		console.log("about to Start timer", isPlaying);
 		studyAnimation(inSeconds(studyTime));
+		await notifyStart();
 	};
 	const Clear = () => {
 		setStudyTime(defaultConfig.studyMin);
@@ -142,7 +165,7 @@ export default function PomodoroTimer() {
 		await savePomodoro(studyTime, pauseTime, cycles);
 		setShowProposals(false);
 		setAvailableTime("");
-		Start();
+		await Start();
 	};
 
 	// Funzione di reset del form
@@ -155,48 +178,50 @@ export default function PomodoroTimer() {
 		);
 	};
 
-	// UseEffect per gestisce il timer grafico nel pomodoro
+	// Countdown del timer, decremento dei secondi
 	useEffect(() => {
-		console.log("startTimer", isPlaying);
 		if (!isPlaying) return;
-		console.log("Timer started");
-
 		const timer = setInterval(() => {
-			setSecondsLeft((prev) => {
-				console.log(prev);
-				if (prev <= 1) {
-					if (isStudyPhase) {
-						console.log("Study phase ended");
-						setIsStudyPhase(false);
-						pauseAnimation(inSeconds(pauseTime));
-						return inSeconds(pauseTime);
-					} else {
-						if (currentCycle < cycles) {
-							console.log("Pause phase ended");
-							setIsStudyPhase(true);
-							setCurrentCycle(currentCycle + 1);
-							studyAnimation(inSeconds(studyTime));
-							return inSeconds(studyTime);
-						} else {
-							setIsPlaying(false);
-							clearInterval(timer);
-							setAnimationClass("");
-							return 0;
-						}
-					}
-				}
-
-				return prev - 1;
-			});
+			setSecondsLeft((prev) => Math.max(prev - 1, 0));
 		}, 1000);
 		return () => clearInterval(timer);
-	}, [isPlaying, isStudyPhase, currentCycle, cycles, studyTime, pauseTime]);
+	}, [isPlaying]);
+
+	// Transizione delle fasi: notifiche singole e cambio fase
+	useEffect(() => {
+		if (!isPlaying || secondsLeft > 0) return;
+		if (isStudyPhase) {
+			notifyStudy();
+			setIsStudyPhase(false);
+			pauseAnimation(inSeconds(pauseTime));
+			setSecondsLeft(inSeconds(pauseTime));
+		} else if (currentCycle < cycles) {
+			notifyPause();
+			setCurrentCycle((c) => c + 1);
+			setIsStudyPhase(true);
+			studyAnimation(inSeconds(studyTime));
+			setSecondsLeft(inSeconds(studyTime));
+		} else {
+			notifyEnd();
+			setIsPlaying(false);
+			setAnimationClass("");
+			setSecondsLeft(0);
+		}
+	}, [
+		secondsLeft,
+		isPlaying,
+		isStudyPhase,
+		currentCycle,
+		cycles,
+		studyTime,
+		pauseTime
+	]);
 
 	// Funzione per calcolare le proposte in base al tempo disponibile
 	function calculateProposals(totalMinutes: number): PomodoroProposal[] {
 		const proposals: PomodoroProposal[] = [];
 
-		// Common study/pause time combinations
+		// Combinazioni di studio/pausa comuni
 		const combinations = [
 			{ study: 25, pause: 5 },
 			{ study: 35, pause: 5 },

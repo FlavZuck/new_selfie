@@ -74,7 +74,7 @@ export async function sendNotification_forCalendar(
 	if (!subscription_array) {
 		throw new Error("User subscription not found");
 	}
-	// Controlliamo se l'array è un array (non dovrebbe più succedere)
+	// Controlliamo se l'array è un array (obsoleto come controllo, ma lo lascio per sicurezza)
 	if (!Array.isArray(subscription_array)) {
 		throw new Error("Subscription array is not an array");
 	}
@@ -84,6 +84,30 @@ export async function sendNotification_forCalendar(
 		await sendNotificationToAllDevices(subscription_array, payload);
 	} catch (err: any) {
 		console.log("Activity causing the error: ", cale_object.title);
+		//throw new Error("Error sending notification: " + err);
+		console.log("Error sending notification: ", err);
+	}
+}
+
+export async function sendNotification_forPomodoro(
+	userId: string,
+	payload: payload_type
+) {
+	const subscription_array = await getUserSubscriptions(userId);
+
+	// Controlliamo se l'array è vuoto
+	if (!subscription_array) {
+		throw new Error("User subscription not found");
+	}
+	// Controlliamo se l'array è un array (obsoleto come controllo, ma lo lascio per sicurezza)
+	if (!Array.isArray(subscription_array)) {
+		throw new Error("Subscription array is not an array");
+	}
+	// Proviamo a inviare la notifica
+	try {
+		await sendNotificationToAllDevices(subscription_array, payload);
+	} catch (err: any) {
+		console.log("User causing the error: ", userId);
 		//throw new Error("Error sending notification: " + err);
 		console.log("Error sending notification: ", err);
 	}
