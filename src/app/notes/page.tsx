@@ -1,80 +1,23 @@
 "use client";
 
+import { ObjectId } from "mongodb";
 import { useEffect, useState } from "react";
-import type { note } from "../lib/definitions/def_note";
+import {
+	NoteSorter,
+	note,
+	sortDirection,
+	sortMode
+} from "../lib/definitions/def_note";
 import NoteCard from "../ui/ui_notes/note-card";
-
-// TODO: sorting ascendente o discendente
-//  possibile tramite parametro nel metodo sort???
-
-//Strategy pattern perché posso
-// e tutti zitti
-/*interface NoteSorting {
-	sort(notes: note[], direction): note[];
-}
-
-class SortByModified implements NoteSorting {
-	sort(notes: note[], direction): note[] {
-		notes.sort((a: note, b: note) => {
-			return b.modified.getTime() - a.modified.getTime();
-		});
-		return notes;
-	}
-}
-
-class SortByCreated implements NoteSorting {
-	sort(notes: note[], direction): note[] {
-		notes.sort((a: note, b: note) => {
-			return b.created.getTime() - a.created.getTime();
-		});
-		return notes;
-	}
-}
-class SortByTitle implements NoteSorting {
-	sort(notes: note[], direction): note[] {
-		notes.sort();
-		return notes;
-	}
-}
-
-class SortByContentLength implements NoteSorting {
-	sort(notes: note[], direction): note[] {
-		notes.sort((a: note, b: note) => {
-			if (a.content && !b.content) {
-				return -1;
-			} else if (!a.content && b.content) {
-				return 1;
-			} else if (!a.content && !b.content) {
-				return 0;
-			}
-			return a.content?.length - b.content?.length;
-		});
-		return notes;
-	}
-}
-
-class SortingContext {
-	private strategy: NoteSorting;
-	private direction: "asc" | "desc";
-
-	constructor(mode: NoteSorting, direction: "asc" | "desc") {
-		this.strategy = mode;
-	}
-
-	setSortingMode(mode: NoteSorting) {
-		this.strategy = mode;
-	}
-
-	sort(notearray: note[], direction): note[] {
-		return this.strategy.sort(notearray);
-	}
-}*/
 
 export default function Notes() {
 	const [notes, setNotes] = useState([] as note[]);
 	const [loading, setLoading] = useState(true);
+	const [sortingMode, setSortingMode] = useState(
+		new NoteSorter("byCreated", 1)
+	);
+	const [sortDirection, setSortDirection] = useState(1 as sortDirection);
 	//const [deletedId, setDeletedId] = useState(false);
-	//const [sortingMode, setSortingMode] = useState();
 	//const [openedId, setOpenedId] = useState(new ObjectId(""));
 
 	let openedId: string | null = null;
@@ -105,11 +48,7 @@ export default function Notes() {
 		});
 
 		//TODO: Sorting fatto rispetto alla scelta dell'utente, da memorizzare dove?
-		notesData.sort((a: note, b: note) => {
-			return b.modified.getTime() - a.modified.getTime();
-		});
-
-		setNotes(notesData as note[]);
+		setNotes(sortingMode.sort(notesData));
 		setLoading(false);
 	}
 
@@ -187,26 +126,38 @@ export default function Notes() {
 		sentNote.created = new Date(sentNote.created);
 		sentNote.modified = new Date(sentNote.modified);
 		setNotes(
-			notes
-				.filter((note) => String(note._id) !== openedId)
-				.concat(sentNote)
-				.sort((a: note, b: note) => {
-					return (
-						new Date(b.modified).getTime() -
-						new Date(a.modified).getTime()
-					);
-				})
+			sortingMode.sort(
+				notes
+					.filter((note) => String(note._id) !== openedId)
+					.concat(sentNote)
+			)
 		);
 		(document.querySelector("#noteForm") as HTMLFormElement).reset();
 		openedId = null;
 	}
 
-	/*function sortNotes() {
+	function setSorting() {
+		setSortingMode(
+			new NoteSorter(
+				(document.querySelector("select") as HTMLSelectElement)
+					.value as sortMode,
+				sortDirection
+			)
+		);
+		setNotes(sortingMode.sort(notes));
 	}
 
-	useEffect(() => {
-		sortNotes();
-	}, [[notes]]);*/
+	function setDirection() {
+		setSortDirection((sortDirection * -1) as sortDirection);
+		setSortingMode(
+			new NoteSorter(
+				(document.querySelector("select") as HTMLSelectElement)
+					.value as sortMode,
+				sortDirection
+			)
+		);
+		setNotes(sortingMode.sort(notes));
+	}
 
 	useEffect(() => {
 		fetchNotes();
@@ -222,10 +173,22 @@ export default function Notes() {
 			<button id="newNoteButton" onClick={newNote}>
 				Nuova nota
 			</button>
-			<ul
+
+			<select onChange={setSorting}>
+				<option value="byModified">Ordina per data di modifica</option>
+				<option value="byCreated">Ordina per data di creazione</option>
+				<option value="byTitle">Ordina per titolo</option>
+				<option value="byContentLength">
+					Ordina per lunghezza del testo
+				</option>
+			</select>
+
+			<button id="directionButton" onClick={setDirection}></button>
+
+			<ol
 				style={{
 					display: "grid",
-					gridTemplateColumns: "50vw 50vw",
+					gridTemplateColumns: "33% 33% 33%",
 					listStyleType: "none"
 				}}
 			>
@@ -241,10 +204,23 @@ export default function Notes() {
 									)
 								);
 							}}
+							onDuplicate={(id: ObjectId) => {
+								setNotes(
+									notes.concat({
+										_id: id,
+										title: note.title + " (Copia)",
+										content: note.content,
+										tags: note.tags,
+										owner: note.owner,
+										created: new Date(),
+										modified: new Date()
+									} as note)
+								);
+							}}
 						></NoteCard>
 					</li>
 				))}
-			</ul>
+			</ol>
 			<dialog id="noteDialog">
 				<form id="noteForm" method="dialog" onSubmit={sendNote}>
 					<label htmlFor="titoloNota">Titolo della nota</label>

@@ -23,6 +23,13 @@ export type note = {
 	modified: Date;
 };
 
+export type sortMode =
+	| "byModified"
+	| "byCreated"
+	| "byTitle"
+	| "byContentLength";
+export type sortDirection = -1 | 1;
+
 //TODO: CONSIDERARE TIPO NOTEREQUEST CON SOLO (OWNER?), TITLE, CONTENT, TAGS
 
 export const NoteFormSchema = z.object({
@@ -30,3 +37,101 @@ export const NoteFormSchema = z.object({
 	content: z.string().trim(),
 	tags: z.array(z.string().trim()).optional()
 });
+
+//Strategy pattern perché posso
+// e tutti zitti
+export interface NoteSorting {
+	sort(notes: note[], direction: sortDirection): note[];
+}
+
+class SortByModified implements NoteSorting {
+	sort(notes: note[], direction: sortDirection): note[] {
+		notes.sort((a: note, b: note) => {
+			return direction * (b.modified.getTime() - a.modified.getTime());
+		});
+		return notes;
+	}
+}
+
+class SortByCreated implements NoteSorting {
+	sort(notes: note[], direction: sortDirection): note[] {
+		notes.sort((a: note, b: note) => {
+			return direction * (b.created.getTime() - a.created.getTime());
+		});
+		return notes;
+	}
+}
+class SortByTitle implements NoteSorting {
+	sort(notes: note[], direction: sortDirection): note[] {
+		notes.sort((a: note, b: note) => {
+			return (
+				(a.title > b.title ? 1 : a.title < b.title ? -1 : 0) * direction
+			);
+		});
+		return notes;
+	}
+}
+
+class SortByContentLength implements NoteSorting {
+	sort(notes: note[], direction: sortDirection): note[] {
+		notes.sort((a: note, b: note) => {
+			const al = a.content ? a.content.length : 0;
+			const bl = b.content ? b.content.length : 0;
+			return direction * (al - bl);
+		});
+		return notes;
+	}
+}
+
+export class NoteSorter {
+	private strategy: NoteSorting;
+	private direction: sortDirection;
+
+	constructor(mode: sortMode, direction: sortDirection) {
+		this.direction = direction;
+		switch (mode) {
+			case "byModified":
+				this.strategy = new SortByModified();
+				break;
+			case "byCreated":
+				this.strategy = new SortByCreated();
+				break;
+			case "byTitle":
+				this.strategy = new SortByTitle();
+				break;
+			case "byContentLength":
+				this.strategy = new SortByContentLength();
+				break;
+			default:
+				this.strategy = new SortByModified();
+				break;
+		}
+	}
+
+	setSortingMode(mode: sortMode) {
+		switch (mode) {
+			case "byModified":
+				this.strategy = new SortByModified();
+				break;
+			case "byCreated":
+				this.strategy = new SortByCreated();
+				break;
+			case "byTitle":
+				this.strategy = new SortByTitle();
+				break;
+			case "byContentLength":
+				this.strategy = new SortByContentLength();
+				break;
+			default:
+				this.strategy = new SortByModified();
+		}
+	}
+
+	setSortingDirection(direction: sortDirection) {
+		this.direction = direction;
+	}
+
+	sort(notearray: note[]): note[] {
+		return this.strategy.sort(notearray, this.direction);
+	}
+}

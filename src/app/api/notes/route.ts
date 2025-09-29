@@ -1,9 +1,8 @@
 import { ObjectId } from "mongodb";
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentID } from "../../actions/auth_logic";
-import isAuthenticated from "../../actions/auth_logic";
 import type { note } from "../../lib/definitions/def_note";
-import { NOTES, findAllDB, findCollection, insertDB } from "../../lib/mongodb";
+import { NOTES, findAllDB, insertDB } from "../../lib/mongodb";
 
 async function getNotes(): Promise<note[]> {
 	const userId = await getCurrentID();
@@ -75,7 +74,7 @@ export async function POST(req: NextRequest) {
 		);
 	}
 
-	let res = NextResponse.json(
+	const res = NextResponse.json(
 		{
 			message: "Nota aggiunta con successo",
 			insertedId: newNoteId.toString()

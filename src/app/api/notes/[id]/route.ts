@@ -42,7 +42,8 @@ async function updateNote(
 		{
 			title: updatedFields.title,
 			content: updatedFields.content,
-			tags: updatedFields.tags
+			tags: updatedFields.tags,
+			modified: new Date()
 		}
 	);
 	if (result.modifiedCount === 0) {
@@ -111,7 +112,6 @@ export async function PUT(
 	const { id } = await params;
 	const reqData = await request.json();
 	const updatedNote = await updateNote(id, reqData as Partial<note>);
-	updatedNote.modified = new Date();
 	return NextResponse.json(updatedNote, { status: 200 });
 }
 
