@@ -67,9 +67,18 @@ export default function Notes() {
 		const inputTesto = dialog.querySelector(
 			"textarea[name='testoNota']"
 		) as HTMLInputElement;
+		const tagslist = dialog.querySelector("#tagslist") as HTMLDivElement;
+		note.tags.forEach((tag) => {
+			const newTag = document.createElement("span");
+			newTag.className = "badge bg-secondary m-1";
+			newTag.textContent = tag.toString();
+			newTag.onclick = () => {
+				newTag.remove();
+			};
+			tagslist?.appendChild(newTag);
+		});
 		inputTitolo.value = note ? `${note.title}` : ""; //accenti necessari per portare String a string
 		inputTesto.value = note ? `${note.content}` : "";
-		//const inputTags = dialog.querySelector("input[name='tagsNota']") as HTMLInputElement;
 	}
 	function showNoteDialog() {
 		const dialog = document.querySelector(
@@ -113,14 +122,19 @@ export default function Notes() {
 		const contentInput = document.querySelector(
 			"#noteDialog textarea[name='testoNota']"
 		) as HTMLInputElement;
+		const tagsList = document.querySelectorAll("#tagslist span");
+		// eslint-disable-next-line @typescript-eslint/no-wrapper-object-types
+		const tags: String[] = [];
+		tagsList.forEach((tag) =>
+			tag.textContent ? tags.push(tag.textContent) : null
+		);
 		console.log("title, content components: ", titleInput, contentInput);
 		const PUTresponse = await fetch(`/api/notes/${openedId}`, {
 			method: "PUT",
-			//TODO: aggiungere tag
 			body: JSON.stringify({
 				title: titleInput ? titleInput.value : "", //ternario invece di || perché titleInput può essere null, inoltre: titleInput.value può essere una stringa vuota, e se è così scelgo lui invece della mia stringa vuota
 				content: contentInput ? contentInput.value : "", //nella mia testa è più significativo così
-				tags: []
+				tags: tags
 			})
 		});
 		const sentNote = await PUTresponse.json();
@@ -134,6 +148,7 @@ export default function Notes() {
 			)
 		);
 		(document.querySelector("#noteForm") as HTMLFormElement).reset();
+		(document.querySelector("#tagslist") as HTMLDivElement).innerHTML = "";
 		setOpenedId(null);
 	}
 
@@ -150,6 +165,8 @@ export default function Notes() {
 
 	function setDirection() {
 		setSortDirection((sortDirection * -1) as sortDirection);
+		document.querySelector("#directionButton")!.textContent =
+			sortDirection === 1 ? "⬆️" : "⬇️";
 		setSortingMode(
 			new NoteSorter(
 				(document.querySelector("select") as HTMLSelectElement)
@@ -160,8 +177,21 @@ export default function Notes() {
 		setNotes(sortingMode.sort(notes));
 	}
 
+	function filterByTag() {
+		const wanted = (
+			document.querySelector("#tagFilter") as HTMLSelectElement
+		).value;
+		console.log("wanted: ", wanted);
+		if (wanted !== "all") {
+			setNotes(notes.filter((note) => note.tags.includes(wanted)));
+		} else {
+			fetchNotes();
+		}
+	}
+
 	useEffect(() => {
 		fetchNotes();
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [sortingMode, sortDirection]);
 
 	if (loading) {
@@ -184,7 +214,20 @@ export default function Notes() {
 				</option>
 			</select>
 
-			<button id="directionButton" onClick={setDirection}></button>
+			<button id="directionButton" onClick={setDirection}>
+				⬇️
+			</button>
+
+			<select id="tagFilter" onChange={filterByTag}>
+				<option value="all">Tutte le note</option>
+				{notes.map((note) =>
+					note.tags.map((tag) => (
+						<option key={tag.toString()} value={tag.toString()}>
+							{tag.toString()}
+						</option>
+					))
+				)}
+			</select>
 
 			<ol
 				style={{
@@ -193,8 +236,8 @@ export default function Notes() {
 					listStyleType: "none"
 				}}
 			>
-				{notes.map((note, index) => (
-					<li key={index}>
+				{notes.map((note) => (
+					<li key={note._id?.toString()}>
 						<NoteCard
 							passedNote={note}
 							onEdit={editNote}
@@ -222,7 +265,24 @@ export default function Notes() {
 					</li>
 				))}
 			</ol>
-			<NoteDialog onSubmit={sendNote} />
+
+			<NoteDialog
+				onSubmit={sendNote}
+				onClose={() => {
+					(
+						document.querySelector("#noteForm") as HTMLFormElement
+					).reset();
+					(
+						document.querySelector("#tagslist") as HTMLDivElement
+					).innerHTML = "";
+					setOpenedId(null);
+					(
+						document.querySelector(
+							"#noteDialog"
+						) as HTMLDialogElement
+					).close();
+				}}
+			/>
 		</div>
 	);
 	// remember to checkout https://stackoverflow.com/questions/28329382/understanding-unique-keys-for-array-children-in-react-js

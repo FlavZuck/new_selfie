@@ -64,6 +64,19 @@ export default function NoteCard({
 				<br />
 				Ultima modifica: {passedNote.modified.toLocaleString()}
 			</button>
+			<div className={"card-footer"}>
+				Tags:
+				{passedNote.tags.length !== 0
+					? passedNote.tags.map((tag, index) => (
+							<span
+								key={index}
+								className="badge bg-secondary m-1"
+							>
+								{tag}
+							</span>
+						))
+					: " Nessun tag"}
+			</div>
 		</div>
 	);
 }
