@@ -8,6 +8,7 @@ export const POMODORO = "Pomodoro";
 export const POMOEVENTS = "PomoEvents";
 export const ACTIVITIES = "Activities";
 export const SUBSCRIPTIONS = "Subscriptions";
+export const NOTES = "Notes";
 // Collection for global settings
 export const SETTINGS = "settings";
 
@@ -92,16 +93,19 @@ export async function updateDB(
 ) {
 	const collection = await findCollection(collectionName);
 	if (remove === null) {
-		collection.updateOne(filter, { $set: updates });
+		return await collection.updateOne(filter, { $set: updates });
 	} else {
-		collection.updateOne(filter, { $set: updates, $unset: remove });
+		return await collection.updateOne(filter, {
+			$set: updates,
+			$unset: remove
+		});
 	}
 }
 
 // Elimina i documenti nella collezione che soddisfano il filtro
 export async function deleteDB(collectionName: string, filter: any) {
 	const collection = await findCollection(collectionName);
-	collection.deleteMany(filter);
+	return await collection.deleteMany(filter);
 }
 
 export async function findUserById(userId: string): Promise<User | null> {

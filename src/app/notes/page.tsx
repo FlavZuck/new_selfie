@@ -1,105 +1,229 @@
 "use client";
 
-import { useState } from "react";
+import { ObjectId } from "mongodb";
+import { FormEvent, useEffect, useState } from "react";
+import {
+	NoteSorter,
+	note,
+	sortDirection,
+	sortMode
+} from "../lib/definitions/def_note";
+import NoteCard from "../ui/ui_notes/note-card";
+import NoteDialog from "../ui/ui_notes/note-dialog";
 
 export default function Notes() {
-	// Logica per la gestione delle note
-	const [notes, setNotes] = useState(data);
-	const [title, setTitle] = useState("");
-	const [content, setContent] = useState("");
-	const [count, setCount] = useState(3);
+	const [notes, setNotes] = useState([] as note[]);
+	const [loading, setLoading] = useState(true);
+	const [sortingMode, setSortingMode] = useState(
+		new NoteSorter("byCreated", 1)
+	);
+	const [sortDirection, setSortDirection] = useState(1 as sortDirection);
 
-	function removeNote(key: any) {
-		// Rimuove la nota con la chiave key
-		setNotes(notes.filter((note) => note.key !== key));
+	const [openedId, setOpenedId] = useState<string | null>(null);
+
+	async function fetchNotes() {
+		const data = await fetch("/api/notes", { method: "GET" });
+		if (!data) {
+			throw new Error("Errore generico nella richiesta");
+		}
+
+		if (!data.ok) {
+			throw new Error("Errore nella richiesta: " + data.statusText);
+		}
+
+		let notesData = await data.json();
+		if (!notesData) {
+			throw new Error("Risposta mal formata?");
+		}
+
+		// new Date necessario per utilizzare il metodo getTime()
+		// che non viene aggiunto al prototipo poiché risultato
+		// di una deserializzazione JSON ("casting without instantiation")
+		// fonte: https://stackoverflow.com/questions/2627650/why-javascript-gettime-is-not-a-function
+		notesData = notesData.map((note: note) => {
+			note.created = new Date(note.created);
+			note.modified = new Date(note.modified);
+			return note;
+		});
+
+		//TODO: Sorting fatto rispetto alla scelta dell'utente, da memorizzare dove?
+		setNotes(sortingMode.sort(notesData));
+		setLoading(false);
 	}
 
-	function handleinput() {
-		// Controlla che i campi title e content non siano vuoti
-		if (!title || !content) {
-			window.alert("Title and content are required.");
+	/*async function fetchNote(id:ObjectId) {
+		let note = await fetch(`/api/notes/${id.toString()}`, { method: "GET" });
+		return note;
+	}*/
+
+	// TODO analizzare tutte queste funzioni nell'ottica di separation of concerns
+	function initNoteDialog(note: note) {
+		const dialog = document.querySelector(
+			"#noteDialog"
+		) as HTMLDialogElement;
+		const inputTitolo = dialog.querySelector(
+			"input[name='titoloNota']"
+		) as HTMLInputElement;
+		const inputTesto = dialog.querySelector(
+			"textarea[name='testoNota']"
+		) as HTMLInputElement;
+		inputTitolo.value = note ? `${note.title}` : ""; //accenti necessari per portare String a string
+		inputTesto.value = note ? `${note.content}` : "";
+		//const inputTags = dialog.querySelector("input[name='tagsNota']") as HTMLInputElement;
+	}
+	function showNoteDialog() {
+		const dialog = document.querySelector(
+			"#noteDialog"
+		) as HTMLDialogElement;
+
+		dialog.showModal();
+	}
+
+	async function newNote() {
+		const response = await fetch("/api/notes", {
+			method: "POST",
+			body: JSON.stringify({
+				title: "",
+				content: "",
+				tags: []
+			})
+		});
+		const responseData = await response.json();
+		if (response.status !== 200) {
+			console.error("ERRORE IN NEWNOTE");
 			return;
 		}
-		// E poi aggiunge la nota alla lista
-		setNotes([
-			...notes,
-			{
-				key: count,
-				title: title,
-				content: content
-			}
-		]);
-		setTitle("");
-		setContent("");
-		setCount(count + 1);
-		console.log(notes);
+		setOpenedId(responseData.insertedId);
+		showNoteDialog();
 	}
 
+	async function editNote(noteId: string) {
+		const response = await fetch(`/api/notes/${noteId}`, { method: "GET" });
+		const noteData = await response.json();
+		initNoteDialog(noteData);
+		setOpenedId(noteId);
+		showNoteDialog();
+	}
+
+	async function sendNote(_event: FormEvent<HTMLFormElement>) {
+		void _event;
+		const titleInput = document.querySelector(
+			"#noteDialog input[name='titoloNota']"
+		) as HTMLInputElement;
+		const contentInput = document.querySelector(
+			"#noteDialog textarea[name='testoNota']"
+		) as HTMLInputElement;
+		console.log("title, content components: ", titleInput, contentInput);
+		const PUTresponse = await fetch(`/api/notes/${openedId}`, {
+			method: "PUT",
+			//TODO: aggiungere tag
+			body: JSON.stringify({
+				title: titleInput ? titleInput.value : "", //ternario invece di || perché titleInput può essere null, inoltre: titleInput.value può essere una stringa vuota, e se è così scelgo lui invece della mia stringa vuota
+				content: contentInput ? contentInput.value : "", //nella mia testa è più significativo così
+				tags: []
+			})
+		});
+		const sentNote = await PUTresponse.json();
+		sentNote.created = new Date(sentNote.created);
+		sentNote.modified = new Date(sentNote.modified);
+		setNotes(
+			sortingMode.sort(
+				notes
+					.filter((note) => String(note._id) !== openedId)
+					.concat(sentNote)
+			)
+		);
+		(document.querySelector("#noteForm") as HTMLFormElement).reset();
+		setOpenedId(null);
+	}
+
+	function setSorting() {
+		setSortingMode(
+			new NoteSorter(
+				(document.querySelector("select") as HTMLSelectElement)
+					.value as sortMode,
+				sortDirection
+			)
+		);
+		setNotes(sortingMode.sort(notes));
+	}
+
+	function setDirection() {
+		setSortDirection((sortDirection * -1) as sortDirection);
+		setSortingMode(
+			new NoteSorter(
+				(document.querySelector("select") as HTMLSelectElement)
+					.value as sortMode,
+				sortDirection
+			)
+		);
+		setNotes(sortingMode.sort(notes));
+	}
+
+	useEffect(() => {
+		fetchNotes();
+	}, [sortingMode, sortDirection]);
+
+	if (loading) {
+		return <p>Caricamento in corso...</p>;
+	}
+
+	//TODO: dividere in più componenti!!!!
 	return (
-		<div className="Page">
-			<div className="board">
-				<div className="head-title">
-					<h1>Lista di Note</h1>
-				</div>
-				<div className="note-list">
-					{notes.map((note) => (
-						<div className="note-item" key={note.key}>
-							<div style={{ width: "90%" }}>
-								<h2>{note.title}</h2>
-								<p>{note.content}</p>
-							</div>
-							<button
-								style={{
-									fontSize: "20px",
-									width: "10%",
-									height: "35px",
-									padding: "0 2% 0 2%",
-									color: "black"
-								}}
-								onClick={() => removeNote(note.key)}
-							>
-								X
-							</button>
-						</div>
-					))}
-				</div>
-				<div className="add-note">
-					<input
-						type="text"
-						id="title"
-						placeholder="Add Title"
-						value={title}
-						onChange={(e) => setTitle(e.target.value)}
-					/>
-					<input
-						type="text"
-						id="content"
-						placeholder="Add Content"
-						value={content}
-						onChange={(e) => setContent(e.target.value)}
-					/>
-					<button onClick={handleinput}>Add Note</button>
-				</div>
-			</div>
+		<div>
+			<button id="newNoteButton" onClick={newNote}>
+				Nuova nota
+			</button>
+
+			<select onChange={setSorting}>
+				<option value="byModified">Ordina per data di modifica</option>
+				<option value="byCreated">Ordina per data di creazione</option>
+				<option value="byTitle">Ordina per titolo</option>
+				<option value="byContentLength">
+					Ordina per lunghezza del testo
+				</option>
+			</select>
+
+			<button id="directionButton" onClick={setDirection}></button>
+
+			<ol
+				style={{
+					display: "grid",
+					gridTemplateColumns: "33% 33% 33%",
+					listStyleType: "none"
+				}}
+			>
+				{notes.map((note, index) => (
+					<li key={index}>
+						<NoteCard
+							passedNote={note}
+							onEdit={editNote}
+							onDelete={(id: string) => {
+								setNotes(
+									notes.filter(
+										(note) => String(note._id) !== id
+									)
+								);
+							}}
+							onDuplicate={(id: ObjectId) => {
+								setNotes(
+									notes.concat({
+										_id: id,
+										title: note.title + " (Copia)",
+										content: note.content,
+										tags: note.tags,
+										owner: note.owner,
+										created: new Date(),
+										modified: new Date()
+									} as note)
+								);
+							}}
+						></NoteCard>
+					</li>
+				))}
+			</ol>
+			<NoteDialog onSubmit={sendNote} />
 		</div>
 	);
+	// remember to checkout https://stackoverflow.com/questions/28329382/understanding-unique-keys-for-array-children-in-react-js
 }
-
-// Dummy data
-const data = [
-	{
-		key: 0,
-		title: "First Note",
-		content: "This is the content of the first note."
-	},
-	{
-		key: 1,
-		title: "Second Note",
-		content: "This is the content of the second note."
-	},
-	{
-		key: 2,
-		title: "Third Note",
-		content: "This is the content of the third note."
-	}
-];
