@@ -1,22 +1,32 @@
 "use client";
 
-import type { FormEvent } from "react";
-
-interface NoteDialogProps {
-	dialogId?: string;
-	formId?: string;
-	onSubmit: (event: FormEvent<HTMLFormElement>) => void | Promise<void>;
-}
+import { Marked } from "marked";
+import { type FormEvent, useEffect } from "react";
 
 export default function NoteDialog({
-	dialogId = "noteDialog",
-	formId = "noteForm",
 	onSubmit
-}: NoteDialogProps) {
+}: {
+	onSubmit: (event: FormEvent<HTMLFormElement>) => void | Promise<void>;
+}) {
+	const marked = new Marked({ pedantic: false, gfm: true, breaks: false });
+
+	async function parse() {
+		const textArea = document.querySelector(
+			"#noteDialog textarea[name='testoNota']"
+		) as HTMLTextAreaElement;
+		const mdPreview = document.querySelector("#mdPreview");
+
+		mdPreview!.innerHTML = await marked.parse(textArea.value);
+	}
+
+	useEffect(() => {
+		parse();
+	});
+
 	return (
-		<dialog id={dialogId} className="note-dialog">
+		<dialog id={"noteDialog"} className="note-dialog">
 			<form
-				id={formId}
+				id={"noteForm"}
 				method="dialog"
 				onSubmit={onSubmit}
 				className="h-100"
@@ -38,7 +48,6 @@ export default function NoteDialog({
 						/>
 					</div>
 
-					{/* Main content area - flex-grow for expansion */}
 					<div className="flex-grow-1 d-flex flex-column mb-3">
 						<label
 							htmlFor="testoNota"
@@ -47,7 +56,6 @@ export default function NoteDialog({
 							Testo della nota
 						</label>
 						<div className="flex-grow-1 d-flex gap-2">
-							{/* Text input area */}
 							<div className="flex-fill">
 								<textarea
 									name="testoNota"
@@ -57,15 +65,14 @@ export default function NoteDialog({
 										resize: "none",
 										minHeight: "300px"
 									}}
+									onChange={parse}
 								></textarea>
 							</div>
-							{/* Reserved space for future markdown preview */}
 							<div className="flex-fill">
-								<div className="border rounded p-3 h-100 bg-light">
-									<small className="text-muted">
-										Anteprima markdown (da implementare)
-									</small>
-								</div>
+								<div
+									id="mdPreview"
+									className="border rounded p-3 h-100 bg-light"
+								></div>
 							</div>
 						</div>
 					</div>

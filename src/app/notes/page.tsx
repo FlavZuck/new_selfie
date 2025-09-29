@@ -18,10 +18,8 @@ export default function Notes() {
 		new NoteSorter("byCreated", 1)
 	);
 	const [sortDirection, setSortDirection] = useState(1 as sortDirection);
-	//const [deletedId, setDeletedId] = useState(false);
-	//const [openedId, setOpenedId] = useState(new ObjectId(""));
 
-	let openedId: string | null = null;
+	const [openedId, setOpenedId] = useState<string | null>(null);
 
 	async function fetchNotes() {
 		const data = await fetch("/api/notes", { method: "GET" });
@@ -77,6 +75,7 @@ export default function Notes() {
 		const dialog = document.querySelector(
 			"#noteDialog"
 		) as HTMLDialogElement;
+
 		dialog.showModal();
 	}
 
@@ -94,15 +93,15 @@ export default function Notes() {
 			console.error("ERRORE IN NEWNOTE");
 			return;
 		}
-		openedId = responseData.insertedId;
+		setOpenedId(responseData.insertedId);
 		showNoteDialog();
 	}
 
 	async function editNote(noteId: string) {
-		openedId = noteId;
 		const response = await fetch(`/api/notes/${noteId}`, { method: "GET" });
 		const noteData = await response.json();
 		initNoteDialog(noteData);
+		setOpenedId(noteId);
 		showNoteDialog();
 	}
 
@@ -135,7 +134,7 @@ export default function Notes() {
 			)
 		);
 		(document.querySelector("#noteForm") as HTMLFormElement).reset();
-		openedId = null;
+		setOpenedId(null);
 	}
 
 	function setSorting() {
@@ -163,8 +162,7 @@ export default function Notes() {
 
 	useEffect(() => {
 		fetchNotes();
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, []);
+	}, [sortingMode, sortDirection]);
 
 	if (loading) {
 		return <p>Caricamento in corso...</p>;
