@@ -1,7 +1,7 @@
 "use client";
 
 import { ObjectId } from "mongodb";
-import { useEffect, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import {
 	NoteSorter,
 	note,
@@ -9,6 +9,7 @@ import {
 	sortMode
 } from "../lib/definitions/def_note";
 import NoteCard from "../ui/ui_notes/note-card";
+import NoteDialog from "../ui/ui_notes/note-dialog";
 
 export default function Notes() {
 	const [notes, setNotes] = useState([] as note[]);
@@ -105,7 +106,8 @@ export default function Notes() {
 		showNoteDialog();
 	}
 
-	async function sendNote() {
+	async function sendNote(_event: FormEvent<HTMLFormElement>) {
+		void _event;
 		const titleInput = document.querySelector(
 			"#noteDialog input[name='titoloNota']"
 		) as HTMLInputElement;
@@ -161,6 +163,7 @@ export default function Notes() {
 
 	useEffect(() => {
 		fetchNotes();
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
 
 	if (loading) {
@@ -221,20 +224,8 @@ export default function Notes() {
 					</li>
 				))}
 			</ol>
-			<dialog id="noteDialog">
-				<form id="noteForm" method="dialog" onSubmit={sendNote}>
-					<label htmlFor="titoloNota">Titolo della nota</label>
-					<input
-						type="text"
-						name="titoloNota"
-						placeholder="Titolo della nota"
-					/>
-					<label htmlFor="testoNota">Testo della nota</label>
-					<textarea name="testoNota"></textarea>
-					<input type="submit" value="Salva e chiudi" />
-				</form>
-			</dialog>
+			<NoteDialog onSubmit={sendNote} />
 		</div>
-	); //TODO: Vedere cosa fare per le label dei campi nel dialog...
+	);
 	// remember to checkout https://stackoverflow.com/questions/28329382/understanding-unique-keys-for-array-children-in-react-js
 }
