@@ -70,4 +70,5 @@ export type User = {
 	birthdate: Date;
 	email: string;
 	password: string;
+	studyDebt?: number;
 };

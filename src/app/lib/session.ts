@@ -1,7 +1,8 @@
+"use server";
+
 import { SessionPayload } from "@/app/lib/definitions/def_auth";
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
-import "server-only";
 
 // Prendiamo la chiave segreta dalla variabile d'ambiente e la codifichiamo
 const secretKey = process.env.SESSION_SECRET;

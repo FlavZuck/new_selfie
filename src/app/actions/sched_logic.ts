@@ -5,6 +5,12 @@ import { Activity_DB } from "../lib/definitions/def_actv";
 import { Event_DB } from "../lib/definitions/def_event";
 import { payload_type } from "../lib/definitions/def_notf";
 import { ACTIVITIES, updateDB } from "../lib/mongodb";
+import {
+	createStudyDebt,
+	getAllPomoEvents,
+	unflagPomoEvent
+} from "./pomo_logic/pomoback_logic";
+import { getVirtualDate } from "./timemach_logic";
 
 async function parseDate(date: Date, time: string) {
 	if (time == "") {
@@ -275,5 +281,40 @@ export async function recurrent_notif_time_handler(
 				"Notification type not recognized: " + event.notificationtype
 			);
 			return false;
+	}
+}
+
+export async function debt_handler(): Promise<void> {
+	// Prendiamo tutti i pomoeventi che avvengono oggi
+	const today = (await getVirtualDate()) ?? new Date();
+
+	const pomoevents_today = await getAllPomoEvents();
+	if (!pomoevents_today || !Array.isArray(pomoevents_today)) {
+		console.warn(
+			"getAllPomoEvents non ha restituito un array",
+			pomoevents_today
+		);
+		return;
+	}
+
+	const pomoevents_filtered = pomoevents_today.filter(
+		(event) => event.debtflag === true
+	);
+
+	for (const pomoevent of pomoevents_filtered) {
+		const event_date = new Date(pomoevent.datestart);
+		// Azzeriamo ore minuti secondi e millisecondi per confronto preciso sul giorno
+		event_date.setHours(0, 0, 0, 0);
+		today.setHours(0, 0, 0, 0);
+		console.log("Comparing event date ", event_date, " with today ", today);
+		// Se l'evento è per oggi e il debito è da aggiungere (flaggato), aumentiamo il debito e unflagghiamo l'evento
+		if (
+			event_date.getTime() === today.getTime() &&
+			pomoevent.debtflag === true
+		) {
+			console.log("Increasing study debt for event: ", pomoevent.title);
+			await createStudyDebt(pomoevent.debtCycles);
+			await unflagPomoEvent(pomoevent._id.toString());
+		}
 	}
 }

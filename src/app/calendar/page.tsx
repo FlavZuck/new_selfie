@@ -8,6 +8,7 @@ import rrulePlugin from "@fullcalendar/rrule";
 import { useEffect, useState } from "react";
 import { getAllActivities } from "../actions/cale_logic/activity_logic";
 import { getAllEvents } from "../actions/cale_logic/event_logic";
+import { getPomoEvents } from "../actions/pomo_logic/pomoback_logic";
 import { getVirtualDate } from "../actions/timemach_logic";
 import { Activity_FullCalendar } from "../lib/definitions/def_actv";
 import { Event_FullCalendar } from "../lib/definitions/def_event";
@@ -65,12 +66,14 @@ export default function PageCalendar() {
 	async function fetchEvents() {
 		try {
 			// Prendiamo gli eventi e le attività
+			const fetchedPomoEvents = await getPomoEvents();
 			const fetchedEvents: Event_FullCalendar[] = await getAllEvents();
 			const fetchedActivities: Activity_FullCalendar[] =
 				await getAllActivities();
 			// Uniamo i fetch per FullCalendar
 			const united_fetch: any = fetchedEvents.concat(
-				fetchedActivities as any
+				fetchedActivities as any,
+				fetchedPomoEvents as any
 			);
 			// Settiamo per il FullCalendar
 			setEvents(united_fetch);
@@ -114,6 +117,9 @@ export default function PageCalendar() {
 			setShow_Event_Card(true);
 		} else if (obj == "ACTIVITY") {
 			setShow_Activity_Card(true);
+		} else if (obj == "POMOEVENT") {
+			// Quando si tocca un pomodoro event, si viene rimandati alla Pomodoro Page
+			window.location.href = "/pomodoro";
 		}
 	}, [info]);
 

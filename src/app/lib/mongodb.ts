@@ -5,6 +5,7 @@ import { User } from "./definitions/def_auth";
 export const USERS = "users";
 export const EVENTS = "Events";
 export const POMODORO = "Pomodoro";
+export const POMOEVENTS = "PomoEvents";
 export const ACTIVITIES = "Activities";
 export const SUBSCRIPTIONS = "Subscriptions";
 // Collection for global settings
@@ -48,6 +49,7 @@ export async function insertDB(
 	return await collection.insertOne(data);
 }
 
+// Inserisce un documento se non esiste già (upsert) nella collezione specificata
 export async function upsertDB(
 	collectionName: string,
 	filter: any,

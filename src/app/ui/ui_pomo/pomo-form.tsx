@@ -3,6 +3,7 @@
 import {
 	getPomodoro,
 	notifyPomodoro,
+	payStudyDebt,
 	savePomodoro
 } from "@/app/actions/pomo_logic/pomoback_logic";
 import {
@@ -20,7 +21,7 @@ import {
 	STUDIO
 } from "@/app/lib/definitions/def_pomo";
 import Image from "next/image";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 export default function PomodoroTimer() {
 	// Default config (duh)
@@ -30,10 +31,38 @@ export default function PomodoroTimer() {
 		savedCycles: 5
 	};
 
+	// Stato per il pomoevento
+	const [pomoEventMode, setPomoEventMode] = useState(false);
+	// Ref per evitare cambio dimensione dependency array nell'useEffect principale
+	const pomoEventModeRef = useRef(pomoEventMode);
+	useEffect(() => {
+		pomoEventModeRef.current = pomoEventMode;
+	}, [pomoEventMode]);
+
 	// Stati del ciclo di input
 	const [studyTime, setStudyTime] = useState(defaultConfig.studyMin);
 	const [pauseTime, setPauseTime] = useState(defaultConfig.pauseMin);
 	const [cycles, setCycles] = useState(defaultConfig.savedCycles);
+
+	// Ref per ricordare i tempi personalizzati quando si entra in Modalità PomoEvento
+	const previousTimesRef = useRef<{ study: string; pause: string } | null>(
+		null
+	);
+	useEffect(() => {
+		// Quando attivo la modalità PomoEvento forzo i tempi standard 30/5
+		if (pomoEventMode) {
+			previousTimesRef.current = { study: studyTime, pause: pauseTime };
+			setStudyTime("00:30:00");
+			setPauseTime("00:05:00");
+		} else {
+			// Al ritorno alla modalità normale ripristino i tempi precedenti (se presenti)
+			if (previousTimesRef.current) {
+				setStudyTime(previousTimesRef.current.study);
+				setPauseTime(previousTimesRef.current.pause);
+			}
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [pomoEventMode]);
 
 	// Stati del ciclo di animazione
 	const [secondsLeft, setSecondsLeft] = useState(0);
@@ -78,6 +107,8 @@ export default function PomodoroTimer() {
 
 	// Funzioni di controllo del timer
 	const Start = async () => {
+		// Se siamo in modalità PomoEvento non permettiamo di ri-avviare se già in play
+		if (pomoEventMode && isPlaying) return;
 		setIsPlaying(true);
 		setSecondsLeft(inSeconds(studyTime));
 		setIsStudyPhase(true);
@@ -86,6 +117,7 @@ export default function PomodoroTimer() {
 		await notifyStart();
 	};
 	const Clear = () => {
+		if (pomoEventMode && isPlaying) return; // Non permettere clear durante PomoEvento
 		setStudyTime(defaultConfig.studyMin);
 		setPauseTime(defaultConfig.pauseMin);
 		setCycles(defaultConfig.savedCycles);
@@ -96,6 +128,7 @@ export default function PomodoroTimer() {
 		setAnimationClass("");
 	};
 	const restartCycle = () => {
+		if (pomoEventMode) return; // Bloccato in modalità PomoEvento
 		setIsStudyPhase(true);
 		setSecondsLeft(inSeconds(studyTime));
 		setAnimationClass("");
@@ -105,6 +138,7 @@ export default function PomodoroTimer() {
 		setIsPlaying(true);
 	};
 	const endCycle = () => {
+		if (pomoEventMode) return; // Bloccato in modalità PomoEvento
 		if (currentCycle < cycles) {
 			setCurrentCycle(currentCycle + 1);
 			restartCycle();
@@ -115,6 +149,7 @@ export default function PomodoroTimer() {
 		}
 	};
 	const Skip = () => {
+		if (pomoEventMode) return; // Bloccato in modalità PomoEvento
 		if (isStudyPhase) {
 			setIsStudyPhase(false);
 			setSecondsLeft(inSeconds(pauseTime));
@@ -179,10 +214,21 @@ export default function PomodoroTimer() {
 	useEffect(() => {
 		if (!isPlaying || secondsLeft > 0) return;
 		if (isStudyPhase) {
+			// Fine fase di studio: prima transizione a pausa, poi paghiamo il debito
 			notifyStudy();
 			setIsStudyPhase(false);
 			pauseAnimation(inSeconds(pauseTime));
 			setSecondsLeft(inSeconds(pauseTime));
+			if (pomoEventModeRef.current) {
+				payStudyDebt(1)
+					.then(() => {
+						// Notifica altri componenti (es. PomoEventForm) di aggiornare il debito
+						window.dispatchEvent(
+							new CustomEvent("studyDebt:updated")
+						);
+					})
+					.catch(() => {});
+			}
 		} else if (currentCycle < cycles) {
 			notifyPause();
 			setCurrentCycle(currentCycle + 1);
@@ -223,73 +269,134 @@ export default function PomodoroTimer() {
 
 	return (
 		<div className="container py-4">
+			{/* Switch modalità PomoEvento - Restyled */}
+			<div className="row justify-content-center mb-4">
+				<div className="col-12 col-lg-8">
+					<div className="card border-0 shadow-sm bg-light-subtle">
+						<div className="card-body py-3">
+							<div className="d-flex align-items-start justify-content-between flex-wrap gap-3">
+								<div className="flex-grow-1">
+									<h2 className="h6 mb-2 d-flex align-items-center gap-2">
+										<i className="bi bi-lightning-charge-fill text-warning"></i>
+										<span>Modalità PomoEvento</span>
+										{pomoEventMode && (
+											<span className="badge bg-warning text-dark">
+												Attiva
+											</span>
+										)}
+									</h2>
+									<p className="text-muted small mb-0">
+										Cicli obbligati, nessun controllo
+										manuale.
+									</p>
+								</div>
+								<div className="form-check form-switch ms-auto pe-2">
+									<input
+										className="form-check-input"
+										type="checkbox"
+										id="pomoEventMode"
+										checked={pomoEventMode}
+										disabled={isPlaying}
+										onChange={() =>
+											setPomoEventMode(!pomoEventMode)
+										}
+									/>
+									<label
+										className="form-check-label small fw-semibold"
+										htmlFor="pomoEventMode"
+									>
+										{pomoEventMode ? "ON" : "OFF"}
+									</label>
+								</div>
+							</div>
+							{pomoEventMode && (
+								<div className="alert alert-secondary small mt-3 mb-0 d-flex gap-2 align-items-start">
+									<i className="bi bi-info-circle-fill text-secondary mt-1"></i>
+									<div>
+										In questa modalità puoi solo impostare i
+										cicli e avviare il pomodoro. Ogni ciclo
+										di studio completato riduce il tuo
+										debito di studio.
+									</div>
+								</div>
+							)}
+						</div>
+					</div>
+				</div>
+			</div>
 			<div className="row justify-content-center">
 				<div className="col-12 col-lg-8">
 					<h1 className="text-center mb-4 display-4">
 						Timer Pomodoro
 					</h1>
-
 					<div className="card shadow mb-4">
 						<div className="card-body">
-							{/* Form di input principale */}
 							<form onSubmit={handleSubmit}>
 								<div className="row g-3 mb-4">
-									{/* Input per il tempo di studio */}
-									<div className="col-md-4">
-										<div className="form-floating">
-											<input
-												type="text"
-												className="form-control"
-												id="studyTime"
-												name="studyTime"
-												value={studyTime}
-												onChange={(e) =>
-													setStudyTime(
-														formatHHMMSS(
-															e.target.value
-														)
-													)
-												}
-												maxLength={8}
-												required
-												pattern="[0-2][0-9]:[0-5][0-9]:[0-5][0-9]"
-												placeholder="HH:MM:SS"
-											/>
-											<label htmlFor="studyTime">
-												Tempo di Studio
-											</label>
-										</div>
-									</div>
-
-									{/* Input per il tempo di pausa */}
-									<div className="col-md-4">
-										<div className="form-floating">
-											<input
-												type="text"
-												className="form-control"
-												id="pauseTime"
-												name="pauseTime"
-												value={pauseTime}
-												onChange={(e) =>
-													setPauseTime(
-														formatHHMMSS(
-															e.target.value
-														)
-													)
-												}
-												maxLength={8}
-												required
-												pattern="[0-2][0-9]:[0-5][0-9]:[0-5][0-9]"
-												placeholder="HH:MM:SS"
-											/>
-											<label htmlFor="pauseTime">
-												Tempo di Pausa
-											</label>
-										</div>
-									</div>
-
-									{/* Input per il numero di cicli */}
-									<div className="col-md-4">
+									{/* Input per il tempo di studio e pausa nascosti in modalità PomoEvento */}
+									{!pomoEventMode && (
+										<>
+											<div className="col-md-4">
+												<div className="form-floating">
+													<input
+														type="text"
+														className="form-control"
+														id="studyTime"
+														name="studyTime"
+														value={studyTime}
+														onChange={(e) =>
+															setStudyTime(
+																formatHHMMSS(
+																	e.target
+																		.value
+																)
+															)
+														}
+														maxLength={8}
+														required
+														pattern="[0-2][0-9]:[0-5][0-9]:[0-5][0-9]"
+														placeholder="HH:MM:SS"
+													/>
+													<label htmlFor="studyTime">
+														Tempo di Studio
+													</label>
+												</div>
+											</div>
+											<div className="col-md-4">
+												<div className="form-floating">
+													<input
+														type="text"
+														className="form-control"
+														id="pauseTime"
+														name="pauseTime"
+														value={pauseTime}
+														onChange={(e) =>
+															setPauseTime(
+																formatHHMMSS(
+																	e.target
+																		.value
+																)
+															)
+														}
+														maxLength={8}
+														required
+														pattern="[0-2][0-9]:[0-5][0-9]:[0-5][0-9]"
+														placeholder="HH:MM:SS"
+													/>
+													<label htmlFor="pauseTime">
+														Tempo di Pausa
+													</label>
+												</div>
+											</div>
+										</>
+									)}
+									<div
+										className={
+											pomoEventMode
+												? "col-12"
+												: "col-md-4"
+										}
+									>
 										<div className="form-floating">
 											<input
 												type="number"
@@ -298,6 +405,9 @@ export default function PomodoroTimer() {
 												name="cycles"
 												min={1}
 												value={cycles}
+												disabled={
+													isPlaying && pomoEventMode
+												}
 												onChange={(e) =>
 													setCycles(
 														Number(e.target.value)
@@ -310,48 +420,53 @@ export default function PomodoroTimer() {
 										</div>
 									</div>
 								</div>
-
-								{/* Bottoni di controllo */}
 								<div className="d-flex gap-2 flex-wrap justify-content-center">
-									<button
-										className="btn btn-success"
-										type="submit"
-									>
-										<i className="bi bi-play-fill"></i>{" "}
-										Avvia
-									</button>
-									<button
-										className="btn btn-outline-primary"
-										type="button"
-										onClick={Skip}
-									>
-										<i className="bi bi-skip-forward-fill"></i>{" "}
-										Salta Fase
-									</button>
-									<button
-										className="btn btn-outline-info"
-										type="button"
-										onClick={restartCycle}
-									>
-										<i className="bi bi-arrow-repeat"></i>{" "}
-										Riavvia Ciclo Attuale
-									</button>
-									<button
-										className="btn btn-outline-warning"
-										type="button"
-										onClick={endCycle}
-									>
-										<i className="bi bi-stop-fill"></i>{" "}
-										Termina Ciclo Attuale
-									</button>
-									<button
-										className="btn btn-outline-danger"
-										type="button"
-										onClick={handleClear}
-									>
-										<i className="bi bi-x-circle"></i>{" "}
-										Azzera Tutto
-									</button>
+									{(!isPlaying || !pomoEventMode) && (
+										<button
+											className="btn btn-success"
+											type="submit"
+										>
+											<i className="bi bi-play-fill"></i>{" "}
+											Avvia
+										</button>
+									)}
+									{/* Controlli extra mostrati solo se NON in modalità PomoEvento */}
+									{!pomoEventMode && (
+										<>
+											<button
+												className="btn btn-outline-primary"
+												type="button"
+												onClick={Skip}
+											>
+												<i className="bi bi-skip-forward-fill"></i>{" "}
+												Salta Fase
+											</button>
+											<button
+												className="btn btn-outline-info"
+												type="button"
+												onClick={restartCycle}
+											>
+												<i className="bi bi-arrow-repeat"></i>{" "}
+												Riavvia Ciclo Attuale
+											</button>
+											<button
+												className="btn btn-outline-warning"
+												type="button"
+												onClick={endCycle}
+											>
+												<i className="bi bi-stop-fill"></i>{" "}
+												Termina Ciclo Attuale
+											</button>
+											<button
+												className="btn btn-outline-danger"
+												type="button"
+												onClick={handleClear}
+											>
+												<i className="bi bi-x-circle"></i>{" "}
+												Azzera Tutto
+											</button>
+										</>
+									)}
 								</div>
 							</form>
 						</div>
