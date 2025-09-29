@@ -60,9 +60,9 @@ export default function NoteCard({
 			>
 				{passedNote.title}
 				<br />
-				{passedNote.content}
+				{passedNote.content.substring(0, 200)}
 				<br />
-				{passedNote.modified.toString()}
+				Ultima modifica: {passedNote.modified.toLocaleString()}
 			</button>
 		</div>
 	);

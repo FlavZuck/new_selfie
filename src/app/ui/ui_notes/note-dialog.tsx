@@ -31,59 +31,27 @@ export default function NoteDialog({
 				onSubmit={onSubmit}
 				className="h-100"
 			>
-				<div className="container-fluid h-100 d-flex flex-column p-3">
-					{/* Header with title input */}
-					<div className="mb-3">
-						<label
-							htmlFor="titoloNota"
-							className="form-label fw-bold"
-						>
-							Titolo della nota
-						</label>
-						<input
-							type="text"
-							name="titoloNota"
-							className="form-control"
-							placeholder="Titolo della nota"
-						/>
-					</div>
+				<button>❌</button>
+				<input
+					type="text"
+					name="titoloNota"
+					className="form-control border-0 fw-bold"
+					placeholder="Titolo della nota"
+				/>
+				<textarea
+					name="testoNota"
+					className="form-control"
+					placeholder="Scrivi qui il contenuto..."
+					style={{
+						resize: "none"
+					}}
+					onChange={parse}
+				></textarea>
+				<div id="mdPreview" className="border rounded"></div>
 
-					<div className="flex-grow-1 d-flex flex-column mb-3">
-						<label
-							htmlFor="testoNota"
-							className="form-label fw-bold mb-2"
-						>
-							Testo della nota
-						</label>
-						<div className="flex-grow-1 d-flex gap-2">
-							<div className="flex-fill">
-								<textarea
-									name="testoNota"
-									className="form-control h-100"
-									placeholder="Scrivi qui il contenuto..."
-									style={{
-										resize: "none",
-										minHeight: "300px"
-									}}
-									onChange={parse}
-								></textarea>
-							</div>
-							<div className="flex-fill">
-								<div
-									id="mdPreview"
-									className="border rounded p-3 h-100 bg-light"
-								></div>
-							</div>
-						</div>
-					</div>
-
-					{/* Footer with submit button aligned right */}
-					<div className="d-flex justify-content-end">
-						<button type="submit" className="btn btn-primary">
-							Salva e chiudi
-						</button>
-					</div>
-				</div>
+				<button type="submit" className="btn btn-primary">
+					Salva e chiudi
+				</button>
 			</form>
 		</dialog>
 	);
