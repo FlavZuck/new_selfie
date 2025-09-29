@@ -16,6 +16,7 @@ import {
 } from "./actions/notif_logic/sw_logic";
 import styles from "./page.module.css";
 import CalePreview from "./ui/ui_preview/cale_preview";
+import NotePreview from "./ui/ui_preview/note_preview";
 import PomoPreview from "./ui/ui_preview/pomo_preview";
 
 async function subscription_process() {
@@ -152,7 +153,9 @@ export default function Home() {
 									Cattura le tue idee al volo e organizzale in
 									modo efficiente
 								</p>
-								<div className="mt-auto" />
+								<div className="mt-auto">
+									<NotePreview />
+								</div>
 								<Link
 									href="/notes"
 									className={`btn mt-3 stretched-link ${styles.btnNotes}`}

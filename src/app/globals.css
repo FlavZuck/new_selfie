@@ -2,6 +2,13 @@
 :root {
 	--background: #ffffff;
 	--foreground: #171717;
+	/* Badge preview shared styling vars */
+	--preview-badge-font-size: 0.65rem;
+	--preview-badge-padding-y: 0.35em;
+	--preview-badge-padding-x: 0.55em;
+	--preview-badge-letter-spacing: 0.5px;
+	--preview-badge-font-weight: 600;
+	--preview-badge-radius: 0.4rem;
 }
 
 html,
@@ -16,6 +23,24 @@ body {
 	font-family: Arial, Helvetica, sans-serif;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
+}
+
+/* Utility class for unified preview badges */
+.preview-badge {
+	font-size: var(--preview-badge-font-size) !important;
+	padding: var(--preview-badge-padding-y) var(--preview-badge-padding-x) !important;
+	letter-spacing: var(--preview-badge-letter-spacing) !important;
+	font-weight: var(--preview-badge-font-weight) !important;
+	border-radius: var(--preview-badge-radius) !important;
+	text-transform: uppercase;
+	line-height: 1;
+	display: inline-flex;
+	align-items: center;
+}
+
+/* Optional subtle shadow for contrast on light backgrounds */
+.preview-badge.shadowed {
+	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
 }
 
 * {

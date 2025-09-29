@@ -36,7 +36,7 @@ export default function PomoPreview() {
 
 	return (
 		<div
-			className="rounded border bg-light-subtle px-4 py-3 small text-start position-relative"
+			className="preview-box rounded border border-1 bg-light-subtle px-4 py-3 small text-start position-relative"
 			aria-live="polite"
 		>
 			<div className="mb-2">
@@ -59,7 +59,7 @@ export default function PomoPreview() {
 			)}
 
 			{!loading && error && (
-				<div className="text-danger" style={{ fontSize: "0.8rem" }}>
+				<div className="text-danger" style={{ fontSize: "0.75rem" }}>
 					{error}
 				</div>
 			)}
@@ -68,23 +68,20 @@ export default function PomoPreview() {
 				<div className="d-flex flex-column gap-2">
 					{pomoevent ? (
 						<div className="d-flex align-items-start gap-2">
-							<span
-								className="badge bg-danger"
-								style={{ fontSize: "0.65rem" }}
-							>
+							<span className="badge preview-badge bg-danger text-light shadowed">
 								Prossima
 							</span>
 							<span
-								className="text-truncate flex-grow-1"
+								className="ttext-truncate flex-grow-1 fw-semibold"
 								title={pomoevent}
-								style={{ fontSize: "0.8rem" }}
+								style={{ fontSize: "0.8rem" }}	
 							>
 								{pomoevent}
 							</span>
 						</div>
 					) : (
 						<div
-							className="text-muted"
+							className="text-truncate flex-grow-1 fw-semibold"
 							style={{ fontSize: "0.75rem" }}
 						>
 							Nessuna sessione imminente
@@ -93,14 +90,11 @@ export default function PomoPreview() {
 
 					{debt !== null ? (
 						<div className="d-flex align-items-start gap-2">
-							<span
-								className="badge bg-secondary text-light"
-								style={{ fontSize: "0.65rem" }}
-							>
+							<span className="badge preview-badge bg-secondary text-light shadowed">
 								Debito
 							</span>
 							<span
-								className="flex-grow-1"
+								className="text-truncate flex-grow-1 fw-semibold"
 								style={{ fontSize: "0.8rem" }}
 							>
 								{debt}
@@ -108,7 +102,7 @@ export default function PomoPreview() {
 						</div>
 					) : (
 						<div
-							className="text-muted"
+							className="text-truncate flex-grow-1 fw-semibold"
 							style={{ fontSize: "0.75rem" }}
 						>
 							Nessun debito rilevato

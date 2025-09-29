@@ -34,7 +34,7 @@ export default function CalePreview() {
 
 	return (
 		<div
-			className="rounded border bg-light-subtle px-4 py-3 small text-start position-relative"
+			className="preview-box rounded border border-1 bg-light-subtle px-4 py-3 small text-start position-relative"
 			aria-live="polite"
 		>
 			<div className="mb-2">
@@ -66,14 +66,11 @@ export default function CalePreview() {
 				<div className="d-flex flex-column gap-2">
 					{activity ? (
 						<div className="d-flex align-items-start gap-2">
-							<span
-								className="badge bg-info text-dark"
-								style={{ fontSize: "0.65rem" }}
-							>
+							<span className="badge preview-badge bg-info text-light shadowed">
 								Attività
 							</span>
 							<span
-								className="text-truncate flex-grow-1"
+								className="text-truncate flex-grow-1 fw-semibold"
 								title={activity}
 								style={{ fontSize: "0.8rem" }}
 							>
@@ -91,14 +88,11 @@ export default function CalePreview() {
 
 					{event ? (
 						<div className="d-flex align-items-start gap-2">
-							<span
-								className="badge bg-warning text-dark"
-								style={{ fontSize: "0.65rem" }}
-							>
+							<span className="badge preview-badge bg-warning text-light shadowed">
 								Evento
 							</span>
 							<span
-								className="text-truncate flex-grow-1"
+								className="text-truncate flex-grow-1 fw-semibold"
 								title={event}
 								style={{ fontSize: "0.8rem" }}
 							>
