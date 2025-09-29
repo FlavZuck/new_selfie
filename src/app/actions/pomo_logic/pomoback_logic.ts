@@ -268,3 +268,26 @@ export async function unflagPomoEvent(
 	updateDB(POMOEVENTS, { _id: objectId }, { debtflag: false });
 	return { message: "Evento pomodoro unflaggato" };
 }
+
+export async function getNearestPomoEventTitle(): Promise<string | null> {
+	const userId = await getCurrentID();
+	if (!userId) return null;
+
+	// Recupera TUTTI gli eventi dell'utente
+	const pomo_events = await findAllDB<PomodoroEvent>(POMOEVENTS, {
+		userId: userId,
+		debtflag: true
+	});
+
+	if (pomo_events.length === 0) return null;
+
+	// Trova l'evento più vicino
+	let nearestEvent = pomo_events[0];
+	for (const event of pomo_events) {
+		if (event.datestart < nearestEvent.datestart) {
+			nearestEvent = event;
+		}
+	}
+
+	return nearestEvent.title;
+}

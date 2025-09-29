@@ -15,6 +15,8 @@ import {
 	requestNotificationPermission
 } from "./actions/notif_logic/sw_logic";
 import styles from "./page.module.css";
+import CalePreview from "./ui/ui_preview/cale_preview";
+import PomoPreview from "./ui/ui_preview/pomo_preview";
 
 async function subscription_process() {
 	console.log("User or Device not subscribed, requesting permission...");
@@ -98,7 +100,7 @@ export default function Home() {
 						<div
 							className={`card h-100 shadow-sm hover-card ${styles.cardCalendar}`}
 						>
-							<div className="card-body text-center">
+							<div className="card-body text-center d-flex flex-column">
 								<div className={styles.iconWrapperCalendar}>
 									<Image
 										src="/calendarlogo.png"
@@ -110,13 +112,19 @@ export default function Home() {
 									/>
 								</div>
 								<h5 className="card-title mt-3">Calendario</h5>
-								<p className="card-text">
+								<p className="card-text mb-3">
 									Organizza i tuoi impegni con un calendario
 									intelligente e intuitivo
 								</p>
+
+								{/* Preview compatta integrata nella card */}
+								<div className="mt-auto">
+									<CalePreview />
+								</div>
+
 								<Link
 									href="/calendar"
-									className={`btn stretched-link ${styles.btnCalendar}`}
+									className={`btn mt-3 stretched-link ${styles.btnCalendar}`}
 								>
 									Vai al Calendario
 								</Link>
@@ -129,7 +137,7 @@ export default function Home() {
 						<div
 							className={`card h-100 shadow-sm hover-card ${styles.cardNotes}`}
 						>
-							<div className="card-body text-center">
+							<div className="card-body text-center d-flex flex-column">
 								<div className={styles.iconWrapperNotes}>
 									<Image
 										src="/notelogo.png"
@@ -140,13 +148,14 @@ export default function Home() {
 									/>
 								</div>
 								<h5 className="card-title mt-3">Note</h5>
-								<p className="card-text">
+								<p className="card-text mb-3">
 									Cattura le tue idee al volo e organizzale in
 									modo efficiente
 								</p>
+								<div className="mt-auto" />
 								<Link
 									href="/notes"
-									className={`btn stretched-link ${styles.btnNotes}`}
+									className={`btn mt-3 stretched-link ${styles.btnNotes}`}
 								>
 									Vai alle Note
 								</Link>
@@ -159,7 +168,7 @@ export default function Home() {
 						<div
 							className={`card h-100 shadow-sm hover-card ${styles.cardPomodoro}`}
 						>
-							<div className="card-body text-center">
+							<div className="card-body text-center d-flex flex-column">
 								<div className={styles.iconWrapperPomodoro}>
 									<Image
 										src="/pomodorologo.png"
@@ -172,13 +181,16 @@ export default function Home() {
 								<h5 className="card-title mt-3">
 									Pomodoro Timer
 								</h5>
-								<p className="card-text">
+								<p className="card-text mb-3">
 									Massimizza la tua concentrazione con il
 									metodo Pomodoro
 								</p>
+								<div className="mt-auto">
+									<PomoPreview />
+								</div>
 								<Link
 									href="/pomodoro"
-									className={`btn stretched-link ${styles.btnPomodoro}`}
+									className={`btn mt-3 stretched-link ${styles.btnPomodoro}`}
 								>
 									Vai al Timer
 								</Link>
