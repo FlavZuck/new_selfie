@@ -69,3 +69,54 @@ html {
 		color-scheme: light !important;
 	}
 }
+
+.note-dialog {
+	border: none;
+	padding: 0;
+	border-radius: 1rem;
+	width: min(90vw, 960px);
+	max-width: 960px;
+}
+
+.note-dialog[open] {
+	margin: 0;
+	position: fixed;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+}
+
+.note-dialog::backdrop {
+	background-color: rgba(33, 37, 41, 0.35);
+}
+
+.note-dialog .modal-content {
+	border-radius: 1rem;
+	max-height: 90vh;
+	display: flex;
+	flex-direction: column;
+}
+
+.note-dialog .modal-body {
+	overflow-y: auto;
+}
+
+.markdown-preview {
+	min-height: 12rem;
+}
+
+@media (max-width: 576px) {
+	.note-dialog {
+		width: 95vw;
+	}
+
+	.note-dialog[open] {
+		top: 50%;
+		left: 50%;
+		transform: translate(-50%, -50%);
+	}
+
+	.markdown-preview {
+		min-height: 10rem;
+	}
+}

@@ -42,42 +42,65 @@ export default function NoteCard({
 		onDuplicate(data.insertedId);
 	}
 	return (
-		<div className={"card"} style={{ display: "block" }}>
-			<div className={"card-header"}>
-				<button className={"btn"} onClick={deleteNote}>
-					ELIMINA
+		<div className="card h-100 shadow-sm border-0">
+			<div className="card-header bg-transparent border-0 d-flex justify-content-end gap-2 pt-3">
+				<button
+					type="button"
+					className="btn btn-outline-danger btn-sm"
+					onClick={deleteNote}
+				>
+					Elimina
 				</button>
-				<button className={"btn"} onClick={duplicateNote}>
-					DUPLICA
+				<button
+					type="button"
+					className="btn btn-outline-secondary btn-sm"
+					onClick={duplicateNote}
+				>
+					Duplica
 				</button>
 			</div>
-
-			<button
-				className={"btn"}
-				onClick={() => {
-					onEdit(String(passedNote._id));
-				}}
-			>
-				{passedNote.title}
-				<br />
-				{passedNote.content.substring(0, 200)}
-				<br />
-				Ultima modifica: {passedNote.modified.toLocaleString()}
-				<br />
-				Creazione: {passedNote.created.toLocaleString()}
-			</button>
-			<div className={"card-footer"}>
-				Tags:
-				{passedNote.tags.length !== 0
-					? passedNote.tags.map((tag, index) => (
+			<div className="card-body d-flex flex-column gap-3 pt-0">
+				<button
+					type="button"
+					className="btn btn-link text-start text-decoration-none text-reset px-0"
+					onClick={() => {
+						onEdit(String(passedNote._id));
+					}}
+				>
+					<span className="d-block h5 mb-2 fw-semibold">
+						{passedNote.title || "Senza titolo"}
+					</span>
+					<span className="d-block text-body-secondary">
+						{passedNote.content
+							? passedNote.content.substring(0, 200)
+							: "Nessun contenuto"}
+					</span>
+					<span className="d-block text-body-secondary small mt-2">
+						Ultima modifica: {passedNote.modified.toLocaleString()}
+					</span>
+					<span className="d-block text-body-secondary small">
+						Creazione: {passedNote.created.toLocaleString()}
+					</span>
+				</button>
+			</div>
+			<div className="card-footer bg-transparent border-0 pt-0">
+				<span className="text-body-secondary small me-2">Tag:</span>
+				{passedNote.tags.length !== 0 ? (
+					<div className="d-inline-flex flex-wrap gap-2 align-items-center">
+						{passedNote.tags.map((tag, index) => (
 							<span
 								key={index}
-								className="badge bg-secondary m-1"
+								className="badge text-bg-secondary"
 							>
 								{tag}
 							</span>
-						))
-					: " Nessun tag"}
+						))}
+					</div>
+				) : (
+					<span className="text-body-secondary small">
+						Nessun tag
+					</span>
+				)}
 			</div>
 		</div>
 	);

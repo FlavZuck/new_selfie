@@ -1,7 +1,7 @@
 "use client";
 
 import { ObjectId } from "mongodb";
-import { FormEvent, useEffect, useState } from "react";
+import { ChangeEvent, FormEvent, useEffect, useState } from "react";
 import {
 	NoteSorter,
 	note,
@@ -13,12 +13,14 @@ import NoteDialog from "../ui/ui_notes/note-dialog";
 
 export default function Notes() {
 	const [notes, setNotes] = useState([] as note[]);
-	const [allNotes, setAllNotes] = useState([] as note[]); // MASTER LIST (NEW)
+	const [allNotes, setAllNotes] = useState([] as note[]);
 	const [loading, setLoading] = useState(true);
 	const [sortingMode, setSortingMode] = useState(
 		new NoteSorter("byCreated", 1)
 	);
+	const [sortModeKey, setSortModeKey] = useState<sortMode>("byCreated");
 	const [sortDirection, setSortDirection] = useState(1 as sortDirection);
+	const [tagFilter, setTagFilter] = useState("all");
 
 	const [openedId, setOpenedId] = useState<string | null>(null);
 
@@ -48,33 +50,22 @@ export default function Notes() {
 		});
 		const sorted = sortingMode.sort([...notesData]);
 		setAllNotes(sorted);
-		// Apply current tag filter (if any)
-		const currentTagSelect = document.querySelector(
-			"#tagFilter"
-		) as HTMLSelectElement | null;
-		if (
-			currentTagSelect &&
-			currentTagSelect.value &&
-			currentTagSelect.value !== "all"
-		) {
-			setNotes(
-				sorted.filter((n) => n.tags.includes(currentTagSelect.value))
-			);
-		} else {
-			setNotes(sorted);
-		}
+		applyFilterAndSort(sorted);
 		setLoading(false);
 	}
 
-	function applyFilterAndSort(updatedAll: note[]) {
-		const tagSel = document.querySelector(
-			"#tagFilter"
-		) as HTMLSelectElement | null;
-		let base = updatedAll;
-		if (tagSel && tagSel.value !== "all") {
-			base = updatedAll.filter((n) => n.tags.includes(tagSel.value));
-		}
-		setNotes(sortingMode.sort([...base]));
+	function applyFilterAndSort(
+		updatedAll: note[],
+		overrideSorter?: NoteSorter,
+		overrideTag?: string
+	) {
+		const activeSorter = overrideSorter ?? sortingMode;
+		const activeTag = overrideTag ?? tagFilter;
+		const base =
+			activeTag === "all"
+				? updatedAll
+				: updatedAll.filter((n) => n.tags.includes(activeTag));
+		setNotes(activeSorter.sort([...base]));
 	}
 
 	function initNoteDialog(note: note) {
@@ -171,54 +162,42 @@ export default function Notes() {
 		setOpenedId(null);
 	}
 
-	function setSorting() {
-		setSortingMode(
-			new NoteSorter(
-				(document.querySelector("select") as HTMLSelectElement)
-					.value as sortMode,
-				sortDirection
-			)
-		);
-		const sorted = sortingMode.sort([...allNotes]);
+	function handleSortingChange(event: ChangeEvent<HTMLSelectElement>) {
+		const nextMode = event.target.value as sortMode;
+		const nextSorter = new NoteSorter(nextMode, sortDirection);
+		setSortModeKey(nextMode);
+		setSortingMode(nextSorter);
+		const sorted = nextSorter.sort([...allNotes]);
 		setAllNotes(sorted);
-		applyFilterAndSort(sorted);
+		applyFilterAndSort(sorted, nextSorter);
 	}
 
-	function setDirection() {
+	function handleDirectionToggle() {
 		setSortDirection((prev) => {
 			const nextDir = (prev * -1) as sortDirection;
-			setSortingMode(
-				new NoteSorter(
-					(document.querySelector("select") as HTMLSelectElement)
-						.value as sortMode,
-					nextDir
-				)
-			);
-			const sorted = sortingMode.sort([...allNotes]);
+			const nextSorter = new NoteSorter(sortModeKey, nextDir);
+			setSortingMode(nextSorter);
+			const sorted = nextSorter.sort([...allNotes]);
 			setAllNotes(sorted);
-			applyFilterAndSort(sorted);
+			applyFilterAndSort(sorted, nextSorter);
 			return nextDir;
 		});
 	}
 
-	function filterByTag() {
-		const wanted = (
-			document.querySelector("#tagFilter") as HTMLSelectElement
-		).value;
-		if (wanted === "all") {
-			applyFilterAndSort(allNotes);
-		} else {
-			const filtered = allNotes.filter((note) =>
-				note.tags.includes(wanted)
-			);
-			setNotes(sortingMode.sort([...filtered]));
-		}
+	function handleTagFilterChange(event: ChangeEvent<HTMLSelectElement>) {
+		const wanted = event.target.value;
+		setTagFilter(wanted);
+		const filtered =
+			wanted === "all"
+				? allNotes
+				: allNotes.filter((note) => note.tags.includes(wanted));
+		setNotes(sortingMode.sort([...filtered]));
 	}
 
 	useEffect(() => {
 		fetchNotes();
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [sortingMode, sortDirection]);
+	}, []);
 
 	if (loading) {
 		return <p>Caricamento in corso...</p>;
@@ -231,70 +210,120 @@ export default function Notes() {
 
 	//TODO: dividere in più componenti!!!!
 	return (
-		<div>
-			<button id="newNoteButton" onClick={newNote}>
-				Nuova nota
-			</button>
+		<div className="d-flex flex-column gap-4">
+			<div className="card shadow-sm border-0">
+				<div className="card-body d-flex flex-column flex-lg-row gap-3 align-items-start align-items-lg-center">
+					<div className="d-flex flex-wrap gap-2">
+						<button
+							id="newNoteButton"
+							className="btn btn-primary"
+							onClick={newNote}
+							type="button"
+						>
+							Nuova nota
+						</button>
+						<button
+							id="directionButton"
+							className="btn btn-outline-secondary"
+							onClick={handleDirectionToggle}
+							type="button"
+							aria-label="Inverti direzione ordinamento"
+						>
+							{sortDirection === 1 ? "⬆️" : "⬇️"}
+						</button>
+					</div>
+					<div className="d-flex flex-column flex-sm-row align-items-start gap-2 flex-grow-1">
+						<div className="w-100">
+							<label
+								htmlFor="sortMode"
+								className="form-label mb-1"
+							>
+								Ordina le note
+							</label>
+							<select
+								id="sortMode"
+								className="form-select"
+								value={sortModeKey}
+								onChange={handleSortingChange}
+							>
+								<option value="byModified">
+									Ordina per data di modifica
+								</option>
+								<option value="byCreated">
+									Ordina per data di creazione
+								</option>
+								<option value="byTitle">
+									Ordina per titolo
+								</option>
+								<option value="byContentLength">
+									Ordina per lunghezza del testo
+								</option>
+							</select>
+						</div>
+						<div className="w-100">
+							<label
+								htmlFor="tagFilter"
+								className="form-label mb-1"
+							>
+								Filtra per tag
+							</label>
+							<select
+								id="tagFilter"
+								className="form-select"
+								value={tagFilter}
+								onChange={handleTagFilterChange}
+							>
+								<option value="all">Tutte le note</option>
+								{uniqueTags.map((tag) => (
+									<option key={tag} value={tag}>
+										{tag}
+									</option>
+								))}
+							</select>
+						</div>
+					</div>
+				</div>
+			</div>
 
-			<select onChange={setSorting}>
-				<option value="byModified">Ordina per data di modifica</option>
-				<option value="byCreated">Ordina per data di creazione</option>
-				<option value="byTitle">Ordina per titolo</option>
-				<option value="byContentLength">
-					Ordina per lunghezza del testo
-				</option>
-			</select>
-
-			<button id="directionButton" onClick={setDirection}>
-				{sortDirection === 1 ? "⬇️" : "⬆️"}
-			</button>
-
-			<select id="tagFilter" onChange={filterByTag}>
-				<option value="all">Tutte le note</option>
-				{uniqueTags.map((tag) => (
-					<option key={tag} value={tag}>
-						{tag}
-					</option>
-				))}
-			</select>
-
-			<ol
-				style={{
-					display: "grid",
-					gridTemplateColumns: "33% 33% 33%",
-					listStyleType: "none"
-				}}
-			>
+			<ol className="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-3 list-unstyled mb-0">
 				{notes.map((note) => (
-					<li key={note._id?.toString()}>
-						<NoteCard
-							passedNote={note}
-							onEdit={editNote}
-							onDelete={(id: string) => {
-								const updatedAll = allNotes.filter(
-									(n) => String(n._id) !== id
-								);
-								setAllNotes(updatedAll);
-								applyFilterAndSort(updatedAll);
-							}}
-							onDuplicate={(id: ObjectId) => {
-								const duplicated: note = {
-									_id: id,
-									title: note.title + " (Copia)",
-									content: note.content,
-									tags: note.tags,
-									owner: note.owner,
-									created: new Date(),
-									modified: new Date()
-								} as note;
-								const updatedAll = [...allNotes, duplicated];
-								const resortedAll = sortingMode.sort([
-									...updatedAll
-								]);
-								setAllNotes(resortedAll);
-								applyFilterAndSort(resortedAll);
-							}}
-						></NoteCard>
+					<li key={note._id?.toString()} className="col d-flex">
+						<div className="w-100">
+							<NoteCard
+								passedNote={note}
+								onEdit={editNote}
+								onDelete={(id: string) => {
+									const updatedAll = allNotes.filter(
+										(n) => String(n._id) !== id
+									);
+									const resorted = sortingMode.sort([
+										...updatedAll
+									]);
+									setAllNotes(resorted);
+									applyFilterAndSort(resorted);
+								}}
+								onDuplicate={(id: ObjectId) => {
+									const duplicated: note = {
+										_id: id,
+										title: `${note.title} (Copia)`,
+										content: note.content,
+										tags: note.tags,
+										owner: note.owner,
+										created: new Date(),
+										modified: new Date()
+									} as note;
+									const updatedAll = [
+										...allNotes,
+										duplicated
+									];
+									const resortedAll = sortingMode.sort([
+										...updatedAll
+									]);
+									setAllNotes(resortedAll);
+									applyFilterAndSort(resortedAll);
+								}}
+							/>
+						</div>
 					</li>
 				))}
 			</ol>

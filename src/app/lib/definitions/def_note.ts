@@ -16,9 +16,9 @@ import { z } from "zod";
 export type note = {
 	_id?: ObjectId;
 	owner: ObjectId;
-	title: String;
-	content: String;
-	tags: String[];
+	title: string;
+	content: string;
+	tags: string[];
 	created: Date;
 	modified: Date;
 };
