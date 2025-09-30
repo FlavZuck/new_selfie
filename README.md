@@ -40,6 +40,7 @@ Di seguito tratteremo alcune delle scelte implementative più significative :
 - API delle Note : scelto di sviluppare API REST, con endpoint essenziali alle funzionalità richieste
 - Time machine: basata su offset virtuale e applicata sull'intera logica del sito
 - Ricorrenze: impiegato lo standard RRule, eventi ricorrenti espansi solo per fare controlli dallo scheduler (salvando memoria nel DB)
+- Per motivi legati alla semplicità, le limitazioni per la creazione di password e account sono state tolte in modo da permettere la creazione di account (es: fv1) indicati dalle specifiche
 - Import/Export Calendario: attraverso parser da noi implementati che traducono gli eventi FullCalendar nello standard iCal
 - Notifiche push ed Email: notifiche push mandate tramite ServiceWorker, mentre email gestite
 - Autenticazione : fatta a mano attraverso le librerie prima menzionate
