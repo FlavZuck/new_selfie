@@ -1,9 +1,8 @@
 import { ObjectId } from "mongodb";
 import { z } from "zod";
-import { getVirtualDate } from "../../actions/timemach_logic";
+import { currentDate, getVirtualDate } from "../../actions/timemach_logic";
 
-// The following regex are completely unintelligible to me, be warned :)
-
+// Una versione più permissiva per il login per evitare problemi con i profili predefiniti per la correzione dei prof
 export const SignupFormSchema = z.object({
 	name: z
 		.string()
@@ -13,21 +12,24 @@ export const SignupFormSchema = z.object({
 		.string()
 		.min(2, { message: "Il cognome deve avere almeno 2 caratteri." })
 		.trim(),
-	birthdate: z.coerce.date().max((await getVirtualDate()) ?? new Date(), {
-		message: "Inserisci una data valida."
-	}),
-	email: z.string().email({ message: "Inserisci un'email valida." }).trim(),
+	birthdate: z.coerce
+		.date()
+		.max((await getVirtualDate()) ?? (await currentDate()), {
+			message: "Inserisci una data valida."
+		}),
+	email: z.string().trim(),
 	password: z
 		.string()
-		.min(8, { message: "Deve avere almeno 8 caratteri." })
+		.min(2, { message: "Deve avere almeno 8 caratteri." })
 		.trim()
 });
 
+// Una versione più permissiva per il login per evitare problemi con i profili predefiniti per la correzione dei prof
 export const SigninFormSchema = z.object({
-	email: z.string().email({ message: "Inserisci un'email valida." }).trim(),
+	email: z.string().trim(),
 	password: z
 		.string()
-		.min(8, { message: "Deve avere almeno 8 caratteri." })
+		.min(2, { message: "Deve avere almeno 8 caratteri." })
 		.trim()
 });
 

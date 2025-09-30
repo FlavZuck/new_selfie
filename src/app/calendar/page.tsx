@@ -29,11 +29,15 @@ import { ImportButton } from "../ui/ui_cale/import-button";
 import UpdateActivityForm from "../ui/ui_cale/upd-actv";
 import UpdateEventForm from "../ui/ui_cale/upd-event";
 
+function currentDate(): Date {
+	return new Date(Date.now() + 2 * 60 * 60 * 1000);
+}
+
 export default function PageCalendar() {
 	// Stati per le fetch
 	const [events, setEvents] = useState([]);
 	const [allactv, setAllActv] = useState<Activity_FullCalendar[]>();
-	const [now, setNow] = useState<Date>(new Date());
+	const [now, setNow] = useState<Date>(currentDate());
 
 	// Stati per i modali per FullCalendar
 	const [show_Event_create, setShow_Event_Create] = useState(false);
@@ -81,15 +85,17 @@ export default function PageCalendar() {
 	async function fetchEvents() {
 		try {
 			// Prendiamo gli eventi e le attività
-			const fetchedPomoEvents = await getPomoEvents();
-			const fetchedEvents: Event_FullCalendar[] = await getAllEvents();
+			const fetchedPomoEvents = (await getPomoEvents()) || [];
+			const fetchedEvents: Event_FullCalendar[] =
+				(await getAllEvents()) || [];
 			const fetchedActivities: Activity_FullCalendar[] =
-				await getAllActivities();
+				(await getAllActivities()) || [];
 			// Uniamo i fetch per FullCalendar
-			const united_fetch: any = fetchedEvents.concat(
-				fetchedActivities as any,
-				fetchedPomoEvents as any
-			);
+			const united_fetch: any = [
+				...fetchedEvents,
+				...fetchedActivities,
+				...fetchedPomoEvents
+			];
 			// Settiamo per il FullCalendar
 			setEvents(united_fetch);
 			// Settiamo per la lista delle attività

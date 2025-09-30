@@ -10,7 +10,7 @@ import {
 	getAllPomoEvents,
 	unflagPomoEvent
 } from "./pomo_logic/pomoback_logic";
-import { getVirtualDate } from "./timemach_logic";
+import { currentDate, getVirtualDate } from "./timemach_logic";
 
 async function parseDate(date: Date, time: string) {
 	if (time == "") {
@@ -286,7 +286,7 @@ export async function recurrent_notif_time_handler(
 
 export async function debt_handler(): Promise<void> {
 	// Prendiamo tutti i pomoeventi che avvengono oggi
-	const today = (await getVirtualDate()) ?? new Date();
+	const today = (await getVirtualDate()) ?? (await currentDate());
 
 	const pomoevents_today = await getAllPomoEvents();
 	if (!pomoevents_today || !Array.isArray(pomoevents_today)) {

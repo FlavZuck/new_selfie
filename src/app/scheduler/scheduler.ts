@@ -13,7 +13,7 @@ import {
 	event_payload_creator,
 	urgency_payload
 } from "../actions/sched_logic";
-import { getVirtualDate } from "../actions/timemach_logic";
+import { currentDate, getVirtualDate } from "../actions/timemach_logic";
 import { sendEmail } from "../lib/nodemailer";
 
 // Funzione per gestire il loop principale delle notifiche
@@ -63,7 +63,7 @@ export default async function scheduler_routine(): Promise<void> {
 
 		// Ora possiamo occuparci con le notifiche
 
-		const current_date = (await getVirtualDate()) ?? new Date();
+		const current_date = (await getVirtualDate()) ?? (await currentDate());
 		// Gettiamo gli array di roba da notificare
 		const activities_to_notify = await getActvToNotify(current_date);
 		const events_to_notify = await getEventsToNotify(current_date);

@@ -7,6 +7,11 @@ import { SETTINGS, findCollection } from "../lib/mongodb";
 
 const VIRTUAL_DATE_KEY = "virtualDate";
 
+export async function currentDate(): Promise<Date> {
+	const currentdate = new Date(Date.now() + 2 * 60 * 60 * 1000); // Aggiungo 2 ore per il fuso orario italiano
+	return currentdate;
+}
+
 export async function getVirtualDate(): Promise<Date | null> {
 	const collection = await findCollection(SETTINGS);
 	const doc = await collection.findOne({ key: VIRTUAL_DATE_KEY });
@@ -15,7 +20,7 @@ export async function getVirtualDate(): Promise<Date | null> {
 	if (!timeoffset) {
 		return null;
 	} else {
-		return new Date(Date.now() + timeoffset);
+		return new Date(Date.now() + timeoffset + 2 * 60 * 60 * 1000); // Aggiungo 2 ore per il fuso orario italiano
 	}
 }
 

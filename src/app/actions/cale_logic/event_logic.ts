@@ -21,7 +21,7 @@ import {
 	event_notif_time_handler,
 	recurrent_notif_time_handler
 } from "../sched_logic";
-import { getVirtualDate } from "../timemach_logic";
+import { currentDate, getVirtualDate } from "../timemach_logic";
 
 // Funzione per parsare la data e ora in un formato compatibile con lo Date standard
 function parseDate(date: Date, time: string) {
@@ -325,6 +325,7 @@ export async function getAllEvents(): Promise<Event_FullCalendar[]> {
 	// Check banale
 	if (!ID) {
 		console.log("User not found");
+		return []; // ensure we always return an array
 	}
 
 	const all_events = (await findAllDB(EVENTS, {
@@ -470,7 +471,7 @@ export async function getNearestEventTitle(): Promise<string | null> {
 	}
 
 	// Troviamo l'evento più vicino nel futuro
-	const current_date = (await getVirtualDate()) ?? new Date();
+	const current_date = (await getVirtualDate()) ?? (await currentDate());
 
 	const future_events = all_events.filter(
 		(event) => event.start >= current_date

@@ -30,6 +30,7 @@ import {
 import { ObjectId } from "mongodb";
 import { getCurrentID } from "../auth_logic";
 import { sendNotification_forPomodoro } from "../notif_logic/push_logic";
+import { currentDate } from "../timemach_logic";
 
 export async function getPomodoro(): Promise<Pomodoro_CL | null> {
 	const userId = await getCurrentID();
@@ -64,7 +65,7 @@ export async function savePomodoro(
 		return { message: "Utente non trovato" };
 	}
 
-	const currDate = new Date();
+	const currDate = await currentDate();
 	const config = {
 		userId,
 		date: currDate,
@@ -190,9 +191,9 @@ function FullCalendar_PomoEventsParser(pomoevent_array: PomodoroEvent[]) {
 	});
 }
 
-export async function getPomoEvents(): Promise<any> {
+export async function getPomoEvents(): Promise<any[]> {
 	const userId = await getCurrentID();
-	if (!userId) return null;
+	if (!userId) return [];
 
 	// Recupera TUTTI gli eventi dell'utente
 	const pomo_events = await findAllDB<PomodoroEvent>(POMOEVENTS, {

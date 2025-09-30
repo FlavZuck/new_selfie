@@ -1,10 +1,10 @@
-import { getVirtualDate } from "@/app/actions/timemach_logic";
+import { currentDate, getVirtualDate } from "@/app/actions/timemach_logic";
 import { ObjectId } from "mongodb";
 import { z } from "zod";
 
 // Dynamic date validators to ensure thresholds update on each validation
 const dynamicMinDate = async (date: Date): Promise<boolean> => {
-	const v = (await getVirtualDate()) ?? new Date();
+	const v = (await getVirtualDate()) ?? (await currentDate());
 	v.setHours(0, 0, 0, 0);
 	return date >= v;
 };
@@ -197,7 +197,8 @@ export const EventFormSchema = z
 			if (dateend <= datestart && dateend != "" && allDay == "on") {
 				ctx.addIssue({
 					code: "custom",
-					message: "La data di fine deve essere successiva alla data di inizio",
+					message:
+						"La data di fine deve essere successiva alla data di inizio",
 					path: ["dateend"]
 				});
 			}
@@ -251,7 +252,8 @@ export const EventFormSchema = z
 			if (recurrence != null && until <= datestart && until != "") {
 				ctx.addIssue({
 					code: "custom",
-					message: "La data di fine deve essere successiva alla data di inizio",
+					message:
+						"La data di fine deve essere successiva alla data di inizio",
 					path: ["until"]
 				});
 			}

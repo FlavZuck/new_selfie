@@ -31,7 +31,7 @@ export async function decrypt(session: string | undefined = "") {
 
 // Funzione per generare il token della sessione
 export async function generateSessionToken(userId: string) {
-	const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+	const expiresAt = new Date(Date.now() + 7 * 26 * 60 * 60 * 1000);
 	return await encrypt({ userId, expiresAt });
 }
 
@@ -44,7 +44,7 @@ export async function updateSession() {
 		return null;
 	}
 
-	const expires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+	const expires = new Date(Date.now() + 7 * 26 * 60 * 60 * 1000);
 
 	const cookieStore = await cookies();
 	cookieStore.set("session", session, {

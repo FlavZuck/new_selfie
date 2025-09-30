@@ -111,7 +111,7 @@ export async function login(state: FormState, formData: FormData) {
 			biscottino.set("session", token, {
 				httpOnly: true,
 				secure: COOKIE_SECURE,
-				expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+				expires: new Date(Date.now() + 7 * 26 * 60 * 60 * 1000),
 				sameSite: "lax",
 				path: "/"
 			});

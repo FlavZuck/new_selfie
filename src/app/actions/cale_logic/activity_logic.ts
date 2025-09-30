@@ -20,7 +20,7 @@ import {
 	activity_notif_time_handler,
 	reminder_time_handler
 } from "../sched_logic";
-import { getVirtualDate } from "../timemach_logic";
+import { currentDate, getVirtualDate } from "../timemach_logic";
 
 // Funzione per parsare l'array di attività in un formato compatibile con FullCalendar
 // (Per adesso diamo per scontato che l'attività sia sempre all-day)
@@ -174,6 +174,7 @@ export async function getAllActivities(): Promise<Activity_FullCalendar[]> {
 	// Check banale
 	if (!ID) {
 		console.log("User not found");
+		return []; // return empty array to avoid undefined usage
 	}
 
 	const all_activities = (await findAllDB(ACTIVITIES, {
@@ -262,7 +263,7 @@ export async function getNearestActivityTitle(): Promise<string | null> {
 	})) as Activity_DB[];
 
 	// Filtriamo le attività future
-	const current_date = (await getVirtualDate()) ?? new Date();
+	const current_date = (await getVirtualDate()) ?? (await currentDate());
 	const future_activities = all_activities.filter(
 		(activity) => activity.expiration >= current_date
 	);

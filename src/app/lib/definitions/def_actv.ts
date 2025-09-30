@@ -1,15 +1,15 @@
 import { ObjectId } from "mongodb";
 import { z } from "zod";
-import { getVirtualDate } from "../../actions/timemach_logic";
+import { currentDate, getVirtualDate } from "../../actions/timemach_logic";
 
 // Dynamic date validators to ensure threshold updates on each validation
 const dynamicMinDate = async (date: Date): Promise<boolean> => {
-	const v = (await getVirtualDate()) ?? new Date();
+	const v = (await getVirtualDate()) ?? (await currentDate());
 	v.setHours(0, 0, 0, 0);
 	return date >= v;
 };
 const dynamicMaxDate = async (date: Date): Promise<boolean> => {
-	const v = (await getVirtualDate()) ?? new Date();
+	const v = (await getVirtualDate()) ?? (await currentDate());
 	v.setHours(0, 0, 0, 0);
 	return date <= v;
 };
