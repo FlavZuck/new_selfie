@@ -486,94 +486,105 @@ export default function PomodoroTimer() {
 
 					{/* Timer Pomodoro */}
 					<div
-						className="position-relative mx-auto"
-						style={{ width: "400px", height: "400px" }}
+						className="position-relative mx-auto d-flex justify-content-center"
+						style={{ maxWidth: "400px", width: "100%" }}
 					>
-						<Image
-							src="/tomato.svg"
-							alt="Timer Pomodoro"
-							width={400}
-							height={400}
-							className="position-absolute top-0 start-0 w-100 h-100"
-							style={{ zIndex: 2 }}
-							priority
-						/>
 						<div
-							style={{
-								position: "absolute",
-								width: "320px",
-								height: "264px",
-								borderRadius:
-									"60% 60% 50% 50% / 70% 70% 50% 50%",
-								top: "57%",
-								left: "50%",
-								transform: "translate(-50%, -50%)",
-								overflow: "hidden",
-								zIndex: 1,
-								border: "2px solid #e34c26"
-							}}
-							className={animationClass + " progress-container"}
+							className="position-relative mx-auto w-100 pomodoro-wrapper"
+							style={{ width: "100%", aspectRatio: "1 / 1" }}
 						>
-							<div className="progress-fill" />
-
-							{/* Animazioni CSS */}
-							<style jsx>{`
-								.progress-container {
-									position: relative;
-									background: #2ecc71;
-								}
-								.progress-fill {
-									position: absolute;
-									bottom: 0;
-									left: 0;
-									width: 100%;
-									height: 100%;
-									transform-origin: bottom;
-									background: linear-gradient(
-										to top,
-										#e74c3c
-									);
-									filter: brightness(0.95);
-								}
-
-								@keyframes fillUp {
-									0% {
-										transform: scaleY(0);
-									}
-									100% {
-										transform: scaleY(1);
-									}
-								}
-								@keyframes fillDown {
-									0% {
-										transform: scaleY(1);
-									}
-									100% {
-										transform: scaleY(0);
-									}
-								}
-
-								.studyAnim .progress-fill {
-									animation: fillUp var(--animation-duration)
-										linear forwards;
-								}
-								.pauseAnim .progress-fill {
-									animation: fillDown
-										var(--animation-duration) linear
-										forwards;
-								}
-							`}</style>
-						</div>
-						{isPlaying && (
+							<Image
+								src="/tomato.svg"
+								alt="Timer Pomodoro"
+								width={400}
+								height={400}
+								className="position-absolute top-0 start-0 w-100 h-100"
+								style={{ zIndex: 2, objectFit: "contain" }}
+								priority
+							/>
 							<div
-								className="position-absolute top-50 start-50 translate-middle bg-light bg-opacity-75 px-3 py-2 rounded shadow"
-								style={{ zIndex: 3 }}
+								style={{
+									position: "absolute",
+									width: "80%", // 320/400
+									height: "66%", // 264/400
+									borderRadius:
+										"60% 60% 50% 50% / 70% 70% 50% 50%",
+									top: "57%",
+									left: "50%",
+									transform: "translate(-50%, -50%)",
+									overflow: "hidden",
+									zIndex: 1,
+									border: "2px solid #e34c26"
+								}}
+								className={
+									animationClass + " progress-container"
+								}
 							>
-								<h2 className="mb-0 display-6">
-									{displayTime(secondsLeft)}
-								</h2>
+								<div className="progress-fill" />
+
+								{/* Animazioni CSS */}
+								<style jsx>{`
+									.progress-container {
+										position: relative;
+										background: #2ecc71;
+									}
+									.progress-fill {
+										position: absolute;
+										bottom: 0;
+										left: 0;
+										width: 100%;
+										height: 100%;
+										transform-origin: bottom;
+										background: linear-gradient(
+											to top,
+											#e74c3c
+										);
+										filter: brightness(0.95);
+									}
+									@keyframes fillUp {
+										0% {
+											transform: scaleY(0);
+										}
+										100% {
+											transform: scaleY(1);
+										}
+									}
+									@keyframes fillDown {
+										0% {
+											transform: scaleY(1);
+										}
+										100% {
+											transform: scaleY(0);
+										}
+									}
+									.studyAnim .progress-fill {
+										animation: fillUp
+											var(--animation-duration) linear
+											forwards;
+									}
+									.pauseAnim .progress-fill {
+										animation: fillDown
+											var(--animation-duration) linear
+											forwards;
+									}
+									@media (max-width: 576px) {
+										.pomodoro-wrapper {
+											max-width: 90vw;
+										}
+									}
+								`}</style>
 							</div>
-						)}
+							{isPlaying && (
+								<div
+									className="position-absolute top-50 start-50 translate-middle bg-light bg-opacity-75 px-3 py-2 rounded shadow"
+									style={{ zIndex: 3 }}
+								>
+									<h2 className="mb-0 display-6">
+										{displayTime(secondsLeft)}
+									</h2>
+								</div>
+							)}
+						</div>
 					</div>
 
 					{/* Form per il calcolo delle proposte */}

@@ -61,6 +61,21 @@ export default function PageCalendar() {
 	const [activityToUpdate, setActivityToUpdate] =
 		useState<Activity_FullCalendar | null>(null);
 
+	// NEW: stato per rilevare viewport mobile e tab selezionata per le liste
+	const [isMobile, setIsMobile] = useState(false);
+	const [mobileTab, setMobileTab] = useState<"actv" | "exp" | "comp">("actv");
+
+	useEffect(() => {
+		function handleResize() {
+			if (typeof window !== "undefined") {
+				setIsMobile(window.innerWidth < 576); // breakpoint Bootstrap xs
+			}
+		}
+		handleResize();
+		window.addEventListener("resize", handleResize);
+		return () => window.removeEventListener("resize", handleResize);
+	}, []);
+
 	// Funzione che si occupa di fetchare gli eventi ed attività
 	// (da mettere apposto il tipaggio tbf)
 	async function fetchEvents() {
@@ -123,6 +138,15 @@ export default function PageCalendar() {
 		}
 	}, [info]);
 
+	// Header toolbar dinamico per mobile / desktop
+	const calendarHeader = isMobile
+		? { left: "prev,next", center: "title", right: "" }
+		: {
+				left: "prev,next today",
+				center: "title",
+				right: "dayGridMonth,dayGridWeek,dayGridDay"
+			};
+
 	return (
 		<div className="container-fluid py-4">
 			{/* Sezione controlli e legenda */}
@@ -166,29 +190,122 @@ export default function PageCalendar() {
 					<div className="card shadow-sm">
 						<div className="card-body">
 							<FullCalendar
-								key={now.toISOString()}
+								key={
+									now.toISOString() + (isMobile ? "-m" : "-d")
+								}
 								plugins={[
 									dayGridPlugin,
 									interactionPlugin,
 									rrulePlugin
 								]}
 								initialView="dayGridMonth"
-								headerToolbar={{
-									left: "prev,next today",
-									center: "title",
-									right: "dayGridMonth,dayGridWeek,dayGridDay"
-								}}
+								headerToolbar={calendarHeader}
 								eventClick={function (info) {
 									setInfo(info);
 								}}
 								now={now.toISOString()}
 								selectable={true}
+								buttonText={
+									isMobile
+										? {
+												oday: "Oggi",
+												month: "Mese",
+												week: "Sett",
+												day: "Giorno"
+											}
+										: {
+												oday: "Oggi",
+												month: "Mese",
+												week: "Settimana",
+												day: "Giorno"
+											}
+								}
 								events={events}
+								height={isMobile ? "auto" : undefined}
 							/>
 						</div>
 					</div>
+
+					{/* Liste versione mobile (tabs) */}
+					<div className="d-lg-none mt-4">
+						<ul
+							className="nav nav-pills nav-justified small mb-3"
+							role="tablist"
+						>
+							<li className="nav-item" role="presentation">
+								<button
+									className={`nav-link ${mobileTab === "actv" ? "active" : ""}`}
+									onClick={() => setMobileTab("actv")}
+									type="button"
+								>
+									Attive
+								</button>
+							</li>
+							<li className="nav-item" role="presentation">
+								<button
+									className={`nav-link ${mobileTab === "exp" ? "active" : ""}`}
+									onClick={() => setMobileTab("exp")}
+									type="button"
+								>
+									Scadute
+								</button>
+							</li>
+							<li className="nav-item" role="presentation">
+								<button
+									className={`nav-link ${mobileTab === "comp" ? "active" : ""}`}
+									onClick={() => setMobileTab("comp")}
+									type="button"
+								>
+									Completate
+								</button>
+							</li>
+						</ul>
+						<div className="tab-content">
+							<div
+								className={`tab-pane fade ${mobileTab === "actv" ? "show active" : ""}`}
+							>
+								<ActvList
+									key={"mob-actv-" + now.toISOString()}
+									allactv={allactv ? allactv : []}
+									listClick={show_ActvList_card}
+									setListClick={setShow_ActvList_Card}
+									activity={actvList_obj}
+									set_activity={setActvList_obj}
+									current_date={now}
+								/>
+							</div>
+							<div
+								className={`tab-pane fade ${mobileTab === "exp" ? "show active" : ""}`}
+							>
+								<ExpActvList
+									key={"mob-exp-" + now.toISOString()}
+									allactv={allactv ? allactv : []}
+									listClick={show_ExpActvList_card}
+									setListClick={setShow_ExpActvList_Card}
+									activity={actvList_obj}
+									set_activity={setActvList_obj}
+									current_date={now}
+								/>
+							</div>
+							<div
+								className={`tab-pane fade ${mobileTab === "comp" ? "show active" : ""}`}
+							>
+								<CompletedActvList
+									key={"mob-comp-" + now.toISOString()}
+									allactv={allactv ? allactv : []}
+									listClick={show_CompActv_card}
+									setListClick={setShowCompActv_Card}
+									activity={actvList_obj}
+									set_activity={setActvList_obj}
+									current_date={now}
+								/>
+							</div>
+						</div>
+					</div>
 				</div>
-				<div className="col-12 col-lg-4 d-flex flex-column gap-4">
+
+				{/* Colonna liste desktop */}
+				<div className="col-lg-4 d-none d-lg-flex flex-column gap-4">
 					<div>
 						<ActvList
 							key={now.toISOString()}
@@ -282,6 +399,26 @@ export default function PageCalendar() {
 				activity={actvList_obj}
 				refetch={fetchEvents}
 			/>
+
+			{/* Stili aggiuntivi per migliorare la leggibilità su mobile */}
+			<style jsx global>{`
+				@media (max-width: 575.98px) {
+					.fc .fc-toolbar.fc-header-toolbar {
+						flex-wrap: wrap;
+						gap: 0.25rem;
+					}
+					.fc .fc-toolbar-title {
+						font-size: 1.05rem;
+					}
+					.fc .fc-daygrid-day-number {
+						font-size: 0.65rem;
+					}
+					.fc-daygrid-event {
+						font-size: 0.55rem;
+						padding: 0 2px;
+					}
+				}
+			`}</style>
 		</div>
 	);
 }
