@@ -64,9 +64,14 @@ class SortByCreated implements NoteSorting {
 class SortByTitle implements NoteSorting {
 	sort(notes: note[], direction: sortDirection): note[] {
 		notes.sort((a: note, b: note) => {
-			return (
-				(a.title > b.title ? 1 : a.title < b.title ? -1 : 0) * direction
-			);
+			//mi sto pentendo di aver usato String invece di string
+			const at = a.title ? a.title.toString() : "";
+			const bt = b.title ? b.title.toString() : "";
+			const cmp = at.localeCompare(bt, undefined, {
+				numeric: true,
+				sensitivity: "base"
+			});
+			return cmp * direction;
 		});
 		return notes;
 	}

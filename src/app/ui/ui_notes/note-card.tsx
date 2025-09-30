@@ -63,6 +63,8 @@ export default function NoteCard({
 				{passedNote.content.substring(0, 200)}
 				<br />
 				Ultima modifica: {passedNote.modified.toLocaleString()}
+				<br />
+				Creazione: {passedNote.created.toLocaleString()}
 			</button>
 			<div className={"card-footer"}>
 				Tags:

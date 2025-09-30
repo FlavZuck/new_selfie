@@ -13,6 +13,7 @@ import NoteDialog from "../ui/ui_notes/note-dialog";
 
 export default function Notes() {
 	const [notes, setNotes] = useState([] as note[]);
+	const [allNotes, setAllNotes] = useState([] as note[]); // MASTER LIST (NEW)
 	const [loading, setLoading] = useState(true);
 	const [sortingMode, setSortingMode] = useState(
 		new NoteSorter("byCreated", 1)
@@ -45,18 +46,37 @@ export default function Notes() {
 			note.modified = new Date(note.modified);
 			return note;
 		});
-
-		//TODO: Sorting fatto rispetto alla scelta dell'utente, da memorizzare dove?
-		setNotes(sortingMode.sort(notesData));
+		const sorted = sortingMode.sort([...notesData]);
+		setAllNotes(sorted);
+		// Apply current tag filter (if any)
+		const currentTagSelect = document.querySelector(
+			"#tagFilter"
+		) as HTMLSelectElement | null;
+		if (
+			currentTagSelect &&
+			currentTagSelect.value &&
+			currentTagSelect.value !== "all"
+		) {
+			setNotes(
+				sorted.filter((n) => n.tags.includes(currentTagSelect.value))
+			);
+		} else {
+			setNotes(sorted);
+		}
 		setLoading(false);
 	}
 
-	/*async function fetchNote(id:ObjectId) {
-		let note = await fetch(`/api/notes/${id.toString()}`, { method: "GET" });
-		return note;
-	}*/
+	function applyFilterAndSort(updatedAll: note[]) {
+		const tagSel = document.querySelector(
+			"#tagFilter"
+		) as HTMLSelectElement | null;
+		let base = updatedAll;
+		if (tagSel && tagSel.value !== "all") {
+			base = updatedAll.filter((n) => n.tags.includes(tagSel.value));
+		}
+		setNotes(sortingMode.sort([...base]));
+	}
 
-	// TODO analizzare tutte queste funzioni nell'ottica di separation of concerns
 	function initNoteDialog(note: note) {
 		const dialog = document.querySelector(
 			"#noteDialog"
@@ -68,6 +88,7 @@ export default function Notes() {
 			"textarea[name='testoNota']"
 		) as HTMLInputElement;
 		const tagslist = dialog.querySelector("#tagslist") as HTMLDivElement;
+		tagslist.innerHTML = "";
 		note.tags.forEach((tag) => {
 			const newTag = document.createElement("span");
 			newTag.className = "badge bg-secondary m-1";
@@ -140,13 +161,11 @@ export default function Notes() {
 		const sentNote = await PUTresponse.json();
 		sentNote.created = new Date(sentNote.created);
 		sentNote.modified = new Date(sentNote.modified);
-		setNotes(
-			sortingMode.sort(
-				notes
-					.filter((note) => String(note._id) !== openedId)
-					.concat(sentNote)
-			)
-		);
+		const updatedAll = allNotes
+			.filter((n) => String(n._id) !== openedId)
+			.concat(sentNote);
+		setAllNotes(sortingMode.sort([...updatedAll]));
+		applyFilterAndSort(updatedAll);
 		(document.querySelector("#noteForm") as HTMLFormElement).reset();
 		(document.querySelector("#tagslist") as HTMLDivElement).innerHTML = "";
 		setOpenedId(null);
@@ -160,32 +179,39 @@ export default function Notes() {
 				sortDirection
 			)
 		);
-		setNotes(sortingMode.sort(notes));
+		const sorted = sortingMode.sort([...allNotes]);
+		setAllNotes(sorted);
+		applyFilterAndSort(sorted);
 	}
 
 	function setDirection() {
-		setSortDirection((sortDirection * -1) as sortDirection);
-		document.querySelector("#directionButton")!.textContent =
-			sortDirection === 1 ? "⬆️" : "⬇️";
-		setSortingMode(
-			new NoteSorter(
-				(document.querySelector("select") as HTMLSelectElement)
-					.value as sortMode,
-				sortDirection
-			)
-		);
-		setNotes(sortingMode.sort(notes));
+		setSortDirection((prev) => {
+			const nextDir = (prev * -1) as sortDirection;
+			setSortingMode(
+				new NoteSorter(
+					(document.querySelector("select") as HTMLSelectElement)
+						.value as sortMode,
+					nextDir
+				)
+			);
+			const sorted = sortingMode.sort([...allNotes]);
+			setAllNotes(sorted);
+			applyFilterAndSort(sorted);
+			return nextDir;
+		});
 	}
 
 	function filterByTag() {
 		const wanted = (
 			document.querySelector("#tagFilter") as HTMLSelectElement
 		).value;
-		console.log("wanted: ", wanted);
-		if (wanted !== "all") {
-			setNotes(notes.filter((note) => note.tags.includes(wanted)));
+		if (wanted === "all") {
+			applyFilterAndSort(allNotes);
 		} else {
-			fetchNotes();
+			const filtered = allNotes.filter((note) =>
+				note.tags.includes(wanted)
+			);
+			setNotes(sortingMode.sort([...filtered]));
 		}
 	}
 
@@ -197,6 +223,11 @@ export default function Notes() {
 	if (loading) {
 		return <p>Caricamento in corso...</p>;
 	}
+
+	// build unique tag list from allNotes (not just visible notes)
+	const uniqueTags = Array.from(
+		new Set(allNotes.flatMap((n) => n.tags.map((t) => t.toString())))
+	).sort();
 
 	//TODO: dividere in più componenti!!!!
 	return (
@@ -215,18 +246,16 @@ export default function Notes() {
 			</select>
 
 			<button id="directionButton" onClick={setDirection}>
-				⬇️
+				{sortDirection === 1 ? "⬇️" : "⬆️"}
 			</button>
 
 			<select id="tagFilter" onChange={filterByTag}>
 				<option value="all">Tutte le note</option>
-				{notes.map((note) =>
-					note.tags.map((tag) => (
-						<option key={tag.toString()} value={tag.toString()}>
-							{tag.toString()}
-						</option>
-					))
-				)}
+				{uniqueTags.map((tag) => (
+					<option key={tag} value={tag}>
+						{tag}
+					</option>
+				))}
 			</select>
 
 			<ol
@@ -242,24 +271,28 @@ export default function Notes() {
 							passedNote={note}
 							onEdit={editNote}
 							onDelete={(id: string) => {
-								setNotes(
-									notes.filter(
-										(note) => String(note._id) !== id
-									)
+								const updatedAll = allNotes.filter(
+									(n) => String(n._id) !== id
 								);
+								setAllNotes(updatedAll);
+								applyFilterAndSort(updatedAll);
 							}}
 							onDuplicate={(id: ObjectId) => {
-								setNotes(
-									notes.concat({
-										_id: id,
-										title: note.title + " (Copia)",
-										content: note.content,
-										tags: note.tags,
-										owner: note.owner,
-										created: new Date(),
-										modified: new Date()
-									} as note)
-								);
+								const duplicated: note = {
+									_id: id,
+									title: note.title + " (Copia)",
+									content: note.content,
+									tags: note.tags,
+									owner: note.owner,
+									created: new Date(),
+									modified: new Date()
+								} as note;
+								const updatedAll = [...allNotes, duplicated];
+								const resortedAll = sortingMode.sort([
+									...updatedAll
+								]);
+								setAllNotes(resortedAll);
+								applyFilterAndSort(resortedAll);
 							}}
 						></NoteCard>
 					</li>
