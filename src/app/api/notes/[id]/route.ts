@@ -79,9 +79,11 @@ async function deleteNote(id: string): Promise<void> {
 	console.log("deleteNote result:", result);
 }
 
+type RouteParams = Promise<{ id: string }>;
+
 export async function GET(
 	request: NextRequest,
-	{ params }: { params: { id: string } }
+	{ params }: { params: RouteParams }
 ) {
 	const { id } = await params;
 	let note: note | null;
@@ -107,7 +109,7 @@ export async function GET(
 
 export async function PUT(
 	request: NextRequest,
-	{ params }: { params: { id: string } }
+	{ params }: { params: RouteParams }
 ) {
 	const { id } = await params;
 	const reqData = await request.json();
@@ -117,9 +119,9 @@ export async function PUT(
 
 export async function DELETE(
 	request: NextRequest,
-	{ params }: { params: { id: string } }
+	{ params }: { params: RouteParams }
 ) {
 	const { id } = await params;
-	deleteNote(id);
+	await deleteNote(id);
 	return NextResponse.json({ message: `note deleted` }, { status: 200 });
 }
