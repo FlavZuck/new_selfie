@@ -13,6 +13,14 @@ import { redirect } from "next/navigation";
 import { USERS, findDB, findUserById, insertDB } from "../lib/mongodb";
 import { decrypt, deleteSession, generateSessionToken } from "../lib/session";
 
+// Helper per determinare se il cookie debba essere marcato come secure.
+// Problema riscontrato: in ambiente Docker servito su HTTP il flag secure impediva
+// l'invio del cookie al server, causando redirect continui alla landing.
+// Impostare COOKIE_SECURE=false per forzare cookie non-secure in tali ambienti.
+const COOKIE_SECURE =
+	process.env.COOKIE_SECURE !== "false" &&
+	process.env.NODE_ENV === "production";
+
 export async function signup(state: FormState, formData: FormData) {
 	// Validate form fields
 	const validatedFields = await SignupFormSchema.safeParseAsync({
@@ -85,9 +93,7 @@ export async function login(state: FormState, formData: FormData) {
 
 	// 3. Insert the user into the database
 	// Payload to insert into the database
-	const payload = {
-		email
-	};
+	const payload = { email };
 
 	const user = await findDB<User>(USERS, payload);
 	if (!user) {
@@ -104,7 +110,7 @@ export async function login(state: FormState, formData: FormData) {
 			const biscottino = await cookies();
 			biscottino.set("session", token, {
 				httpOnly: true,
-				secure: true,
+				secure: COOKIE_SECURE,
 				expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
 				sameSite: "lax",
 				path: "/"

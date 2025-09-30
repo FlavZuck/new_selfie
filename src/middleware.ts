@@ -5,10 +5,8 @@ import { decrypt } from "./app/lib/session";
 
 export default async function isAuthenticated(biscottino: RequestCookies) {
 	const sessionCookie = biscottino.get("session")?.value;
-
 	const sessionData = sessionCookie ? await decrypt(sessionCookie) : null;
 	const isAuthenticated = Boolean(sessionData && "userId" in sessionData);
-	console.log("isAuthenticated", isAuthenticated);
 	return isAuthenticated;
 }
 
