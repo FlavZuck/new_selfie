@@ -3,6 +3,7 @@
 import { SessionPayload } from "@/app/lib/definitions/def_auth";
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
+import { COOKIE_SECURE} from "./cookie_config";
 
 // Prendiamo la chiave segreta dalla variabile d'ambiente e la codifichiamo
 const secretKey = process.env.SESSION_SECRET;
@@ -49,8 +50,8 @@ export async function updateSession() {
 	const cookieStore = await cookies();
 	cookieStore.set("session", session, {
 		httpOnly: true,
-		secure: true,
-		expires: expires,
+		secure: COOKIE_SECURE,
+		expires,
 		sameSite: "lax",
 		path: "/"
 	});

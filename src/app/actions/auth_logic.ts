@@ -10,16 +10,10 @@ import bcrypt from "bcrypt";
 import { RequestCookies } from "next/dist/compiled/@edge-runtime/cookies";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { COOKIE_SECURE } from "../lib/cookie_config";
 import { USERS, findDB, findUserById, insertDB } from "../lib/mongodb";
 import { decrypt, deleteSession, generateSessionToken } from "../lib/session";
 
-// Helper per determinare se il cookie debba essere marcato come secure.
-// Problema riscontrato: in ambiente Docker servito su HTTP il flag secure impediva
-// l'invio del cookie al server, causando redirect continui alla landing.
-// Impostare COOKIE_SECURE=false per forzare cookie non-secure in tali ambienti.
-const COOKIE_SECURE =
-	process.env.COOKIE_SECURE !== "false" &&
-	process.env.NODE_ENV === "production";
 
 export async function signup(state: FormState, formData: FormData) {
 	// Validate form fields

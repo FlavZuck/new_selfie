@@ -174,19 +174,38 @@ export default function PageCalendar() {
 					<ImportButton refetch={fetchEvents} />
 				</div>
 				<div className="d-flex flex-wrap gap-4 align-items-center small">
+					<label className="mb-0 fw-bold">Legenda:</label>
 					<span className="d-flex align-items-center gap-2">
-						<span className="badge text-bg-primary">Attività</span>=
-						blu
+						<span
+							className="badge"
+							style={{ backgroundColor: "#0d6efd" }}
+						>
+							Attività
+						</span>
 					</span>
 					<span className="d-flex align-items-center gap-2">
-						<span className="badge text-bg-danger">Evento</span>=
-						rosso
+						<span
+							className="badge"
+							style={{ backgroundColor: "#dc3545" }}
+						>
+							Evento
+						</span>
 					</span>
 					<span className="d-flex align-items-center gap-2">
-						<span className="badge text-bg-success">
+						<span
+							className="badge "
+							style={{ backgroundColor: "#198754" }}
+						>
 							Evento Ricorrente
 						</span>
-						= verde
+					</span>
+					<span className="d-flex align-items-center gap-2">
+						<span
+							className="badge"
+							style={{ backgroundColor: "#6f42c1" }}
+						>
+							Pomodoro
+						</span>
 					</span>
 				</div>
 			</div>
